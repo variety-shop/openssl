@@ -499,3 +499,9 @@ void EVP_PKEY_asn1_set_item(EVP_PKEY_ASN1_METHOD *ameth,
     ameth->item_sign = item_sign;
     ameth->item_verify = item_verify;
 }
+
+void EVP_PKEY_asn1_set_security_bits(EVP_PKEY_ASN1_METHOD *ameth,
+                                     int (*pkey_security_bits)(const EVP_PKEY *pk))
+{
+    ameth->pkey_security_bits = pkey_security_bits;
+}
