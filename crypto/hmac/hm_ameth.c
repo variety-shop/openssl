@@ -153,7 +153,7 @@ const EVP_PKEY_ASN1_METHOD hmac_asn1_meth = {
     0, 0, 0,
 
     hmac_size,
-    0,
+    0, 0,
     0, 0, 0, 0, 0, 0, 0,
 
     hmac_key_free,
