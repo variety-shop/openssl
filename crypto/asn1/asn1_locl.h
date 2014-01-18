@@ -91,6 +91,7 @@ struct evp_pkey_asn1_method_st {
                        ASN1_PCTX *pctx);
     int (*pkey_size) (const EVP_PKEY *pk);
     int (*pkey_bits) (const EVP_PKEY *pk);
+    int (*pkey_security_bits) (const EVP_PKEY *pk);
     int (*param_decode) (EVP_PKEY *pkey,
                          const unsigned char **pder, int derlen);
     int (*param_encode) (const EVP_PKEY *pkey, unsigned char **pder);
