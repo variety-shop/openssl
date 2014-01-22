@@ -3275,6 +3275,9 @@ long ssl3_ctrl(SSL *s, int cmd, long larg, void *parg)
             return (ret);
         }
         break;
+    case SSL_CTRL_SET_DH_AUTO:
+        s->cert->dh_tmp_auto = larg;
+        return 1;
 #endif
 #ifndef OPENSSL_NO_ECDH
     case SSL_CTRL_SET_TMP_ECDH:
@@ -3777,6 +3780,9 @@ long ssl3_ctx_ctrl(SSL_CTX *ctx, int cmd, long larg, void *parg)
             return (0);
         }
         break;
+    case SSL_CTRL_SET_DH_AUTO:
+        ctx->cert->dh_tmp_auto = larg;
+        return 1;
 #endif
 #ifndef OPENSSL_NO_ECDH
     case SSL_CTRL_SET_TMP_ECDH:
