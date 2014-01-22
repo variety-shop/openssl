@@ -1049,8 +1049,9 @@ t1_ext.o: ../include/openssl/symhacks.h ../include/openssl/tls1.h
 t1_ext.o: ../include/openssl/x509.h ../include/openssl/x509_vfy.h ssl_locl.h
 t1_ext.o: t1_ext.c
 t1_lib.o: ../e_os.h ../include/openssl/asn1.h ../include/openssl/bio.h
-t1_lib.o: ../include/openssl/buffer.h ../include/openssl/comp.h
-t1_lib.o: ../include/openssl/conf.h ../include/openssl/crypto.h
+t1_lib.o: ../include/openssl/bn.h ../include/openssl/buffer.h
+t1_lib.o: ../include/openssl/comp.h ../include/openssl/conf.h
+t1_lib.o: ../include/openssl/crypto.h ../include/openssl/dh.h
 t1_lib.o: ../include/openssl/dsa.h ../include/openssl/dtls1.h
 t1_lib.o: ../include/openssl/e_os2.h ../include/openssl/ec.h
 t1_lib.o: ../include/openssl/ecdh.h ../include/openssl/ecdsa.h
