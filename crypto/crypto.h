@@ -156,6 +156,7 @@ extern "C" {
 # define SSLEAY_BUILT_ON         3
 # define SSLEAY_PLATFORM         4
 # define SSLEAY_DIR              5
+# define SSLEAY_SECURE_HEAP      6
 
 /* Already declared in ossl_typ.h */
 # if 0
@@ -499,12 +500,12 @@ void (*CRYPTO_get_dynlock_destroy_callback(void)) (struct CRYPTO_dynlock_value
 int CRYPTO_set_mem_functions(void *(*m) (size_t), void *(*r) (void *, size_t),
                              void (*f) (void *));
 int CRYPTO_set_locked_mem_functions(void *(*m) (size_t),
-                                    void (*free_func) (void *));
+                                    void (*f) (void *));
 int CRYPTO_set_mem_ex_functions(void *(*m) (size_t, const char *, int),
                                 void *(*r) (void *, size_t, const char *,
                                             int), void (*f) (void *));
 int CRYPTO_set_locked_mem_ex_functions(void *(*m) (size_t, const char *, int),
-                                       void (*free_func) (void *));
+                                       void (*f) (void *));
 int CRYPTO_set_mem_debug_functions(void (*m)
                                     (void *, int, const char *, int, int),
                                    void (*r) (void *, void *, int,
@@ -538,6 +539,29 @@ void *CRYPTO_realloc(void *addr, int num, const char *file, int line);
 void *CRYPTO_realloc_clean(void *addr, int old_num, int num, const char *file,
                            int line);
 void *CRYPTO_remalloc(void *addr, int num, const char *file, int line);
+
+# ifndef OPENSSL_NO_SECURE_HEAP
+#  define OPENSSL_secure_malloc(num) \
+        CRYPTO_secure_malloc((size_t)num,__FILE__,__LINE__)
+#  define OPENSSL_secure_free(addr) \
+        CRYPTO_secure_free(addr)
+
+int CRYPTO_secure_malloc_init(size_t sz, int minsize);
+void CRYPTO_secure_malloc_done(void);
+void *CRYPTO_secure_malloc(size_t num, const char *file, int line);
+void CRYPTO_secure_free(void *ptr);
+int CRYPTO_secure_allocated(const void *ptr);
+void *CRYPTO_secure_realloc(void *ptr, size_t size, const char *file, int line);
+int CRYPTO_secure_malloc_initialized(void);
+size_t CRYPTO_secure_actual_size(void *ptr);
+
+int CRYPTO_set_secure_mem_functions(void *(*m)(size_t), void (*f)(void *));
+int CRYPTO_set_secure_mem_ex_functions(void *(*m)(size_t,const char *,int),
+                                       void (*f)(void *));
+void CRYPTO_get_secure_mem_functions(void *(**m)(size_t), void (**f)(void *));
+void CRYPTO_get_secure_mem_ex_functions(void *(**m)(size_t,const char *,int),
+                                        void (**f)(void *));
+# endif
 
 void OPENSSL_cleanse(void *ptr, size_t len);
 
