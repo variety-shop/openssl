@@ -206,8 +206,17 @@ void BN_clear_free(BIGNUM *a)
     bn_check_top(a);
     if (a->d != NULL) {
         OPENSSL_cleanse(a->d, a->dmax * sizeof(a->d[0]));
+#ifdef OPENSSL_NO_SECURE_HEAP
         if (!(BN_get_flags(a, BN_FLG_STATIC_DATA)))
             OPENSSL_free(a->d);
+#else
+        if (!(BN_get_flags(a, BN_FLG_STATIC_DATA))) {
+            if (BN_get_flags(a, BN_FLG_SECURE))
+                OPENSSL_secure_free(a->d);
+            else
+                OPENSSL_free(a->d);
+        }
+#endif
     }
     i = BN_get_flags(a, BN_FLG_MALLOCED);
     OPENSSL_cleanse(a, sizeof(BIGNUM));
@@ -220,8 +229,17 @@ void BN_free(BIGNUM *a)
     if (a == NULL)
         return;
     bn_check_top(a);
+#ifdef OPENSSL_NO_SECURE_HEAP
     if ((a->d != NULL) && !(BN_get_flags(a, BN_FLG_STATIC_DATA)))
         OPENSSL_free(a->d);
+#else
+    if ((a->d != NULL) && !(BN_get_flags(a, BN_FLG_STATIC_DATA))) {
+        if (BN_get_flags(a, BN_FLG_SECURE))
+            OPENSSL_secure_free(a->d);
+        else
+            OPENSSL_free(a->d);
+    }
+#endif
     if (a->flags & BN_FLG_MALLOCED)
         OPENSSL_free(a);
     else {
@@ -255,6 +273,14 @@ BIGNUM *BN_new(void)
     return (ret);
 }
 
+ BIGNUM *BN_secure_new(void)
+ {
+     BIGNUM *ret = BN_new();
+     if (ret)
+         ret->flags |= BN_FLG_SECURE;
+     return (ret);
+ }
+
 /* This is used both by bn_expand2() and bn_dup_expand() */
 /* The caller MUST check that words > b->dmax before calling this */
 static BN_ULONG *bn_expand_internal(const BIGNUM *b, int words)
@@ -271,7 +297,14 @@ static BN_ULONG *bn_expand_internal(const BIGNUM *b, int words)
         BNerr(BN_F_BN_EXPAND_INTERNAL, BN_R_EXPAND_ON_STATIC_BIGNUM_DATA);
         return (NULL);
     }
-    a = A = (BN_ULONG *)OPENSSL_malloc(sizeof(BN_ULONG) * words);
+#ifdef OPENSSL_NO_SECURE_HEAP
+    a = A = (BN_ULONG *)OPENSSL_malloc(sizeof(BN_ULONG)*words);
+#else
+    if (BN_get_flags(b, BN_FLG_SECURE))
+        a = A = (BN_ULONG *)OPENSSL_secure_malloc(sizeof(BN_ULONG)*words);
+    else
+        a = A = (BN_ULONG *)OPENSSL_malloc(sizeof(BN_ULONG)*words);
+#endif
     if (A == NULL) {
         BNerr(BN_F_BN_EXPAND_INTERNAL, ERR_R_MALLOC_FAILURE);
         return (NULL);
@@ -362,7 +395,14 @@ BIGNUM *bn_dup_expand(const BIGNUM *b, int words)
         BN_ULONG *a = bn_expand_internal(b, words);
 
         if (a) {
+#ifdef OPENSSL_NO_SECURE_HEAP
             r = BN_new();
+#else
+            if (BN_get_flags(b, BN_FLG_SECURE))
+                r = BN_secure_new();
+            else
+                r = BN_new();
+#endif
             if (r) {
                 r->top = b->top;
                 r->dmax = words;
@@ -370,7 +410,14 @@ BIGNUM *bn_dup_expand(const BIGNUM *b, int words)
                 r->d = a;
             } else {
                 /* r == NULL, BN_new failure */
+#ifdef OPENSSL_NO_SECURE_HEAP
                 OPENSSL_free(a);
+#else
+                if (BN_get_flags(b, BN_FLG_SECURE))
+                    OPENSSL_secure_free(a);
+                else
+                    OPENSSL_free(a);
+#endif
             }
         }
         /*
@@ -400,8 +447,17 @@ BIGNUM *bn_expand2(BIGNUM *b, int words)
         BN_ULONG *a = bn_expand_internal(b, words);
         if (!a)
             return NULL;
+#ifdef OPENSSL_NO_SECURE_HEAP
         if (b->d)
             OPENSSL_free(b->d);
+#else
+        if (b->d) {
+            if (BN_get_flags(b, BN_FLG_SECURE))
+                OPENSSL_secure_free(b->d);
+            else
+                OPENSSL_free(b->d);
+        }
+#endif
         b->d = a;
         b->dmax = words;
     }
@@ -440,7 +496,14 @@ BIGNUM *BN_dup(const BIGNUM *a)
         return NULL;
     bn_check_top(a);
 
+#ifdef OPENSSL_NO_SECURE_HEAP
     t = BN_new();
+#else
+    if (BN_get_flags(a, BN_FLG_SECURE))
+        t = BN_secure_new();
+    else
+        t = BN_new();
+#endif
     if (t == NULL)
         return NULL;
     if (!BN_copy(t, a)) {

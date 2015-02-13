@@ -37,10 +37,10 @@ LIB= $(TOP)/libcrypto.a
 SHARED_LIB= libcrypto$(SHLIB_EXT)
 LIBSRC=	cryptlib.c mem.c mem_clr.c mem_dbg.c cversion.c ex_data.c cpt_err.c \
 	ebcdic.c uid.c o_time.c o_str.c o_dir.c o_fips.c o_init.c fips_ers.c \
-	getenv.c
+	getenv.c sec_mem.c
 LIBOBJ= cryptlib.o mem.o mem_dbg.o cversion.o ex_data.o cpt_err.o ebcdic.o \
 	uid.o o_time.o o_str.o o_dir.o o_fips.o o_init.o fips_ers.o getenv.o \
-	$(CPUID_OBJ)
+	$(CPUID_OBJ) sec_mem.o
 
 SRC= $(LIBSRC)
 
@@ -224,6 +224,10 @@ o_str.o: ../e_os.h ../include/openssl/e_os2.h ../include/openssl/opensslconf.h
 o_str.o: o_str.c o_str.h
 o_time.o: ../include/openssl/e_os2.h ../include/openssl/opensslconf.h o_time.c
 o_time.o: o_time.h
+sec_mem.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
+sec_mem.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
+sec_mem.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
+sec_mem.o: ../include/openssl/stack.h ../include/openssl/symhacks.h sec_mem.c
 uid.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
 uid.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
 uid.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
