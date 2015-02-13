@@ -1386,6 +1386,15 @@ int SSL_CTX_set_cipher_list(SSL_CTX *ctx, const char *str)
     return 1;
 }
 
+/** specifiy the ciphers to be used by default by the SSL_CTX and set options */
+int SSL_CTX_set_ciphers_ex(SSL_CTX *ctx,const char *str, unsigned long flags)
+{
+    int ret = SSL_CTX_set_cipher_list(ctx,str);
+    if (ret > 0 && flags)
+        ret = SSL_CTX_set_options(ctx,flags);
+    return ret;
+}
+
 /** specify the ciphers to be used by the SSL */
 int SSL_set_cipher_list(SSL *s, const char *str)
 {
