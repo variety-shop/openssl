@@ -1052,6 +1052,8 @@ EC_KEY *d2i_ECPrivateKey(EC_KEY **a, const unsigned char **in, long len)
     ret->version = priv_key->version;
 
     if (priv_key->privateKey) {
+        if (ret->priv_key == NULL)
+            ret->priv_key = BN_secure_new();
         ret->priv_key = BN_bin2bn(M_ASN1_STRING_data(priv_key->privateKey),
                                   M_ASN1_STRING_length(priv_key->privateKey),
                                   ret->priv_key);

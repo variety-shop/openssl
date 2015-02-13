@@ -232,7 +232,8 @@ static int dh_priv_decode(EVP_PKEY *pkey, PKCS8_PRIV_KEY_INFO *p8)
     if (!(dh = d2i_dhp(pkey, &pm, pmlen)))
         goto decerr;
     /* We have parameters now set private key */
-    if (!(dh->priv_key = ASN1_INTEGER_to_BN(privkey, NULL))) {
+    if (!(dh->priv_key = BN_secure_new()) ||
+        !ASN1_INTEGER_to_BN(privkey, dh->priv_key)) {
         DHerr(DH_F_DH_PRIV_DECODE, DH_R_BN_ERROR);
         goto dherr;
     }

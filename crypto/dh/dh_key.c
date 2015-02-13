@@ -144,7 +144,7 @@ static int generate_key(DH *dh)
         goto err;
 
     if (dh->priv_key == NULL) {
-        priv_key = BN_new();
+        priv_key = BN_secure_new();
         if (priv_key == NULL)
             goto err;
         generate_new_key = 1;
