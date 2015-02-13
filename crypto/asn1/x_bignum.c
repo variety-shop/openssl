@@ -72,6 +72,7 @@
 #define BN_SENSITIVE    1
 
 static int bn_new(ASN1_VALUE **pval, const ASN1_ITEM *it);
+static int bn_secure_new(ASN1_VALUE **pval, const ASN1_ITEM *it);
 static void bn_free(ASN1_VALUE **pval, const ASN1_ITEM *it);
 
 static int bn_i2c(ASN1_VALUE **pval, unsigned char *cont, int *putype,
@@ -80,6 +81,8 @@ static int bn_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
                   int utype, char *free_cont, const ASN1_ITEM *it);
 static int bn_print(BIO *out, ASN1_VALUE **pval, const ASN1_ITEM *it,
                     int indent, const ASN1_PCTX *pctx);
+static int bn_secure_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
+                         int utype, char *free_cont, const ASN1_ITEM *it);
 
 static ASN1_PRIMITIVE_FUNCS bignum_pf = {
     NULL, 0,
@@ -91,17 +94,36 @@ static ASN1_PRIMITIVE_FUNCS bignum_pf = {
     bn_print
 };
 
+static ASN1_PRIMITIVE_FUNCS cbignum_pf = {
+    NULL, 0,
+    bn_secure_new,
+    bn_free,
+    0,
+    bn_secure_c2i,
+    bn_i2c,
+    bn_print
+};
+
 ASN1_ITEM_start(BIGNUM)
         ASN1_ITYPE_PRIMITIVE, V_ASN1_INTEGER, NULL, 0, &bignum_pf, 0, "BIGNUM"
 ASN1_ITEM_end(BIGNUM)
 
 ASN1_ITEM_start(CBIGNUM)
-        ASN1_ITYPE_PRIMITIVE, V_ASN1_INTEGER, NULL, 0, &bignum_pf, BN_SENSITIVE, "BIGNUM"
+        ASN1_ITYPE_PRIMITIVE, V_ASN1_INTEGER, NULL, 0, &cbignum_pf, BN_SENSITIVE, "BIGNUM"
 ASN1_ITEM_end(CBIGNUM)
 
 static int bn_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
     *pval = (ASN1_VALUE *)BN_new();
+    if (*pval)
+        return 1;
+    else
+        return 0;
+}
+
+static int bn_secure_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
+{
+    *pval = (ASN1_VALUE *)BN_secure_new();
     if (*pval)
         return 1;
     else
@@ -162,5 +184,19 @@ static int bn_print(BIO *out, ASN1_VALUE **pval, const ASN1_ITEM *it,
         return 0;
     if (BIO_puts(out, "\n") <= 0)
         return 0;
+    return 1;
+}
+
+static int bn_secure_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
+                         int utype, char *free_cont, const ASN1_ITEM *it)
+{
+    BIGNUM *bn;
+    if (!*pval)
+        bn_secure_new(pval, it);
+    bn  = (BIGNUM *)*pval;
+    if(!BN_bin2bn(cont, len, bn)) {
+        bn_free(pval, it);
+        return 0;
+    }
     return 1;
 }
