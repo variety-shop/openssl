@@ -1041,6 +1041,7 @@ int ssl3_get_server_hello(SSL *s)
          * overwritten if the server refuses resumption.
          */
         if (s->session->session_id_length > 0) {
+            s->ctx->stats.sess_miss++;
             if (!ssl_get_new_session(s, 0)) {
                 goto f_err;
             }
