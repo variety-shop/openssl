@@ -73,6 +73,10 @@ struct ssl_ex_data_akamai_st
 
     /* count of preferred ciphers */
     int akamai_cipher_count;
+
+# ifndef OPENSSL_NO_AKAMAI_CB
+    SSL_AKAMAI_CB akamai_cb;
+# endif
 };
 
 /* Used to initialize and get the akamai EX_DATA structures in one fell swoop */
