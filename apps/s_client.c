@@ -1886,8 +1886,8 @@ int MAIN(int argc, char **argv)
                 read_ssl = 1;
                 write_ssl = 0;
                 break;
-            case SSL_ERROR_WANT_X509_LOOKUP:
-                BIO_printf(bio_c_out, "write X BLOCK\n");
+            case SSL_ERROR_WANT_EVENT:
+                BIO_printf(bio_c_out, "event %d BLOCK\n", SSL_want(con));
                 break;
             case SSL_ERROR_ZERO_RETURN:
                 if (cbuf_len != 0) {
@@ -1984,8 +1984,8 @@ int MAIN(int argc, char **argv)
                 if ((read_tty == 0) && (write_ssl == 0))
                     write_ssl = 1;
                 break;
-            case SSL_ERROR_WANT_X509_LOOKUP:
-                BIO_printf(bio_c_out, "read X BLOCK\n");
+            case SSL_ERROR_WANT_EVENT:
+                BIO_printf(bio_c_out, "event %d BLOCK\n", SSL_want(con));
                 break;
             case SSL_ERROR_SYSCALL:
                 ret = get_last_socket_error();
