@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-SSL_want, SSL_want_nothing, SSL_want_read, SSL_want_write, SSL_want_x509_lookup - obtain state information TLS/SSL I/O operation
+SSL_want, SSL_want_nothing, SSL_want_read, SSL_want_write, SSL_want_event, SSL_want_x509_lookup - obtain state information TLS/SSL I/O operation
 
 =head1 SYNOPSIS
 
@@ -12,6 +12,7 @@ SSL_want, SSL_want_nothing, SSL_want_read, SSL_want_write, SSL_want_x509_lookup 
  int SSL_want_nothing(const SSL *ssl);
  int SSL_want_read(const SSL *ssl);
  int SSL_want_write(const SSL *ssl);
+ int SSL_want_event(const SSL *ssl);
  int SSL_want_x509_lookup(const SSL *ssl);
 
 =head1 DESCRIPTION
@@ -32,7 +33,10 @@ non-blocking I/O. Error conditions are not handled and must be treated
 using L<SSL_get_error(3)|SSL_get_error(3)>.
 
 The result returned by SSL_want() should always be consistent with
-the result of L<SSL_get_error(3)|SSL_get_error(3)>.
+the result of L<SSL_get_error(3)|SSL_get_error(3)>, but are not always
+the same value. Where L<SSL_get_error(3)|SSL_get_error(3)> returns
+SSL_ERROR_WANT_EVENT for any pending event, SSL_want() will return the specific
+event number that is needed.
 
 =head1 RETURN VALUES
 
@@ -65,9 +69,27 @@ SSL_CTX_set_client_cert_cb() has asked to be called again.
 A call to L<SSL_get_error(3)|SSL_get_error(3)> should return
 SSL_ERROR_WANT_X509_LOOKUP.
 
+=item SSL_EVENT_X509_LOOKUP
+
+Same as value as SSL_X509_LOOKUP, improved readability.
+
+=item SSL_EVENT_SRP_CLIENTHELLO
+
+The server is currently processing the TLS SRP client hello message and 
+retrieving the numeric parameters belonging to the presented user name.
+A call to L<SSL_get_error(3)|SSL_get_error(3)> should return
+SSL_ERROR_WANT_EVENT.
+
+=item SSL_MIN_EVENT
+
+Any unknown value by SSL_want() that is equal or greater to this value must be
+considered an event. SSL_want_event() will always return 1 in such a case. Since
+SSL_X509_LOOKUP is outside this range for backward compatibility reasons, it
+is safer to use SSL_want_event() when dealing with values unprepared for.
+
 =back
 
-SSL_want_nothing(), SSL_want_read(), SSL_want_write(), SSL_want_x509_lookup()
+SSL_want_nothing(), SSL_want_read(), SSL_want_write(), SSL_want_event(), SSL_want_x509_lookup()
 return 1, when the corresponding condition is true or 0 otherwise.
 
 =head1 SEE ALSO

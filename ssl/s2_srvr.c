@@ -118,15 +118,15 @@
 # include <openssl/evp.h>
 
 static const SSL_METHOD *ssl2_get_server_method(int ver);
-static int get_client_master_key(SSL *s);
+static int receive_client_master_key(SSL *s);
+static int decrypt_client_master_key(SSL *s);
+static int process_client_master_key(SSL *s);
 static int get_client_hello(SSL *s);
 static int server_hello(SSL *s);
 static int get_client_finished(SSL *s);
 static int server_verify(SSL *s);
 static int server_finish(SSL *s);
 static int request_certificate(SSL *s);
-static int ssl_rsa_private_decrypt(CERT *c, int len, unsigned char *from,
-                                   unsigned char *to, int padding);
 # define BREAK   break
 
 static const SSL_METHOD *ssl2_get_server_method(int ver)
@@ -230,8 +230,22 @@ int ssl2_accept(SSL *s)
                 BREAK;
             }
         case SSL2_ST_GET_CLIENT_MASTER_KEY_A:
+            ret = receive_client_master_key(s);
+            if (ret <= 0)
+                goto end;
+            /* fall through */
         case SSL2_ST_GET_CLIENT_MASTER_KEY_B:
-            ret = get_client_master_key(s);
+            ret = decrypt_client_master_key(s);
+            if (ret <= 0)
+                goto end;
+            /* fall through */
+        case SSL2_ST_GET_CLIENT_MASTER_KEY_C:
+            if (!ssl_event_did_succeed(s,
+                                       SSL_EVENT_KEY_EXCH_DECRYPT_DONE, 
+                                       &ret))
+                goto end;
+
+            ret = process_client_master_key(s);
             if (ret <= 0)
                 goto end;
             s->init_num = 0;
@@ -369,19 +383,13 @@ int ssl2_accept(SSL *s)
     return (ret);
 }
 
-static int get_client_master_key(SSL *s)
+static int receive_client_master_key(SSL *s)
 {
-    int is_export, i, n, keya;
-    unsigned int ek;
-    unsigned long len;
-    unsigned char *p;
     const SSL_CIPHER *cp;
-    const EVP_CIPHER *c;
-    const EVP_MD *md;
+    unsigned char *p = (unsigned char *)s->init_buf->data;
 
-    p = (unsigned char *)s->init_buf->data;
     if (s->state == SSL2_ST_GET_CLIENT_MASTER_KEY_A) {
-        i = ssl2_read(s, (char *)&(p[s->init_num]), 10 - s->init_num);
+        int i = ssl2_read(s, (char *)&(p[s->init_num]), 10 - s->init_num);
 
         if (i < (10 - s->init_num))
             return (ssl2_part_read(s, SSL_F_GET_CLIENT_MASTER_KEY, i));
@@ -419,9 +427,20 @@ static int get_client_master_key(SSL *s)
         s->session->key_arg_length = i;
         s->state = SSL2_ST_GET_CLIENT_MASTER_KEY_B;
     }
+    return 1;
+}
 
+static int decrypt_client_master_key(SSL *s)
+{
     /* SSL2_ST_GET_CLIENT_MASTER_KEY_B */
-    p = (unsigned char *)s->init_buf->data;
+    int i, n, keya;
+    unsigned int ek;
+    const EVP_MD *md;
+    const EVP_CIPHER *c;
+    unsigned long len;
+    unsigned char *p=(unsigned char *)s->init_buf->data;
+    int is_export = 0;
+
     if (s->init_buf->length < SSL2_MAX_RECORD_LENGTH_3_BYTE_HEADER) {
         ssl2_return_error(s, SSL2_PE_UNDEFINED_ERROR);
         SSLerr(SSL_F_GET_CLIENT_MASTER_KEY, ERR_R_INTERNAL_ERROR);
@@ -450,9 +469,12 @@ static int get_client_master_key(SSL *s)
     memcpy(s->session->key_arg, &(p[s->s2->tmp.clear + s->s2->tmp.enc]),
            (unsigned int)keya);
 
-    if (s->cert->pkeys[SSL_PKEY_RSA_ENC].privatekey == NULL) {
+    if (s->cert == NULL || s->cert->pkeys[SSL_PKEY_RSA_ENC].privatekey == NULL) {
         ssl2_return_error(s, SSL2_PE_UNDEFINED_ERROR);
         SSLerr(SSL_F_GET_CLIENT_MASTER_KEY, SSL_R_NO_PRIVATEKEY);
+        return (-1);
+    } else if (s->cert->pkeys[SSL_PKEY_RSA_ENC].privatekey->type != EVP_PKEY_RSA) {
+        SSLerr(SSL_F_SSL_RSA_PRIVATE_DECRYPT, SSL_R_PUBLIC_KEY_IS_NOT_RSA);
         return (-1);
     }
 
@@ -504,38 +526,75 @@ static int get_client_master_key(SSL *s)
         ssl2_return_error(s,SSL2_PE_UNDEFINED_ERROR);
         SSLerr(SSL_F_GET_CLIENT_MASTER_KEY,SSL_R_LENGTH_TOO_SHORT);
         return -1;
+    } else {
+        SSL_rsa_decrypt_ctx *ctx = &s->task.ctx.rsa_decrypt;
+        ctx->src = &(p[s->s2->tmp.clear]);
+        ctx->dest = &(p[s->s2->tmp.clear]);
+        ctx->src_len = s->s2->tmp.enc;
+        ctx->dest_len = 0;
+        ctx->rsa = s->cert->pkeys[SSL_PKEY_RSA_ENC].privatekey->pkey.rsa;
+        ctx->padding = (s->s2->ssl2_rollback) ? RSA_SSLV23_PADDING : RSA_PKCS1_PADDING;
+
+        s->state = SSL2_ST_GET_CLIENT_MASTER_KEY_C;
+        i = ssl_schedule_task(s, SSL_EVENT_KEY_EXCH_DECRYPT_DONE, ctx,
+                              (SSL_task_fn *)ssl_task_rsa_decrypt);
+        if (i < 0) {
+            ssl2_return_error(s,SSL2_PE_UNDEFINED_ERROR);
+            SSLerr(SSL_F_GET_CLIENT_MASTER_KEY,SSL_R_DECRYPTION_FAILED);
+        }
+        return i;
+    }
+}
+static int process_client_master_key(SSL *s)
+{
+    int key_len;
+    unsigned int ek;
+    const EVP_MD *md;
+    const EVP_CIPHER *c;
+    int is_export = SSL_C_IS_EXPORT(s->session->cipher);
+    unsigned char *p = (unsigned char *)s->init_buf->data + 10;
+
+    if (!ssl_cipher_get_evp(s->session, &c, &md, NULL, NULL, NULL)) {
+        ssl2_return_error(s, SSL2_PE_NO_CIPHER);
+        SSLerr(SSL_F_GET_CLIENT_MASTER_KEY,
+               SSL_R_PROBLEMS_MAPPING_CIPHER_FUNCTIONS);
+        return (0);
     }
 
-    i = ssl_rsa_private_decrypt(s->cert, s->s2->tmp.enc,
-                                &(p[s->s2->tmp.clear]),
-                                &(p[s->s2->tmp.clear]),
-                                (s->s2->ssl2_rollback) ? RSA_SSLV23_PADDING :
-                                RSA_PKCS1_PADDING);
+    if (s->session->cipher->algorithm2 & SSL2_CF_8_BYTE_ENC) {
+        is_export = 1;
+        ek = 8;
+    } else
+        ek = 5;
 
-    /* bad decrypt */
+    /*
+     * decryption result is either the decrypted number of bytes or a
+     * negative value if decryption failed.
+     */
+    key_len = s->task.ctx.rsa_decrypt.dest_len;
 # if 1
     /*
      * If a bad decrypt, continue with protocol but with a random master
      * secret (Bleichenbacher attack)
      */
-    if ((i < 0) || ((!is_export && i != EVP_CIPHER_key_length(c))
-                    || (is_export && i != (int)ek))) {
+    if ((key_len < 0) || ((!is_export && key_len != EVP_CIPHER_key_length(c))
+                    || (is_export && key_len != (int)ek))) {
         ERR_clear_error();
         if (is_export)
-            i = ek;
+            key_len = ek;
         else
-            i = EVP_CIPHER_key_length(c);
-        if (RAND_pseudo_bytes(&p[s->s2->tmp.clear], i) <= 0)
+            key_len = EVP_CIPHER_key_length(c);
+        if (RAND_pseudo_bytes(&p[s->s2->tmp.clear], key_len) <= 0)
             return 0;
     }
 # else
-    if (i < 0) {
+    if (key_len < 0) {
         error = 1;
         SSLerr(SSL_F_GET_CLIENT_MASTER_KEY, SSL_R_BAD_RSA_DECRYPT);
     }
     /* incorrect number of key bytes for non export cipher */
-    else if ((!is_export && (i != EVP_CIPHER_key_length(c)))
-             || (is_export && ((i != ek) || (s->s2->tmp.clear + i !=
+    else if ((!is_export && (key_len != EVP_CIPHER_key_length(c)))
+             || (is_export && ((key_len != ek) || (s->s2->tmp.clear + key_len !=
                                              EVP_CIPHER_key_length(c))))) {
         error = 1;
         SSLerr(SSL_F_GET_CLIENT_MASTER_KEY, SSL_R_WRONG_NUMBER_OF_KEY_BITS);
@@ -547,15 +606,15 @@ static int get_client_master_key(SSL *s)
 # endif
 
     if (is_export)
-        i = EVP_CIPHER_key_length(c);
+        key_len = EVP_CIPHER_key_length(c);
 
-    if (i > SSL_MAX_MASTER_KEY_LENGTH) {
+    if (key_len > SSL_MAX_MASTER_KEY_LENGTH) {
         ssl2_return_error(s, SSL2_PE_UNDEFINED_ERROR);
         SSLerr(SSL_F_GET_CLIENT_MASTER_KEY, ERR_R_INTERNAL_ERROR);
         return -1;
     }
-    s->session->master_key_length = i;
-    memcpy(s->session->master_key, p, (unsigned int)i);
+    s->session->master_key_length = key_len;
+    memcpy(s->session->master_key, p, (unsigned int)key_len);
     return (1);
 }
 
@@ -1126,28 +1185,6 @@ static int request_certificate(SSL *s)
     return (ret);
 }
 
-static int ssl_rsa_private_decrypt(CERT *c, int len, unsigned char *from,
-                                   unsigned char *to, int padding)
-{
-    RSA *rsa;
-    int i;
-
-    if ((c == NULL) || (c->pkeys[SSL_PKEY_RSA_ENC].privatekey == NULL)) {
-        SSLerr(SSL_F_SSL_RSA_PRIVATE_DECRYPT, SSL_R_NO_PRIVATEKEY);
-        return (-1);
-    }
-    if (c->pkeys[SSL_PKEY_RSA_ENC].privatekey->type != EVP_PKEY_RSA) {
-        SSLerr(SSL_F_SSL_RSA_PRIVATE_DECRYPT, SSL_R_PUBLIC_KEY_IS_NOT_RSA);
-        return (-1);
-    }
-    rsa = c->pkeys[SSL_PKEY_RSA_ENC].privatekey->pkey.rsa;
-
-    /* we have the public key */
-    i = RSA_private_decrypt(len, from, to, rsa, padding);
-    if (i < 0)
-        SSLerr(SSL_F_SSL_RSA_PRIVATE_DECRYPT, ERR_R_RSA_LIB);
-    return (i);
-}
 #else                           /* !OPENSSL_NO_SSL2 */
 
 # if PEDANTIC
