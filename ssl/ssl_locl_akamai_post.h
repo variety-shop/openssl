@@ -67,6 +67,9 @@ struct ssl_ex_data_akamai_st
     /* count of preferred ciphers */
     int akamai_cipher_count;
 
+# ifndef OPENSSL_NO_AKAMAI_CB
+    SSL_AKAMAI_CB akamai_cb;
+# endif
 # ifndef OPENSSL_NO_AKAMAI_RSALG
     unsigned char server_random[SSL3_RANDOM_SIZE];
 # endif
