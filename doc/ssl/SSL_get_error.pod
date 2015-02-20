@@ -83,10 +83,23 @@ can be used.
 
 =item SSL_ERROR_WANT_X509_LOOKUP
 
-The operation did not complete because an application callback set by
-SSL_CTX_set_client_cert_cb() has asked to be called again.
-The TLS/SSL I/O function should be called again later.
-Details depend on the application.
+Identical value to SSL_ERROR_WANT_EVENT, maintained for backward compatibility.
+
+=item SSL_ERROR_WANT_EVENT
+
+The operation did not complete because processing was stopped and can only
+proceed when a certain event happens. After it did happen, the TLS/SSL I/O 
+function needs to be called again. 
+
+(Ideally, the application would suspend/block its processing thread until
+the event happens (or a timeout triggers). OpenSSL currently opens no
+framework/utility for this and leaves this up to the application and its
+installed callback functions.)
+
+An example of such an event is the client certificate selection. An 
+application callback set by SSL_CTX_set_client_cert_cb() has asked to 
+be called again, ideally after the user selected/another task retrieved
+the certificate to be used.
 
 =item SSL_ERROR_SYSCALL
 

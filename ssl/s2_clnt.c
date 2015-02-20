@@ -127,6 +127,7 @@ static int client_finished(SSL *s);
 static int client_certificate(SSL *s);
 static int ssl_rsa_public_encrypt(SESS_CERT *sc, int len, unsigned char *from,
                                   unsigned char *to, int padding);
+static void ssl2_setup_client_verify_msg(SSL *s, void *task_ctx);
 # define BREAK   break
 
 static const SSL_METHOD *ssl2_get_client_method(int ver)
@@ -725,11 +726,8 @@ static int client_finished(SSL *s)
 static int client_certificate(SSL *s)
 {
     unsigned char *buf;
-    unsigned char *p, *d;
+    unsigned char *p;
     int i;
-    unsigned int n;
-    int cert_ch_len;
-    unsigned char *cert_ch;
 
     buf = (unsigned char *)s->init_buf->data;
 
@@ -739,6 +737,7 @@ static int client_certificate(SSL *s)
      */
 
     if (s->state == SSL2_ST_SEND_CLIENT_CERTIFICATE_A) {
+        /* server has requested a certificate from us */
         i = ssl2_read(s, (char *)&(buf[s->init_num]),
                       SSL2_MAX_CERT_CHALLENGE_LENGTH + 2 - s->init_num);
         if (i < (SSL2_MIN_CERT_CHALLENGE_LENGTH + 2 - s->init_num))
@@ -761,22 +760,22 @@ static int client_certificate(SSL *s)
         if ((s->cert == NULL) ||
             (s->cert->key->x509 == NULL) ||
             (s->cert->key->privatekey == NULL)) {
+            /* we do not have a cert yet, try to get one */
             s->state = SSL2_ST_X509_GET_CLIENT_CERTIFICATE;
-        } else
+        } else {
+            /* we have a cert, server is asking for one, send it */
             s->state = SSL2_ST_SEND_CLIENT_CERTIFICATE_C;
+        }
     }
-
-    cert_ch = buf + 2;
-    cert_ch_len = s->init_num - 2;
 
     if (s->state == SSL2_ST_X509_GET_CLIENT_CERTIFICATE) {
         X509 *x509 = NULL;
         EVP_PKEY *pkey = NULL;
 
         /*
-         * If we get an error we need to ssl->rwstate=SSL_X509_LOOKUP;
-         * return(error); We should then be retried when things are ok and we
-         * can get a cert or not
+         * If the callback is waiting, we get <0 returned and mark the 
+         * s->rwstate that we are waiting. -1 will tell the caller to
+         * check the error state and call us again at an appropriate time.
          */
 
         i = 0;
@@ -823,53 +822,82 @@ static int client_certificate(SSL *s)
     }
 
     if (s->state == SSL2_ST_SEND_CLIENT_CERTIFICATE_B) {
+        /* 
+         * server is asking for a cert, we do not have one. response was
+         * set up just above (SSL2_PE_NO_CERTIFICATE), send it.
+         */
         return (ssl2_do_write(s));
     }
 
     if (s->state == SSL2_ST_SEND_CLIENT_CERTIFICATE_C) {
-        EVP_MD_CTX ctx;
-
-        /*
-         * ok, now we calculate the checksum do it first so we can reuse buf
-         * :-)
-         */
-        p = buf;
-        EVP_MD_CTX_init(&ctx);
-        EVP_SignInit_ex(&ctx, s->ctx->rsa_md5, NULL);
-        EVP_SignUpdate(&ctx, s->s2->key_material, s->s2->key_material_length);
-        EVP_SignUpdate(&ctx, cert_ch, (unsigned int)cert_ch_len);
-        i = i2d_X509(s->session->sess_cert->peer_key->x509, &p);
-        /*
-         * Don't update the signature if it fails - FIXME: probably should
-         * handle this better
-         */
-        if (i > 0)
-            EVP_SignUpdate(&ctx, buf, (unsigned int)i);
-
-        p = buf;
-        d = p + 6;
-        *(p++) = SSL2_MT_CLIENT_CERTIFICATE;
-        *(p++) = SSL2_CT_X509_CERTIFICATE;
-        n = i2d_X509(s->cert->key->x509, &d);
-        s2n(n, p);
-
-        if (!EVP_SignFinal(&ctx, d, &n, s->cert->key->privatekey)) {
-            /*
-             * this is not good.  If things have failed it means there so
-             * something wrong with the key. We will continue with a 0 length
-             * signature
-             */
-        }
-        EVP_MD_CTX_cleanup(&ctx);
-        s2n(n, p);
-        d += n;
-
         s->state = SSL2_ST_SEND_CLIENT_CERTIFICATE_D;
-        s->init_num = d - buf;
-        s->init_off = 0;
+        i = ssl_schedule_task(s, SSL_EVENT_SETUP_CERT_VRFY_DONE,
+                              &s->task.ctx, ssl2_setup_client_verify_msg);
+        if (i < 0) {
+            SSLerr(SSL_F_SSL3_SEND_CLIENT_VERIFY,SSL_R_SSL_HANDSHAKE_FAILURE);
+            return -1; // async key signing couldn't be started
+        }
     }
-    /* if (s->state == SSL2_ST_SEND_CLIENT_CERTIFICATE_D) */
+
+    /* Waiting for our setup task to complete */
+    if (!ssl_event_did_succeed(s, SSL_EVENT_SETUP_CERT_VRFY_DONE, &i))
+        return i;
+
     return (ssl2_do_write(s));
+}
+
+static void ssl2_setup_client_verify_msg(SSL *s, void *task_ctx)
+{
+    unsigned char *buf;
+    unsigned char *p,*d;
+    unsigned int n;
+    int i;
+    int cert_ch_len;
+    unsigned char *cert_ch;
+    EVP_MD_CTX ctx;
+
+    buf = (unsigned char *)s->init_buf->data;
+
+    cert_ch = buf + 2;
+    cert_ch_len = s->init_num - 2;
+
+    /*
+     * ok, now we calculate the checksum do it first so we can reuse buf
+     * :-)
+     */
+    p = buf;
+    EVP_MD_CTX_init(&ctx);
+    EVP_SignInit_ex(&ctx, s->ctx->rsa_md5, NULL);
+    EVP_SignUpdate(&ctx, s->s2->key_material, s->s2->key_material_length);
+    EVP_SignUpdate(&ctx, cert_ch, (unsigned int)cert_ch_len);
+    i = i2d_X509(s->session->sess_cert->peer_key->x509, &p);
+    /*
+     * Don't update the signature if it fails - FIXME: probably should
+     * handle this better
+     */
+    if (i > 0)
+        EVP_SignUpdate(&ctx, buf, (unsigned int)i);
+
+    p = buf;
+    d = p + 6;
+    *(p++) = SSL2_MT_CLIENT_CERTIFICATE;
+    *(p++) = SSL2_CT_X509_CERTIFICATE;
+    n = i2d_X509(s->cert->key->x509, &d);
+    s2n(n, p);
+
+    if (!EVP_SignFinal(&ctx, d, &n, s->cert->key->privatekey)) {
+        SSLerr(SSL_F_CLIENT_CERTIFICATE, SSL_R_BAD_RSA_SIGNATURE);
+        SSL_signal_event(s, SSL_EVENT_SETUP_CERT_VRFY_DONE, -1);
+        return;
+    }
+
+    EVP_MD_CTX_cleanup(&ctx);
+    s2n(n, p);
+    d += n;
+
+    s->init_num = d - buf;
+    s->init_off = 0;
+    SSL_signal_event(s, SSL_EVENT_SETUP_CERT_VRFY_DONE, 1);
 }
 
 static int get_server_verify(SSL *s)
