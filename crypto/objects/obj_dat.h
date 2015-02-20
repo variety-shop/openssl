@@ -1015,7 +1015,7 @@ static const ASN1_OBJECT nid_objs[NUM_NID]={
 {"DES-OFB","des-ofb",NID_des_ofb64,5,&(lvalues[243]),0},
 {"IDEA-OFB","idea-ofb",NID_idea_ofb64,0,NULL,0},
 {"pkcs9","pkcs9",NID_pkcs9,8,&(lvalues[248]),0},
-{"emailAddress","emailAddress",NID_pkcs9_emailAddress,9,
+{"Email","emailAddress",NID_pkcs9_emailAddress,9,
 	&(lvalues[256]),0},
 {"unstructuredName","unstructuredName",NID_pkcs9_unstructuredName,9,
 	&(lvalues[265]),0},
