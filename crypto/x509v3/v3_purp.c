@@ -811,6 +811,22 @@ int X509_check_issued(X509 *issuer, X509 *subject)
             return X509_V_ERR_KEYUSAGE_NO_DIGITAL_SIGNATURE;
     } else if (ku_reject(issuer, KU_KEY_CERT_SIGN))
         return X509_V_ERR_KEYUSAGE_NO_CERTSIGN;
+
+    /* By this point we know the subject/cert's CA(issuer) field matches
+     * the issuer(CA)'s subject field.
+     * If the subject is self signed, make sure the issuer is too. */
+    if(!X509_NAME_cmp(X509_get_subject_name(subject),
+                      X509_get_issuer_name(subject))) {
+        /* Input certificate (subject) is self signed.
+         * Make sure the issuer is too. */
+        if(X509_NAME_cmp(X509_get_subject_name(issuer),
+                         X509_get_issuer_name(issuer)))
+            return X509_V_ERR_SUBJECT_ISSUER_MISMATCH;
+        /* In this case, the issuer and the subject must be the same. */
+        if (X509_cmp(issuer, subject))
+            return X509_V_ERR_SUBJECT_ISSUER_MISMATCH;
+    }
+
     return X509_V_OK;
 }
 
