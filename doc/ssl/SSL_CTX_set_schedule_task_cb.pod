@@ -1,0 +1,126 @@
+=pod
+
+=head1 NAME
+
+SSL_CTX_set_schedule_task_cb, SSL_CTX_get_schedule_task_cb - handle task callback function
+
+=head1 SYNOPSIS
+
+ #include <openssl/ssl.h>
+
+ typedef void SSL_task_fn(SSL *, SSL_task_ctx *ctx);
+ typedef int (*SSL_schedule_task_cb)(SSL *ssl, int event_type, SSL_task_ctx *ctx, SSL_task_fn *fn);
+
+ void SSL_CTX_set_schedule_task_cb(SSL_CTX *ctx, SSL_schedule_task_cb cb);
+ SSL_schedule_task_cb SSL_CTX_get_schedule_task_cb(SSL_CTX *ctx);
+
+=head1 DESCRIPTION
+
+SSL_CTX_set_schedule_task_cb() sets the B<SSL_schedule_task_cb()> callback, that is
+called when a task needs to be performed for an SSL object.
+
+When B<SSL_schedule_task_cb()> is NULL, no callback function is used.
+
+SSL_CTX_get_schedule_task_cb() returns a pointer to the currently set callback
+function.
+
+SSL_schedule_task_cb() is the application defined callback. It is invoked whenever
+the SSL object has a task to perform that might be time consuming, especially during
+the connect/accept handshake period. Applications that wish to mulitplex several
+SSL connects may prefer to handle such tasks in separate threads.
+
+If no SSL_schedule_task_cb() is registered all such tasks are directly executed
+by the SSL object.
+
+=head1 CALLBACK ARGUMENTS
+
+The callback is invoked with four arguments: B<SSL*> as the SSL object that needs
+the task to be performed. B<event_type> is the event that will signal that the
+task is done (see SSL_EVENT_* constants). This value is informative only and the
+callback might use it to select which tasks it wants to schedule or refuse.
+
+B<ctx> is an opaque parameter that needs to be passed to the task function and, 
+finally, B<fn> is the supplied function that needs to be called.
+
+=head1 CALLBACK RETURN VALUES
+
+If a callback is registered, its return values are interpreted as follows:
+
+=over 4
+
+=item E<gt>0
+
+The scheduling was successful.
+
+=item Z<>0
+
+The callback refuses to schedule the task. The SSL object must execute the
+task itself instead. This de facto results in the same behaviour as if no
+callback had been registered. This allows the application to only schedule
+a subset of the tasks in another thread (switching on the event_type, for
+example).
+
+=item E<lt>0
+
+The scheduling failed. The SSL object will treat this as an error. If this
+happens during handshake, for example, the handshake will fail.
+
+=back
+
+=head1 NOTES
+
+=head2 ASYNCHRONOUS HANDLING
+
+While the callback might directly call the supplied task function, the most
+common use case is expected to be that the task function will run in a 
+separate thread.
+
+The SSL method called by the application (e.g. connect()/accept()), will in
+this case return with a value E<lt>0 and the application needs to check
+B<SSL_get_error>() for the cause. When a task was scheduled, B<SSL_get_error>()
+will return B<SSL_ERROR_WANT_EVENT> to indicate that it waits for an event
+to happen (here, the event that signals the end of the task).
+
+The application may call the SSL method again, but this will give the same
+results until the event has happened. How the application code may synchronize
+with its callback is not a concern of OpenSSL.
+
+=head2 OBJECT LIFETIMES
+
+The arguments to the callback will continue to exist until the task function
+has been called. However, once the task function returns, the supplied B<SSL*>
+might have been deallocated.
+
+An application that accepts a task, but then decides not to run it, needs to
+signal the event with a negative result value. Otherwise resources allocated
+to the SSL object might never be freed.
+
+=head2 TASK/EVENT TYPES
+
+The following tasks, indicated by their completion event, are currently available
+for SSL. Not all tasks will occur during an SSL connection. Tasks vary by
+client, server, protocol version, renegotiation attempts and other things. Also,
+the list of tasks might vary with each release.
+
+=over 4
+
+=item B<SSL_EVENT_KEY_EXCH_DECRYPT_DONE>
+
+The task performs the decryption of the exchanged keys on the server side. 
+Supported for RSA encrypted keys.
+
+=item B<SSL_EVENT_SETUP_CERT_VRFY_DONE>
+
+The task signs the certificate verification message on the client side.
+
+=item B<SSL_EVENT_KEY_EXCH_MSG_SIGNED>
+
+The task signs the key verification message before it is sent to the client.
+
+=back
+
+=head1 SEE ALSO
+
+L<ssl(3)|ssl(3)>, L<SSL_signal_event(3)|SSL_signal_event(3)>
+
+=cut
