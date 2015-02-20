@@ -418,7 +418,7 @@ foreach my $proto ((@tls, @dtls))
 	}
 
 # do this in one place
-my @akamai = qw(akamai-client-cache akamai-debian akamai-ghost akamai-rsalg);
+my @akamai = qw(akamai-client-cache akamai-cb akamai-debian akamai-ghost akamai-rsalg);
 foreach my $proto ((@akamai))
         {
         push(@disablables, $proto);
@@ -433,6 +433,7 @@ my %deprecated_disablables = (
 #Akamai adds %enabled to list enabled features
 my %enabled = ( # "what"                => "comment"
                 "akamai"                => "akamai-default",
+                "akamai-cb"             => "akamai-default",
                 "akamai-client-cache"   => "akamai-default",
                 "akamai-debian"         => "akamai-default",
                 "akamai-rsalg"          => "akamai-default",

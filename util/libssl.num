@@ -441,6 +441,8 @@ SSL_INTERNAL_get_sign_pkey              10040	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMA
 SSL_INTERNAL_use_sigalgs                10041	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
 SSL_INTERNAL_get_algorithm2             10042	1_1_0	NOEXIST::FUNCTION:
 SSL_INTERNAL_send_alert                 10043	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
+SSL_set_akamai_cb                       10045	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_CB
+SSL_get_akamai_cb                       10046	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_CB
 SSL_rsalg_get_server_random             10079	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
 SSL_akamai_get_prf                      10080	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
 SSL_CTX_akamai_session_stats_bio        10085	1_1_0e	EXIST::FUNCTION:AKAMAI
