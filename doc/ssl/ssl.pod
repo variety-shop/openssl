@@ -284,6 +284,8 @@ protocol context defined in the B<SSL_CTX> structure.
 
 =item int B<SSL_CTX_get_quiet_shutdown>(const SSL_CTX *ctx);
 
+=item SSL_schedule_task_cb B<SSL_CTX_get_schedule_task_cb>(SSL *ssl);
+
 =item void B<SSL_CTX_get_read_ahead>(SSL_CTX *ctx);
 
 =item int B<SSL_CTX_get_session_cache_mode>(SSL_CTX *ctx);
@@ -373,6 +375,8 @@ protocol context defined in the B<SSL_CTX> structure.
 =item void B<SSL_CTX_set_options>(SSL_CTX *ctx, unsigned long op);
 
 =item void B<SSL_CTX_set_quiet_shutdown>(SSL_CTX *ctx, int mode);
+
+=item int B<SSL_CTX_set_schedule_task_cb>(SSL *ssl, SSL_schedule_task_cb cb);
 
 =item void B<SSL_CTX_set_read_ahead>(SSL_CTX *ctx, int m);
 
@@ -672,6 +676,10 @@ connection defined in the B<SSL> structure.
 
 =item int B<SSL_set_wfd>(SSL *ssl, int fd);
 
+=item int B<SSL_signal_event>(SSL *ssl, int event, int retcode);
+
+=item int B<SSL_signal_event_err>(SSL *ssl, int event, int func, int reason, const char *file, int line);
+
 =item int B<SSL_shutdown>(SSL *ssl);
 
 =item int B<SSL_state>(const SSL *ssl);
@@ -712,6 +720,8 @@ connection defined in the B<SSL> structure.
 
 =item int B<SSL_want_x509_lookup>(const SSL *ssl);
 
+=item int B<SSL_want_event>(const SSL *ssl);
+
 =item int B<SSL_write>(SSL *ssl, const void *buf, int num);
 
 =item void B<SSL_set_psk_client_callback>(SSL *ssl, unsigned int (*callback)(SSL *ssl, const char *hint, char *identity, unsigned int max_identity_len, unsigned char *psk, unsigned int max_psk_len));
@@ -738,6 +748,7 @@ L<SSL_CTX_add_session(3)|SSL_CTX_add_session(3)>,
 L<SSL_CTX_ctrl(3)|SSL_CTX_ctrl(3)>,
 L<SSL_CTX_flush_sessions(3)|SSL_CTX_flush_sessions(3)>,
 L<SSL_CTX_get_ex_new_index(3)|SSL_CTX_get_ex_new_index(3)>,
+L<SSL_CTX_get_schedule_task_cb(3)|SSL_CTX_get_schedule_task_cb(3)>,
 L<SSL_CTX_get_verify_mode(3)|SSL_CTX_get_verify_mode(3)>,
 L<SSL_CTX_load_verify_locations(3)|SSL_CTX_load_verify_locations(3)>
 L<SSL_CTX_new(3)|SSL_CTX_new(3)>,
@@ -758,6 +769,7 @@ L<SSL_CTX_set_mode(3)|SSL_CTX_set_mode(3)>,
 L<SSL_CTX_set_msg_callback(3)|SSL_CTX_set_msg_callback(3)>,
 L<SSL_CTX_set_options(3)|SSL_CTX_set_options(3)>,
 L<SSL_CTX_set_quiet_shutdown(3)|SSL_CTX_set_quiet_shutdown(3)>,
+L<SSL_CTX_set_schedule_task_cb(3)|SSL_CTX_set_schedule_task_cb(3)>,
 L<SSL_CTX_set_read_ahead(3)|SSL_CTX_set_read_ahead(3)>,
 L<SSL_CTX_set_session_cache_mode(3)|SSL_CTX_set_session_cache_mode(3)>,
 L<SSL_CTX_set_session_id_context(3)|SSL_CTX_set_session_id_context(3)>,
@@ -795,6 +807,8 @@ L<SSL_set_fd(3)|SSL_set_fd(3)>,
 L<SSL_set_session(3)|SSL_set_session(3)>,
 L<SSL_set_shutdown(3)|SSL_set_shutdown(3)>,
 L<SSL_shutdown(3)|SSL_shutdown(3)>,
+L<SSL_signal_event(3)|SSL_signal_event(3)>,
+L<SSL_signal_event_err(3)|SSL_signal_event(3)>,
 L<SSL_state_string(3)|SSL_state_string(3)>,
 L<SSL_want(3)|SSL_want(3)>,
 L<SSL_write(3)|SSL_write(3)>,
