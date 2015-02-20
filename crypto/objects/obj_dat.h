@@ -1015,8 +1015,7 @@ static const ASN1_OBJECT nid_objs[NUM_NID]={
 {"DES-OFB","des-ofb",NID_des_ofb64,5,&(lvalues[243]),0},
 {"IDEA-OFB","idea-ofb",NID_idea_ofb64,0,NULL,0},
 {"pkcs9","pkcs9",NID_pkcs9,8,&(lvalues[248]),0},
-{"emailAddress","emailAddress",NID_pkcs9_emailAddress,9,
-	&(lvalues[256]),0},
+{"Email","emailAddress",NID_pkcs9_emailAddress,9,&(lvalues[256]),0},
 {"unstructuredName","unstructuredName",NID_pkcs9_unstructuredName,9,
 	&(lvalues[265]),0},
 {"contentType","contentType",NID_pkcs9_contentType,9,&(lvalues[274]),0},
@@ -2605,6 +2604,7 @@ static const unsigned int sn_objs[NUM_SN]={
 70,	/* "DSA-SHA1-old" */
 67,	/* "DSA-old" */
 297,	/* "DVCS" */
+48,	/* "Email" */
 99,	/* "GN" */
 855,	/* "HMAC" */
 780,	/* "HMAC-MD5" */
@@ -2841,7 +2841,6 @@ static const unsigned int sn_objs[NUM_SN]={
 795,	/* "ecdsa-with-SHA384" */
 796,	/* "ecdsa-with-SHA512" */
 792,	/* "ecdsa-with-Specified" */
-48,	/* "emailAddress" */
 132,	/* "emailProtection" */
 885,	/* "enhancedSearchGuide" */
 389,	/* "enterprises" */
