@@ -32,6 +32,7 @@
 #define DEF_DAYS        30
 
 static int callb(int ok, X509_STORE_CTX *ctx);
+#ifdef OPENSSL_NO_AKAMAI
 static int sign(X509 *x, EVP_PKEY *pkey, int days, int clrext,
                 const EVP_MD *digest, CONF *conf, const char *section);
 static int x509_certify(X509_STORE *ctx, const char *CAfile, const EVP_MD *digest,
@@ -39,6 +40,17 @@ static int x509_certify(X509_STORE *ctx, const char *CAfile, const EVP_MD *diges
                         STACK_OF(OPENSSL_STRING) *sigopts, const char *serialfile,
                         int create, int days, int clrext, CONF *conf,
                         const char *section, ASN1_INTEGER *sno, int reqfile);
+#else
+static int sign(X509 *x, EVP_PKEY *pkey, int days, int clrext,
+                const EVP_MD *digest, CONF *conf, const char *section,
+                int preserve_dates);
+static int x509_certify(X509_STORE *ctx, const char *CAfile, const EVP_MD *digest,
+                        X509 *x, X509 *xca, EVP_PKEY *pkey,
+                        STACK_OF(OPENSSL_STRING) *sigopts, const char *serialfile,
+                        int create, int days, int clrext, CONF *conf,
+                        const char *section, ASN1_INTEGER *sno, int reqfile,
+                        int preserve_dates);
+#endif
 static int purpose_print(BIO *bio, X509 *cert, X509_PURPOSE *pt);
 
 typedef enum OPTION_choice {
@@ -56,7 +68,11 @@ typedef enum OPTION_choice {
     OPT_CLRREJECT, OPT_ALIAS, OPT_CACREATESERIAL, OPT_CLREXT, OPT_OCSPID,
     OPT_SUBJECT_HASH_OLD,
     OPT_ISSUER_HASH_OLD,
+#ifdef OPENSSL_NO_AKAMAI
     OPT_BADSIG, OPT_MD, OPT_ENGINE, OPT_NOCERT
+#else
+    OPT_BADSIG, OPT_MD, OPT_ENGINE, OPT_NOCERT, OPT_PRESERVE_DATES
+#endif
 } OPTION_CHOICE;
 
 OPTIONS x509_options[] = {
@@ -140,6 +156,9 @@ OPTIONS x509_options[] = {
 #ifndef OPENSSL_NO_ENGINE
     {"engine", OPT_ENGINE, 's', "Use engine, possibly a hardware device"},
 #endif
+#ifndef OPENSSL_NO_AKAMAI
+    {"preserve_dates", OPT_PRESERVE_DATES, '-', "preserve existing dates when signing"},
+#endif
     {NULL}
 };
 
@@ -174,6 +193,9 @@ int x509_main(int argc, char **argv)
     time_t checkoffset = 0;
     unsigned long nmflag = 0, certflag = 0;
     char nmflag_set = 0;
+#ifndef OPENSSL_NO_AKAMAI
+    int preserve_dates = 0;
+#endif
     OPTION_CHOICE o;
     ENGINE *e = NULL;
 #ifndef OPENSSL_NO_MD5
@@ -435,6 +457,11 @@ int x509_main(int argc, char **argv)
         case OPT_CHECKIP:
             checkip = opt_arg();
             break;
+#ifndef OPENSSL_NO_AKAMAI
+        case OPT_PRESERVE_DATES:
+            preserve_dates = 1;
+            break;
+#endif
         case OPT_MD:
             if (!opt_md(opt_unknown(), &digest))
                 goto opthelp;
@@ -786,8 +813,13 @@ int x509_main(int argc, char **argv)
                 }
 
                 assert(need_rand);
+#ifdef OPENSSL_NO_AKAMAI
                 if (!sign(x, Upkey, days, clrext, digest, extconf, extsect))
                     goto end;
+#else
+                if (!sign(x, Upkey, days, clrext, digest, extconf, extsect, preserve_dates))
+                    goto end;
+#endif
             } else if (CA_flag == i) {
                 BIO_printf(bio_err, "Getting CA Private Key\n");
                 if (CAkeyfile != NULL) {
@@ -798,11 +830,19 @@ int x509_main(int argc, char **argv)
                 }
 
                 assert(need_rand);
+#ifdef OPENSSL_NO_AKAMAI
                 if (!x509_certify(ctx, CAfile, digest, x, xca,
                                   CApkey, sigopts,
                                   CAserial, CA_createserial, days, clrext,
                                   extconf, extsect, sno, reqfile))
                     goto end;
+#else
+                if (!x509_certify(ctx, CAfile, digest, x, xca,
+                                  CApkey, sigopts,
+                                  CAserial, CA_createserial, days, clrext,
+                                  extconf, extsect, sno, reqfile, preserve_dates))
+                    goto end;
+#endif
             } else if (x509req == i) {
                 EVP_PKEY *pk;
 
@@ -937,12 +977,21 @@ static ASN1_INTEGER *x509_load_serial(const char *CAfile, const char *serialfile
     return bs;
 }
 
+#ifdef OPENSSL_NO_AKAMAI
 static int x509_certify(X509_STORE *ctx, const char *CAfile, const EVP_MD *digest,
                         X509 *x, X509 *xca, EVP_PKEY *pkey,
                         STACK_OF(OPENSSL_STRING) *sigopts,
                         const char *serialfile, int create,
                         int days, int clrext, CONF *conf, const char *section,
                         ASN1_INTEGER *sno, int reqfile)
+#else
+static int x509_certify(X509_STORE *ctx, const char *CAfile, const EVP_MD *digest,
+                        X509 *x, X509 *xca, EVP_PKEY *pkey,
+                        STACK_OF(OPENSSL_STRING) *sigopts,
+                        const char *serialfile, int create,
+                        int days, int clrext, CONF *conf, const char *section,
+                        ASN1_INTEGER *sno, int reqfile, int preserve_dates)
+#endif
 {
     int ret = 0;
     ASN1_INTEGER *bs = NULL;
@@ -986,6 +1035,9 @@ static int x509_certify(X509_STORE *ctx, const char *CAfile, const EVP_MD *diges
     if (!X509_set_serialNumber(x, bs))
         goto end;
 
+#ifndef OPENSSL_NO_AKAMAI
+    if (!preserve_dates)
+#endif
     if (!set_cert_times(x, NULL, NULL, days))
         goto end;
 
@@ -1049,12 +1101,21 @@ static int callb(int ok, X509_STORE_CTX *ctx)
 }
 
 /* self sign */
+#ifdef OPENSSL_NO_AKAMAI
 static int sign(X509 *x, EVP_PKEY *pkey, int days, int clrext,
                 const EVP_MD *digest, CONF *conf, const char *section)
+#else
+static int sign(X509 *x, EVP_PKEY *pkey, int days, int clrext,
+                const EVP_MD *digest, CONF *conf, const char *section,
+                int preserve_dates)
+#endif
 {
 
     if (!X509_set_issuer_name(x, X509_get_subject_name(x)))
         goto err;
+#ifndef OPENSSL_NO_AKAMAI
+    if (!preserve_dates)
+#endif
     if (!set_cert_times(x, NULL, NULL, days))
         goto err;
     if (!X509_set_pubkey(x, pkey))
