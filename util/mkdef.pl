@@ -136,6 +136,7 @@ my @known_algorithms = ( "RC2", "RC4", "RC5", "IDEA", "DES", "BF",
 			 "AKAMAI_DEBIAN",
 			 "AKAMAI_GHOST",
 			 "AKAMAI_RSALG",
+			 "AKAMAI_CB",
                          # APPLINK (win build feature?)
                          "APPLINK"
                      );
