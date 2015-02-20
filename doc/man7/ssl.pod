@@ -250,6 +250,8 @@ protocol context defined in the B<SSL_CTX> structure.
 
 =item void B<SSL_CTX_get_default_read_ahead>(SSL_CTX *ctx);
 
+=item SSL_akamai_cb B<SSL_get_akamai_cb>(SSL *ssl);
+
 =item char *B<SSL_CTX_get_ex_data>(const SSL_CTX *s, int idx);
 
 =item int B<SSL_CTX_get_ex_new_index>(long argl, char *argp, int (*new_func);(void), int (*dup_func)(void), void (*free_func)(void))
@@ -350,6 +352,8 @@ Use the default directory path to locate trusted CA certificates.
 =item int B<SSL_CTX_set_default_verify_file>(SSL_CTX *ctx)
 
 Use the file path to locate trusted CA certificates.
+
+=item int B<SSL_set_akamai_cb>(SSL *ssl, SSL_akamai_cb cb);
 
 =item int B<SSL_CTX_set_ex_data>(SSL_CTX *s, int idx, char *arg);
 
@@ -791,6 +795,7 @@ L<SSL_alert_type_string(3)>,
 L<SSL_do_handshake(3)>,
 L<SSL_enable_ct(3)>,
 L<SSL_get_SSL_CTX(3)>,
+L<SSL_get_akamai_cb(3)>,
 L<SSL_get_ciphers(3)>,
 L<SSL_get_client_CA_list(3)>,
 L<SSL_get_default_timeout(3)>,
@@ -809,6 +814,7 @@ L<SSL_read_ex(3)>,
 L<SSL_read(3)>,
 L<SSL_rstate_string(3)>,
 L<SSL_session_reused(3)>,
+L<SSL_set_akamai_cb(3)>,
 L<SSL_set_bio(3)>,
 L<SSL_set_connect_state(3)>,
 L<SSL_set_fd(3)>,

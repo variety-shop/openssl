@@ -2806,6 +2806,7 @@ int tls_construct_server_key_exchange(SSL *s, WPACKET *pkt)
                      ERR_R_INTERNAL_ERROR);
             goto err;
         }
+
         if (lu->sig == EVP_PKEY_RSA_PSS) {
             if (EVP_PKEY_CTX_set_rsa_padding(pctx, RSA_PKCS1_PSS_PADDING) <= 0
                 || EVP_PKEY_CTX_set_rsa_pss_saltlen(pctx, RSA_PSS_SALTLEN_DIGEST) <= 0) {
@@ -2822,7 +2823,41 @@ int tls_construct_server_key_exchange(SSL *s, WPACKET *pkt)
             /* SSLfatal() already called */
             goto err;
         }
+
+
+# ifdef OPENSSL_NO_AKAMAI_CB
         rv = EVP_DigestSign(md_ctx, sigbytes1, &siglen, tbs, tbslen);
+# else
+        {
+            SSL_AKAMAI_CB_DATA akamai_cb_data;
+            SSL_AKAMAI_CB akamai_cb = SSL_get_akamai_cb(s);
+            if (akamai_cb != NULL) {
+                int ret;
+                memset(&akamai_cb_data, 0, sizeof(akamai_cb_data));
+                akamai_cb_data.pkey = pkey;
+                akamai_cb_data.sig_nid = lu->sig;
+                akamai_cb_data.md_nid = EVP_MD_nid(md);
+                akamai_cb_data.src[0] = tbs;
+                akamai_cb_data.src_len[0] = tbslen;
+                akamai_cb_data.dst = sigbytes1;
+                akamai_cb_data.dst_len = siglen;
+                ret = akamai_cb(s, SSL_AKAMAI_CB_SERVER_SIGN_KX, &akamai_cb_data);
+                if (ret < 0) {
+                    /* error */
+                    SSLfatal(s, SSL_AD_INTERNAL_ERROR,
+                             SSL_F_TLS_CONSTRUCT_SERVER_KEY_EXCHANGE,
+                             ERR_R_INTERNAL_ERROR);
+                    goto err;
+                } else if (ret > 0) {
+                    siglen = akamai_cb_data.retval;
+                    rv = 1;
+                    goto akamai_cb_done;
+                }
+            }
+        }
+        rv = EVP_DigestSign(md_ctx, sigbytes1, &siglen, tbs, tbslen);
+ akamai_cb_done:
+# endif
         OPENSSL_free(tbs);
         if (rv <= 0 || !WPACKET_sub_allocate_bytes_u16(pkt, siglen, &sigbytes2)
             || sigbytes1 != sigbytes2) {
@@ -3054,10 +3089,37 @@ static int tls_process_cke_rsa(SSL *s, PACKET *pkt)
      * Decrypt with no padding. PKCS#1 padding will be removed as part of
      * the timing-sensitive code below.
      */
+# ifndef OPENSSL_NO_AKAMAI_CB
+    {
+        SSL_AKAMAI_CB_DATA akamai_cb_data;
+        SSL_AKAMAI_CB akamai_cb = SSL_get_akamai_cb(s);
+        decrypt_len = -1;
+        if (akamai_cb != NULL) {
+            memset(&akamai_cb_data, 0, sizeof(akamai_cb_data));
+            akamai_cb_data.pkey = s->cert->key->privatekey;
+            akamai_cb_data.src[0] = (unsigned char*)PACKET_data(&enc_premaster);
+            akamai_cb_data.src_len[0] = PACKET_remaining(&enc_premaster);
+            akamai_cb_data.dst = rsa_decrypt;
+            akamai_cb_data.dst_len = RSA_size(rsa);
+            ret = akamai_cb(s, SSL_AKAMAI_CB_SERVER_DECRYPT_KX, &akamai_cb_data);
+            if (ret < 0) {
+                /* error */
+                goto err;
+            } else if (ret > 0) {
+                decrypt_len = (int)akamai_cb_data.retval;
+                goto akamai_cb_done1;
+            }
+        }
+    }
+# endif
+
      /* TODO(size_t): Convert this function */
     decrypt_len = (int)RSA_private_decrypt((int)PACKET_remaining(&enc_premaster),
                                            PACKET_data(&enc_premaster),
                                            rsa_decrypt, rsa, RSA_NO_PADDING);
+# ifndef OPENSSL_NO_AKAMAI_CB
+ akamai_cb_done1:
+# endif
     if (decrypt_len < 0) {
         SSLfatal(s, SSL_AD_DECRYPT_ERROR, SSL_F_TLS_PROCESS_CKE_RSA,
                  ERR_R_INTERNAL_ERROR);
@@ -3138,12 +3200,37 @@ static int tls_process_cke_rsa(SSL *s, PACKET *pkt)
                                    rand_premaster_secret[j]);
     }
 
+# ifndef OPENSSL_NO_AKAMAI_CB
+    {
+        SSL_AKAMAI_CB_DATA akamai_cb_data;
+        SSL_AKAMAI_CB akamai_cb = SSL_get_akamai_cb(s);
+        if (akamai_cb != NULL) {
+            memset(&akamai_cb_data, 0, sizeof(akamai_cb_data));
+            akamai_cb_data.src[0] = rsa_decrypt + padding_len;
+            akamai_cb_data.src_len[0] = sizeof(rand_premaster_secret);
+            akamai_cb_data.dst = s->session->master_key;
+            akamai_cb_data.dst_len = sizeof(s->session->master_key);
+            ret = akamai_cb(s, SSL_AKAMAI_CB_SERVER_MASTER_SECRET, &akamai_cb_data);
+            if (ret < 0) {
+                SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PROCESS_CKE_RSA,
+                         ERR_R_INTERNAL_ERROR);
+                goto err;
+            } else if (ret > 0) {
+                s->session->master_key_length = akamai_cb_data.retval;
+                goto akamai_cb_done2;
+            }
+        }
+    }
+# endif
     if (!ssl_generate_master_secret(s, rsa_decrypt + padding_len,
                                     sizeof(rand_premaster_secret), 0)) {
         /* SSLfatal() already called */
         goto err;
     }
 
+# ifndef OPENSSL_NO_AKAMAI_CB
+ akamai_cb_done2:
+# endif
     ret = 1;
  err:
     OPENSSL_free(rsa_decrypt);

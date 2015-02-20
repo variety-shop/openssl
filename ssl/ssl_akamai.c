@@ -892,6 +892,20 @@ unsigned int SSL_INTERNAL_use_sigalgs(SSL* s)
 
 # endif /* OPENSSL_NO_AKAMAI_RSALG */
 
+# ifndef OPENSSL_NO_AKAMAI_CB
+
+void SSL_set_akamai_cb(SSL *s, SSL_AKAMAI_CB cb)
+{
+    SSL_get_ex_data_akamai(s)->akamai_cb = cb;
+}
+
+SSL_AKAMAI_CB SSL_get_akamai_cb(SSL *s)
+{
+    return SSL_get_ex_data_akamai(s)->akamai_cb;
+}
+
+# endif /* OPENSSL_NO_AKAMAI_CB */
+
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b)
 {
     SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(ctx);

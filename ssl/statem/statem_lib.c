@@ -268,6 +268,40 @@ int tls_construct_cert_verify(SSL *s, WPACKET *pkt)
         goto err;
     }
 
+#ifndef OPENSSL_NO_AKAMAI_CB
+    {
+        SSL_AKAMAI_CB akamai_cb = SSL_get_akamai_cb(s);
+        if (akamai_cb != NULL) {
+            int ret;
+            int msg = SSL_AKAMAI_CB_CLIENT_SIGN_CERT_VRFY;
+            SSL_AKAMAI_CB_DATA akamai_cb_data;
+            if (s->server)
+                msg = SSL_AKAMAI_CB_SERVER_SIGN_CERT_VRFY;
+            memset(&akamai_cb_data, 0, sizeof(akamai_cb_data));
+            akamai_cb_data.pkey = pkey;
+            akamai_cb_data.md_nid = EVP_MD_nid(md);
+            akamai_cb_data.sig_nid = lu->sig;
+            akamai_cb_data.src[0] = hdata;
+            akamai_cb_data.src_len[0] = hdatalen;
+            if (s->version == SSL3_VERSION) {
+                akamai_cb_data.src[1] = s->session->master_key;
+                akamai_cb_data.src_len[1] = s->session->master_key_length;
+            }
+            akamai_cb_data.dst = sig;
+            akamai_cb_data.dst_len = siglen;
+            /* if SSLv3, caller will need to add in the master key as done below */
+            ret = akamai_cb(s, msg, &akamai_cb_data);
+            if (ret < 0) {
+                /* error */
+                goto err;
+            } else if (ret > 0) {
+                siglen = (unsigned int)akamai_cb_data.retval;
+                goto akamai_cb_done;
+            }
+        }
+    }
+#endif
+
     if (EVP_DigestSignInit(mctx, &pctx, md, NULL, pkey) <= 0) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CERT_VERIFY,
                  ERR_R_EVP_LIB);
@@ -311,6 +345,9 @@ int tls_construct_cert_verify(SSL *s, WPACKET *pkt)
     }
 #endif
 
+#ifndef OPENSSL_NO_AKAMAI_CB
+ akamai_cb_done:
+#endif
     if (!WPACKET_sub_memcpy_u16(pkt, sig, siglen)) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CERT_VERIFY,
                  ERR_R_INTERNAL_ERROR);
