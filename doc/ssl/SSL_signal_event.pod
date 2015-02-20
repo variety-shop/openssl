@@ -1,0 +1,60 @@
+=pod
+
+=head1 NAME
+
+SSL_signal_event - let SSL know that an event has happened and that processing may continue
+
+=head1 SYNOPSIS
+
+ #include <openssl/ssl.h>
+
+ int SSL_signal_event(const SSL *ssl, int event, int retcode);
+ int SSL_signal_event_err(const SSL *ssl, int event, int func, int reason, const char *file, int line);
+
+=head1 DESCRIPTION
+
+SSL_signal_event() notifies the SSL engine that an asynchronous event has happened.
+
+SSL offers callbacks to the application that allow asynchronous processing. In such
+cases, methods called by the application may return with -1 and SSL_get_error() will
+then indicate SSL_ERROR_WANT_EVENT. The actual event SSL is waiting for can be
+retrieved with SSL_want().
+
+This will continue to be returned until the proper event is being signalled, usually
+by the application that finished the processing.
+
+SSL_signal_event_err() notifies the SSL engine that an asynchronous event has failed
+The result will be -1 and the other information is set via SSLErr() in the calling
+thread.
+
+=head1 NOTES
+
+It is safe to call SSL_signal_event() from the callback that is starting the event. 
+It is safe to make several calls for the same event, however only the first will
+influence the result. All calls afterwards will be silently ignored.
+
+The parameter B<retcode> is > 0 for a successfully handled event and <= 0 for
+a failure in event handling. How a failure is affecting further SSL processing is
+defined per event.
+
+=head1 RETURN VALUES
+
+The following return values can currently occur for SSL_signal_event():
+
+=over 4
+
+=item Z<>0
+
+The operation failed; check the error stack to find out the reason.
+
+=item Z<>1
+
+The operation succeeded.
+
+=back
+
+=head1 SEE ALSO
+
+L<ssl_want(3)|ssl_want(3)>, L<SSL_get_error(3)|SSL_get_error(3)>
+
+=cut

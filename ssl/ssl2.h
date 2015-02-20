@@ -245,6 +245,7 @@ typedef struct ssl2_state_st {
 # define SSL2_ST_SEND_SERVER_HELLO_B             (0x21|SSL_ST_ACCEPT)
 # define SSL2_ST_GET_CLIENT_MASTER_KEY_A         (0x30|SSL_ST_ACCEPT)
 # define SSL2_ST_GET_CLIENT_MASTER_KEY_B         (0x31|SSL_ST_ACCEPT)
+# define SSL2_ST_GET_CLIENT_MASTER_KEY_C         (0x32|SSL_ST_ACCEPT)
 # define SSL2_ST_SEND_SERVER_VERIFY_A            (0x40|SSL_ST_ACCEPT)
 # define SSL2_ST_SEND_SERVER_VERIFY_B            (0x41|SSL_ST_ACCEPT)
 # define SSL2_ST_SEND_SERVER_VERIFY_C            (0x42|SSL_ST_ACCEPT)
