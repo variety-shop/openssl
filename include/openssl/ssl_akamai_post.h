@@ -143,6 +143,38 @@ int SSL_INTERNAL_get_sigandhash(unsigned char *p, const EVP_PKEY *pk,
 
 #  endif /* OPENSSL_NO_AKAMAI_RSALG */
 
+#  ifndef OPENSSL_NO_AKAMAI_CB
+
+#   define SSL_AKAMAI_CB_DATA_NUM 4
+struct ssl_akamai_cb_data_st {
+    const EVP_PKEY* pkey;
+    int md_nid;
+    void* src[SSL_AKAMAI_CB_DATA_NUM];
+    size_t src_len[SSL_AKAMAI_CB_DATA_NUM];
+    void* dst;
+    size_t dst_len;
+    long retval;
+};
+typedef struct ssl_akamai_cb_data_st SSL_AKAMAI_CB_DATA;
+
+typedef int (*SSL_AKAMAI_CB)(SSL*, int event, SSL_AKAMAI_CB_DATA* data);
+void SSL_set_akamai_cb(SSL *ssl, SSL_AKAMAI_CB cb);
+__owur SSL_AKAMAI_CB SSL_get_akamai_cb(SSL *ssl);
+
+/* Akamai Callback Events - Private Key Operations */
+/* DOES NOT SUPPORT GOST! */
+
+/* server is waiting for decryption of key */
+#   define SSL_AKAMAI_CB_SERVER_DECRYPT_KX        1
+/* client is waiting for cert verify setup */
+#   define SSL_AKAMAI_CB_CLIENT_SIGN_CERT_VRFY    2
+/* server is signing the message for key exchange */
+#   define SSL_AKAMAI_CB_SERVER_SIGN_KX           3
+/* generate the master secret */
+#   define SSL_AKAMAI_CB_SERVER_MASTER_SECRET     4
+
+#  endif /* OPENSSL_NO_AKAMAI_CB */
+
 /* Replaces SSL_CTX_sessions() and OPENSSL_LH_stats_bio() for shared session cache. */
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b);
 
