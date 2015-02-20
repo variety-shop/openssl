@@ -2627,6 +2627,10 @@ int tls_construct_client_verify(SSL *s)
     unsigned long n = 0;
     long hdatalen = 0;
     void *hdata;
+# ifndef OPENSSL_NO_AKAMAI_CB
+    SSL_AKAMAI_CB akamai_cb = SSL_get_akamai_cb(s);
+    int do_default;
+# endif
 
     mctx = EVP_MD_CTX_new();
     if (mctx == NULL) {
@@ -2652,6 +2656,29 @@ int tls_construct_client_verify(SSL *s)
     }
 #ifdef SSL_DEBUG
     fprintf(stderr, "Using client alg %s\n", EVP_MD_name(md));
+#endif
+#ifndef OPENSSL_NO_AKAMAI_CB
+    do_default = 1;
+    if (akamai_cb != NULL) {
+        int ret;
+        SSL_AKAMAI_CB_DATA akamai_cb_data;
+        memset(&akamai_cb_data, 0, sizeof(akamai_cb_data));
+        akamai_cb_data.pkey = pkey;
+        akamai_cb_data.md_nid = EVP_MD_nid(md);
+        akamai_cb_data.src[0] = hdata;
+        akamai_cb_data.src_len[0] = hdatalen;
+        akamai_cb_data.dst = p + 2;
+        /* if SSLv3, caller will need to add in the master key as done below */
+        ret = akamai_cb(s, SSL_AKAMAI_CB_CLIENT_SIGN_CERT_VRFY, &akamai_cb_data);
+        if (ret < 0) {
+            /* error */
+            goto err;
+        } else if (ret > 0) {
+            u = (unsigned int)akamai_cb_data.retval;
+            do_default = 0;
+        }
+    }
+    if (do_default)
 #endif
     if (!EVP_SignInit_ex(mctx, md, NULL)
         || !EVP_SignUpdate(mctx, hdata, hdatalen)
