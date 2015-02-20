@@ -337,6 +337,7 @@ static ERR_STRING_DATA SSL_str_functs[] = {
     {ERR_FUNC(SSL_F_SSL_SET_WFD), "SSL_set_wfd"},
     {ERR_FUNC(SSL_F_SSL_SHUTDOWN), "SSL_shutdown"},
     {ERR_FUNC(SSL_F_SSL_SRP_CTX_INIT), "SSL_SRP_CTX_init"},
+    {ERR_FUNC(SSL_F_SSL_TASK_RSA_DECRYPT), "ssl_task_rsa_decrypt"},
     {ERR_FUNC(SSL_F_SSL_UNDEFINED_CONST_FUNCTION),
      "ssl_undefined_const_function"},
     {ERR_FUNC(SSL_F_SSL_UNDEFINED_FUNCTION), "ssl_undefined_function"},
