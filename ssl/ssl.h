@@ -467,6 +467,7 @@ struct ssl_method_st {
     int (*ssl_version) (void);
     long (*ssl_callback_ctrl) (SSL *s, int cb_id, void (*fp) (void));
     long (*ssl_ctx_callback_ctrl) (SSL_CTX *s, int cb_id, void (*fp) (void));
+    int (*ssl_signal_event)(SSL *s, int event, int retcode);
 };
 
 /*-
@@ -907,6 +908,10 @@ typedef int (*GEN_SESSION_CB) (const SSL *ssl, unsigned char *id,
 
 typedef struct ssl_comp_st SSL_COMP;
 
+typedef void SSL_task_ctx;
+typedef void SSL_task_fn(SSL *, SSL_task_ctx *ctx);
+typedef int (*SSL_schedule_task_cb)(SSL *ssl, int task_type, SSL_task_ctx *ctx, SSL_task_fn *fn);
+
 # ifndef OPENSSL_NO_SSL_INTERN
 
 struct ssl_comp_st {
@@ -1070,6 +1075,19 @@ struct ssl_ctx_st {
      */
     ENGINE *client_cert_engine;
 #  endif
+
+    /* 
+     * If the application wants to offload work during handshake from the
+     * I/O thread to somewhere else, it can register this callback for doing so.
+     */
+    SSL_schedule_task_cb schedule_task_cb;
+
+    /* 
+     * Callback that performs the task of setting up the client certificate
+     * verification by invoking the given function f on the given SSL* s.
+     * The function f will call SSL_signal_event() with proper parameters in the end.
+     */
+    int (*setup_cert_verify_cb)(SSL *s, void(*f)(SSL *s));
 
 #  ifndef OPENSSL_NO_TLSEXT
     /* TLS extensions servername callback */
@@ -1253,6 +1271,10 @@ void SSL_CTX_set_client_cert_cb(SSL_CTX *ctx,
                                                        EVP_PKEY **pkey));
 int (*SSL_CTX_get_client_cert_cb(SSL_CTX *ctx)) (SSL *ssl, X509 **x509,
                                                  EVP_PKEY **pkey);
+
+void SSL_CTX_set_schedule_task_cb(SSL_CTX *ctx, SSL_schedule_task_cb cb);
+SSL_schedule_task_cb SSL_CTX_get_schedule_task_cb(SSL_CTX *ctx);
+
 # ifndef OPENSSL_NO_ENGINE
 int SSL_CTX_set_client_cert_engine(SSL_CTX *ctx, ENGINE *e);
 # endif
@@ -1408,14 +1430,48 @@ int SSL_extension_supported(unsigned int ext_type);
 # define SSL_READING     3
 # define SSL_X509_LOOKUP 4
 
-/* These will only be used when doing non-blocking IO */
+# define SSL_MIN_EVENT                    1000
+/* client is deciding which cert to present - doesn't follow MIN */
+# define SSL_EVENT_X509_LOOKUP            SSL_X509_LOOKUP
+/* server is processing TLS SRP client hello */
+# define SSL_EVENT_SRP_CLIENTHELLO        1000
+/* server is waiting for decryption of key */
+# define SSL_EVENT_KEY_EXCH_DECRYPT_DONE  1001
+/* client is waiting for cert verify setup */
+# define SSL_EVENT_SETUP_CERT_VRFY_DONE   1002
+/* server is siging the message for key exchange */
+# define SSL_EVENT_KEY_EXCH_MSG_SIGNED    1003
+
+/*
+ * These will only be used when doing non-blocking IO or asynchronous
+ * event handling is triggered by callbacks. 
+ */
 # define SSL_want_nothing(s)     (SSL_want(s) == SSL_NOTHING)
 # define SSL_want_read(s)        (SSL_want(s) == SSL_READING)
 # define SSL_want_write(s)       (SSL_want(s) == SSL_WRITING)
-# define SSL_want_x509_lookup(s) (SSL_want(s) == SSL_X509_LOOKUP)
+# define SSL_want_x509_lookup(s) (SSL_want(s) == SSL_EVENT_X509_LOOKUP)
+# define SSL_want_event(s)       ((SSL_want(s) >= SSL_MIN_EVENT) || SSL_want_x509_lookup(s))
 
 # define SSL_MAC_FLAG_READ_MAC_STREAM 1
 # define SSL_MAC_FLAG_WRITE_MAC_STREAM 2
+
+typedef struct {
+    unsigned char *src;
+    unsigned char *dest;
+    size_t src_len;
+    int dest_len; // can be <0 if decryption fails
+    RSA *rsa;
+    int padding;
+} SSL_rsa_decrypt_ctx;
+
+typedef struct {
+    unsigned long type;
+    EVP_PKEY *pkey;
+    const EVP_MD *md;
+    int n;
+    unsigned char *msg;
+    unsigned char *msg_end;
+} SSL_key_exch_prep_ctx;
 
 # ifndef OPENSSL_NO_SSL_INTERN
 
@@ -1685,6 +1741,26 @@ struct ssl_st {
     unsigned char *alpn_client_proto_list;
     unsigned alpn_client_proto_list_len;
 #  endif                        /* OPENSSL_NO_TLSEXT */
+
+    /* information from last signalled event, SSL_signal_event() */
+    struct {
+        int type;              /* event number that was signalled */
+        int result;            /* return code signalled */
+        int err_func;          /* option error information, see SSLerr() */
+        int err_reason;
+        const char *err_file;
+        int err_line;
+    } event;
+
+    struct {
+        int type;              /* event that is expected to be signalled */
+        SSL *ssl_ref;          /* optional SSL* reference handed out to task */
+        union {
+            SSL_rsa_decrypt_ctx rsa_decrypt;
+            SSL_key_exch_prep_ctx kx_sign;
+        } ctx;                 /* context/closure handed out to task */
+    } task;
+
 };
 
 # endif
@@ -1859,9 +1935,11 @@ DECLARE_PEM_rw(SSL_SESSION, SSL_SESSION)
 # define SSL_ERROR_SSL                   1
 # define SSL_ERROR_WANT_READ             2
 # define SSL_ERROR_WANT_WRITE            3
-# define SSL_ERROR_WANT_X509_LOOKUP      4
-# define SSL_ERROR_SYSCALL               5/* look at error stack/return
-                                           * value/errno */
+# define SSL_ERROR_WANT_EVENT            4 /* check s->rwstate/SSL_want() 
+                                            * to see which event */
+# define SSL_ERROR_WANT_X509_LOOKUP      SSL_ERROR_WANT_EVENT /* backward compat */
+# define SSL_ERROR_SYSCALL               5 /* look at error stack/return
+                                            * value/errno */
 # define SSL_ERROR_ZERO_RETURN           6
 # define SSL_ERROR_WANT_CONNECT          7
 # define SSL_ERROR_WANT_ACCEPT           8
@@ -2135,6 +2213,11 @@ long SSL_CTX_get_timeout(const SSL_CTX *ctx);
 X509_STORE *SSL_CTX_get_cert_store(const SSL_CTX *);
 void SSL_CTX_set_cert_store(SSL_CTX *, X509_STORE *);
 int SSL_want(const SSL *s);
+int SSL_signal_event_result(SSL *s, int event, int result, int errfunc, int errreason, const char *file, int line);
+# define SSL_signal_event(s, event, retcode) \
+        SSL_signal_event_result(s, event, retcode, 0, 0, NULL, 0)
+# define SSL_signal_event_err(s, event, func, reason) \
+        SSL_signal_event_result(s, event, -1, func, reason, __FILE__, __LINE__)
 int SSL_clear(SSL *s);
 
 void SSL_CTX_flush_sessions(SSL_CTX *ctx, long tm);
@@ -2694,6 +2777,7 @@ void ERR_load_SSL_strings(void);
 # define SSL_F_SSL3_NEW_SESSION_TICKET                    287
 # define SSL_F_SSL3_OUTPUT_CERT_CHAIN                     147
 # define SSL_F_SSL3_PEEK                                  235
+# define SSL_F_SSL3_PROCESS_CLIENT_KEY_EXCHANGE           4096
 # define SSL_F_SSL3_READ_BYTES                            148
 # define SSL_F_SSL3_READ_N                                149
 # define SSL_F_SSL3_SEND_CERTIFICATE_REQUEST              150
@@ -2799,6 +2883,7 @@ void ERR_load_SSL_strings(void);
 # define SSL_F_SSL_SET_WFD                                196
 # define SSL_F_SSL_SHUTDOWN                               224
 # define SSL_F_SSL_SRP_CTX_INIT                           313
+# define SSL_F_SSL_TASK_RSA_DECRYPT                       323
 # define SSL_F_SSL_UNDEFINED_CONST_FUNCTION               243
 # define SSL_F_SSL_UNDEFINED_FUNCTION                     197
 # define SSL_F_SSL_UNDEFINED_VOID_FUNCTION                244

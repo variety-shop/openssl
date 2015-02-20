@@ -427,6 +427,11 @@ long ssl2_ctx_callback_ctrl(SSL_CTX *ctx, int cmd, void (*fp) (void))
     return (0);
 }
 
+int ssl2_signal_event(SSL *s, int event, int retcode)
+{
+    return 1;
+}
+
 /*
  * This function needs to check if the ciphers required are actually
  * available
