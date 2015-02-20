@@ -153,17 +153,19 @@ static const char *x509_usage[] = {
     " -checkhost host - check certificate matches \"host\"\n",
     " -checkemail email - check certificate matches \"email\"\n",
     " -checkip ipaddr - check certificate matches \"ipaddr\"\n",
+    " -preserve_dates - preserve existing dates when signing\n",
     NULL
 };
 
 static int MS_CALLBACK callb(int ok, X509_STORE_CTX *ctx);
-static int sign(X509 *x, EVP_PKEY *pkey, int days, int clrext,
+static int sign(X509 *x, EVP_PKEY *pkey,int days,int clrext, int preserve_dates,
                 const EVP_MD *digest, CONF *conf, char *section);
 static int x509_certify(X509_STORE *ctx, char *CAfile, const EVP_MD *digest,
                         X509 *x, X509 *xca, EVP_PKEY *pkey,
                         STACK_OF(OPENSSL_STRING) *sigopts, char *serial,
-                        int create, int days, int clrext, CONF *conf,
-                        char *section, ASN1_INTEGER *sno);
+                        int create, int days, int clrext,
+                        int preserve_dates, CONF *conf, char *section,
+                        ASN1_INTEGER *sno);
 static int purpose_print(BIO *bio, X509 *cert, X509_PURPOSE *pt);
 static int reqfile = 0;
 #ifdef OPENSSL_SSL_DEBUG_BROKEN_PROTOCOL
@@ -219,6 +221,7 @@ int MAIN(int argc, char **argv)
     char *checkemail = NULL;
     char *checkip = NULL;
     char *engine = NULL;
+    int preserve_dates = 0;
 
     reqfile = 0;
 
@@ -479,6 +482,8 @@ int MAIN(int argc, char **argv)
 #endif
         else if (strcmp(*argv, "-ocspid") == 0)
             ocspid = ++num;
+        else if (strcmp(*argv, "-preserve_dates") == 0)
+            preserve_dates = 1;
         else if (strcmp(*argv, "-badsig") == 0)
             badsig = 1;
         else if ((md_alg = EVP_get_digestbyname(*argv + 1))) {
@@ -914,7 +919,8 @@ int MAIN(int argc, char **argv)
                 }
 
                 assert(need_rand);
-                if (!sign(x, Upkey, days, clrext, digest, extconf, extsect))
+                if (!sign(x, Upkey, days, clrext, preserve_dates,
+                          digest, extconf, extsect))
                     goto end;
             } else if (CA_flag == i) {
                 BIO_printf(bio_err, "Getting CA Private Key\n");
@@ -930,7 +936,7 @@ int MAIN(int argc, char **argv)
                 if (!x509_certify(ctx, CAfile, digest, x, xca,
                                   CApkey, sigopts,
                                   CAserial, CA_createserial, days, clrext,
-                                  extconf, extsect, sno))
+                                  preserve_dates, extconf, extsect, sno))
                     goto end;
             } else if (x509req == i) {
                 EVP_PKEY *pk;
@@ -1093,7 +1099,8 @@ static int x509_certify(X509_STORE *ctx, char *CAfile, const EVP_MD *digest,
                         X509 *x, X509 *xca, EVP_PKEY *pkey,
                         STACK_OF(OPENSSL_STRING) *sigopts,
                         char *serialfile, int create,
-                        int days, int clrext, CONF *conf, char *section,
+                        int days, int clrext, int preserve_dates,
+                        CONF *conf, char *section,
                         ASN1_INTEGER *sno)
 {
     int ret = 0;
@@ -1140,12 +1147,14 @@ static int x509_certify(X509_STORE *ctx, char *CAfile, const EVP_MD *digest,
     if (!X509_set_serialNumber(x, bs))
         goto end;
 
-    if (X509_gmtime_adj(X509_get_notBefore(x), 0L) == NULL)
-        goto end;
+    if (!preserve_dates) {
+        if (X509_gmtime_adj(X509_get_notBefore(x), 0L) == NULL)
+            goto end;
 
-    /* hardwired expired */
-    if (X509_time_adj_ex(X509_get_notAfter(x), days, 0, NULL) == NULL)
-        goto end;
+        /* hardwired expired */
+        if (X509_time_adj_ex(X509_get_notAfter(x), days, 0, NULL) == NULL)
+            goto end;
+    }
 
     if (clrext) {
         while (X509_get_ext_count(x) > 0)
@@ -1212,7 +1221,8 @@ static int MS_CALLBACK callb(int ok, X509_STORE_CTX *ctx)
 
 /* self sign */
 static int sign(X509 *x, EVP_PKEY *pkey, int days, int clrext,
-                const EVP_MD *digest, CONF *conf, char *section)
+                int preserve_dates, const EVP_MD *digest, CONF *conf,
+                char *section)
 {
 
     EVP_PKEY *pktmp;
@@ -1226,11 +1236,18 @@ static int sign(X509 *x, EVP_PKEY *pkey, int days, int clrext,
 
     if (!X509_set_issuer_name(x, X509_get_subject_name(x)))
         goto err;
-    if (X509_gmtime_adj(X509_get_notBefore(x), 0) == NULL)
-        goto err;
 
-    if (X509_time_adj_ex(X509_get_notAfter(x), days, 0, NULL) == NULL)
-        goto err;
+    if (!preserve_dates) {
+        if (X509_gmtime_adj(X509_get_notBefore(x), 0) == NULL)
+            goto err;
+
+        /* Lets just make it 12:00am GMT, Jan 1 1970 */
+        /* memcpy(x->cert_info->validity->notBefore,"700101120000Z",13); */
+        /* 28 days to be certified */
+
+        if (X509_time_adj_ex(X509_get_notAfter(x), days, 0, NULL) == NULL)
+            goto err;
+    }
 
     if (!X509_set_pubkey(x, pkey))
         goto err;
