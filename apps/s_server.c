@@ -2176,6 +2176,34 @@ static void print_stats(BIO *bio, SSL_CTX *ssl_ctx)
                SSL_CTX_sess_get_cache_size(ssl_ctx));
 }
 
+static int sv_check_event_wait(SSL *con, int retcode)
+{
+    switch (SSL_get_error(con, retcode)) {
+    case SSL_ERROR_WANT_EVENT:
+        switch (SSL_want(con)) {
+#ifndef OPENSSL_NO_SRP
+        case SSL_EVENT_SRP_CLIENTHELLO:
+            BIO_printf(bio_s_out, "LOOKUP renego during write\n");
+            SRP_user_pwd_free(srp_callback_parm.user);
+            srp_callback_parm.user = SRP_VBASE_get1_by_user(srp_callback_parm.vb, srp_callback_parm.login);
+            if (srp_callback_parm.user)
+                BIO_printf(bio_s_out, "LOOKUP done %s\n", srp_callback_parm.user->info);
+            else
+                BIO_printf(bio_s_out, "LOOKUP not successful\n");
+            break;
+#endif
+        default:
+            /* this is currently a busy wait, maybe not spam bio_s_out...
+               BIO_printf(bio_s_out,"Wait Event: %d\n", SSL_want(con)); */
+            break;
+        }
+        break;
+    default:
+        break;
+    }
+    return (retcode);
+}
+
 static int sv_body(int s, int stype, unsigned char *context)
 {
     char *buf = NULL;
@@ -2480,28 +2508,15 @@ static int sv_body(int s, int stype, unsigned char *context)
                 }
 #endif
                 k = SSL_write(con, &(buf[l]), (unsigned int)i);
-#ifndef OPENSSL_NO_SRP
-                while (SSL_get_error(con, k) == SSL_ERROR_WANT_X509_LOOKUP) {
-                    BIO_printf(bio_s_out, "LOOKUP renego during write\n");
-                    SRP_user_pwd_free(srp_callback_parm.user);
-                    srp_callback_parm.user =
-                        SRP_VBASE_get1_by_user(srp_callback_parm.vb,
-                                               srp_callback_parm.login);
-                    if (srp_callback_parm.user)
-                        BIO_printf(bio_s_out, "LOOKUP done %s\n",
-                                   srp_callback_parm.user->info);
-                    else
-                        BIO_printf(bio_s_out, "LOOKUP not successful\n");
-                    k = SSL_write(con, &(buf[l]), (unsigned int)i);
-                }
-#endif
                 switch (SSL_get_error(con, k)) {
                 case SSL_ERROR_NONE:
                     break;
                 case SSL_ERROR_WANT_WRITE:
                 case SSL_ERROR_WANT_READ:
-                case SSL_ERROR_WANT_X509_LOOKUP:
                     BIO_printf(bio_s_out, "Write BLOCK\n");
+                    break;
+                case SSL_ERROR_WANT_EVENT:
+                    sv_check_event_wait(con, k);
                     break;
                 case SSL_ERROR_SYSCALL:
                 case SSL_ERROR_SSL:
@@ -2537,21 +2552,6 @@ static int sv_body(int s, int stype, unsigned char *context)
             } else {
  again:
                 i = SSL_read(con, (char *)buf, bufsize);
-#ifndef OPENSSL_NO_SRP
-                while (SSL_get_error(con, i) == SSL_ERROR_WANT_X509_LOOKUP) {
-                    BIO_printf(bio_s_out, "LOOKUP renego during read\n");
-                    SRP_user_pwd_free(srp_callback_parm.user);
-                    srp_callback_parm.user =
-                        SRP_VBASE_get1_by_user(srp_callback_parm.vb,
-                                               srp_callback_parm.login);
-                    if (srp_callback_parm.user)
-                        BIO_printf(bio_s_out, "LOOKUP done %s\n",
-                                   srp_callback_parm.user->info);
-                    else
-                        BIO_printf(bio_s_out, "LOOKUP not successful\n");
-                    i = SSL_read(con, (char *)buf, bufsize);
-                }
-#endif
                 switch (SSL_get_error(con, i)) {
                 case SSL_ERROR_NONE:
 #ifdef CHARSET_EBCDIC
@@ -2564,6 +2564,9 @@ static int sv_body(int s, int stype, unsigned char *context)
                 case SSL_ERROR_WANT_WRITE:
                 case SSL_ERROR_WANT_READ:
                     BIO_printf(bio_s_out, "Read BLOCK\n");
+                    break;
+                case SSL_ERROR_WANT_EVENT:
+                    sv_check_event_wait(con,i);
                     break;
                 case SSL_ERROR_SYSCALL:
                 case SSL_ERROR_SSL:
@@ -2623,33 +2626,23 @@ static int init_ssl_connection(SSL *con)
 #endif
     unsigned char *exportedkeymat;
 
-    i = SSL_accept(con);
+    int waiting = 1;
+    while (waiting) {
+        i = SSL_accept(con);
+        switch (SSL_get_error(con, i)) {
+        case SSL_ERROR_WANT_EVENT:
+            sv_check_event_wait(con, i);
 #ifdef CERT_CB_TEST_RETRY
-    {
-        while (i <= 0 && SSL_get_error(con, i) == SSL_ERROR_WANT_X509_LOOKUP
-               && SSL_state(con) == SSL3_ST_SR_CLNT_HELLO_C) {
-            fprintf(stderr,
-                    "LOOKUP from certificate callback during accept\n");
-            i = SSL_accept(con);
+            if (SSL_state(con) == SSL3_ST_SR_CLNT_HELLO_C)
+                fprintf(stderr,
+                        "LOOKUP from certificate callback during accept\n");
+#endif
+            break;
+        default:
+            waiting = 0;
+            break;
         }
     }
-#endif
-#ifndef OPENSSL_NO_SRP
-    while (i <= 0 && SSL_get_error(con, i) == SSL_ERROR_WANT_X509_LOOKUP) {
-        BIO_printf(bio_s_out, "LOOKUP during accept %s\n",
-                   srp_callback_parm.login);
-        SRP_user_pwd_free(srp_callback_parm.user);
-        srp_callback_parm.user =
-            SRP_VBASE_get1_by_user(srp_callback_parm.vb,
-                                   srp_callback_parm.login);
-        if (srp_callback_parm.user)
-            BIO_printf(bio_s_out, "LOOKUP done %s\n",
-                       srp_callback_parm.user->info);
-        else
-            BIO_printf(bio_s_out, "LOOKUP not successful\n");
-        i = SSL_accept(con);
-    }
-#endif
 
     if (i <= 0) {
         if (BIO_sock_should_retry(i)) {
@@ -2878,29 +2871,13 @@ static int www_body(int s, int stype, unsigned char *context)
     for (;;) {
         if (hack) {
             i = SSL_accept(con);
-#ifndef OPENSSL_NO_SRP
-            while (i <= 0
-                   && SSL_get_error(con, i) == SSL_ERROR_WANT_X509_LOOKUP) {
-                BIO_printf(bio_s_out, "LOOKUP during accept %s\n",
-                           srp_callback_parm.login);
-                SRP_user_pwd_free(srp_callback_parm.user);
-                srp_callback_parm.user =
-                    SRP_VBASE_get1_by_user(srp_callback_parm.vb,
-                                           srp_callback_parm.login);
-                if (srp_callback_parm.user)
-                    BIO_printf(bio_s_out, "LOOKUP done %s\n",
-                               srp_callback_parm.user->info);
-                else
-                    BIO_printf(bio_s_out, "LOOKUP not successful\n");
-                i = SSL_accept(con);
-            }
-#endif
             switch (SSL_get_error(con, i)) {
             case SSL_ERROR_NONE:
                 break;
             case SSL_ERROR_WANT_WRITE:
             case SSL_ERROR_WANT_READ:
-            case SSL_ERROR_WANT_X509_LOOKUP:
+            case SSL_ERROR_WANT_EVENT:
+                sv_check_event_wait(con, i);
                 continue;
             case SSL_ERROR_SYSCALL:
             case SSL_ERROR_SSL:

@@ -171,6 +171,7 @@ static int ca_dn_cmp(const X509_NAME *const *a, const X509_NAME *const *b);
 #ifndef OPENSSL_NO_TLSEXT
 static int ssl3_check_finished(SSL *s);
 #endif
+static void SSLv3_setup_client_verify_msg(SSL *s, void *task_ctx);
 
 #ifndef OPENSSL_NO_SSL3_METHOD
 static const SSL_METHOD *ssl3_get_client_method(int ver)
@@ -3246,6 +3247,27 @@ int ssl3_send_client_key_exchange(SSL *s)
 
 int ssl3_send_client_verify(SSL *s)
 {
+    int i;
+    if (s->state == SSL3_ST_CW_CERT_VRFY_A) {
+        s->state = SSL3_ST_CW_CERT_VRFY_B;
+        i = ssl_schedule_task(s, SSL_EVENT_SETUP_CERT_VRFY_DONE,
+                              &s->task.ctx, SSLv3_setup_client_verify_msg);
+        if (i < 0) {
+            SSLerr(SSL_F_SSL3_SEND_CLIENT_VERIFY,SSL_R_SSL_HANDSHAKE_FAILURE);
+            return i;
+        }
+    }
+    /* s->state == SSL3_ST_CW_CERT_VRFY_B */
+		
+    /* Waiting for our setup method to complete */
+    if (!ssl_event_did_succeed(s, SSL_EVENT_SETUP_CERT_VRFY_DONE, &i))
+        return i;
+		
+    return ssl_do_write(s);
+}
+
+static void SSLv3_setup_client_verify_msg(SSL *s, void *task_ctx)
+{
     unsigned char *p;
     unsigned char data[MD5_DIGEST_LENGTH + SHA_DIGEST_LENGTH];
     EVP_PKEY *pkey;
@@ -3257,7 +3279,7 @@ int ssl3_send_client_verify(SSL *s)
 
     EVP_MD_CTX_init(&mctx);
 
-    if (s->state == SSL3_ST_CW_CERT_VRFY_A) {
+    if (1) { /* minimize changers by forcing an indent */
         p = ssl_handshake_start(s);
         pkey = s->cert->key->privatekey;
 /* Create context from key and test if sha1 is allowed as digest */
@@ -3344,7 +3366,7 @@ int ssl3_send_client_verify(SSL *s)
         } else
 #endif
         if (pkey->type == NID_id_GostR3410_94
-                || pkey->type == NID_id_GostR3410_2001) {
+            || pkey->type == NID_id_GostR3410_2001) {
             unsigned char signbuf[64];
             int i;
             size_t sigsize = 64;
@@ -3364,16 +3386,15 @@ int ssl3_send_client_verify(SSL *s)
             goto err;
         }
         ssl_set_handshake_header(s, SSL3_MT_CERTIFICATE_VERIFY, n);
-        s->state = SSL3_ST_CW_CERT_VRFY_B;
     }
     EVP_MD_CTX_cleanup(&mctx);
     EVP_PKEY_CTX_free(pctx);
-    return ssl_do_write(s);
+    SSL_signal_event(s, SSL_EVENT_SETUP_CERT_VRFY_DONE, 1);
+    return;
  err:
     EVP_MD_CTX_cleanup(&mctx);
     EVP_PKEY_CTX_free(pctx);
-    s->state = SSL_ST_ERR;
-    return (-1);
+    SSL_signal_event(s, SSL_EVENT_SETUP_CERT_VRFY_DONE, -1);
 }
 
 /*
@@ -3449,13 +3470,13 @@ int ssl3_send_client_certificate(SSL *s)
 
     /* We need to get a client cert */
     if (s->state == SSL3_ST_CW_CERT_B) {
-        /*
-         * If we get an error, we need to ssl->rwstate=SSL_X509_LOOKUP;
-         * return(-1); We then get retied later
+        /* If the callback is waiting, we get <0 returned and mark the
+         * s->rwstate that we are waiting. -1 will tell the caller to
+         * check the error state and call us again at an appropriate time.
          */
         i = ssl_do_client_cert_cb(s, &x509, &pkey);
         if (i < 0) {
-            s->rwstate = SSL_X509_LOOKUP;
+            s->rwstate = SSL_EVENT_X509_LOOKUP;
             return (-1);
         }
         s->rwstate = SSL_NOTHING;

@@ -2771,8 +2771,8 @@ int SSL_get_error(const SSL *s, int i)
                 return (SSL_ERROR_SYSCALL);
         }
     }
-    if ((i < 0) && SSL_want_x509_lookup(s)) {
-        return (SSL_ERROR_WANT_X509_LOOKUP);
+    if ((i < 0) && SSL_want_event(s)) {
+        return (SSL_ERROR_WANT_EVENT);
     }
 
     if (i == 0) {
@@ -3347,6 +3347,123 @@ void SSL_CTX_set_cert_store(SSL_CTX *ctx, X509_STORE *store)
 int SSL_want(const SSL *s)
 {
     return (s->rwstate);
+}
+
+void SSL_CTX_set_schedule_task_cb(SSL_CTX *ctx, SSL_schedule_task_cb cb)
+{
+    ctx->schedule_task_cb = cb;
+}
+
+SSL_schedule_task_cb SSL_CTX_get_schedule_task_cb(SSL_CTX *ctx)
+{
+    return (ctx->schedule_task_cb);
+}
+
+static void cleanup_event(SSL *s)
+{
+    memset(&s->event, 0, sizeof(s->event));
+}
+
+static void cleanup_task(SSL *s)
+{
+    /* Cannot call when CRYPTO_LOCK_SSL is taken
+     * as this may call SSL_free, which could
+     * also free itself */
+    SSL* tmp = s->task.ssl_ref;
+    s->task.ssl_ref = NULL;
+    if (tmp) {
+        SSL_free(tmp); /* decr ref counter */
+    }
+}
+
+int SSL_signal_event_result(SSL *s, int event, int retcode, int func, int reason, const char *file, int line)
+{
+    int ret = 1;
+    CRYPTO_w_lock(CRYPTO_LOCK_SSL);
+    /* We would expect that we wait for this event, but maybe we moved
+     * on with our internal state and the event is late. Ignore it in
+     * this case. */
+    if (s->rwstate == event) {
+        cleanup_event(s);
+        s->event.type = event;
+        s->event.result = retcode;
+        s->event.err_func = func;
+        s->event.err_reason = reason;
+        s->event.err_file = file;
+        s->event.err_line = line;
+		
+        switch (event) {
+        /* Insert handling of events common to all SSL versions here. */
+        default:
+            if (s->method->ssl_signal_event)
+                ret = s->method->ssl_signal_event(s, event, retcode);
+            break;
+        }
+        s->rwstate = SSL_NOTHING;
+        if (s->task.type == event) {
+            /* Can't do cleanup_task() here because
+             * CRYPTO_LOCK_SSL is already taken */
+            SSL* tmp = s->task.ssl_ref;
+            s->task.ssl_ref = NULL;
+            CRYPTO_w_unlock(CRYPTO_LOCK_SSL);
+            if (tmp) {
+                SSL_free(tmp); /* decr ref counter */
+            }
+            return ret;
+        }
+    }
+    CRYPTO_w_unlock(CRYPTO_LOCK_SSL);
+    return ret;
+}
+
+int ssl_schedule_task(SSL *s, int task_type, SSL_task_ctx *ctx, SSL_task_fn *fn)
+{
+    int ret = 0;
+    CRYPTO_add(&s->references, 1, CRYPTO_LOCK_SSL); /* see that no one frees it */
+    cleanup_event(s);
+    cleanup_task(s);
+    s->rwstate = task_type;
+    s->task.type = task_type;
+    s->task.ssl_ref = s;
+    if (s->ctx->schedule_task_cb)
+        ret = s->ctx->schedule_task_cb(s, task_type, ctx, fn);
+    if (ret == 0) {
+        /* either no cb or cb did not accept task */
+        fn(s, ctx);
+        /* fn MUST call SSL_signal_event() in the end, so state
+           should have changed and cleanup was done. */
+        OPENSSL_assert(s->rwstate != task_type);
+        OPENSSL_assert(s->task.ssl_ref == NULL);
+        ret = 1;
+    } else if (ret < 0) {
+        /* task execution failed, cleanup */
+        s->rwstate = SSL_NOTHING;
+        cleanup_task(s);
+    }
+    return (ret);
+}
+
+int ssl_get_event_result(SSL *s)
+{
+    if (s->event.result < 0 && s->event.err_func) {
+        ERR_PUT_error(ERR_LIB_SSL, s->event.err_func, s->event.err_reason,
+                      s->event.err_file, s->event.err_line);
+        s->event.err_func = 0; /* report only once */
+    }
+    return (s->event.result);
+}
+
+int ssl_event_did_succeed(SSL *s, int event, int *result)
+{
+    CRYPTO_r_lock(CRYPTO_LOCK_SSL);
+    if (s->rwstate == event) /* still waiting for it? */
+        *result = -1;
+    else if (s->event.type == event)
+        *result = ssl_get_event_result(s);
+    else /* not waiting, but recorded event is different kind.  */
+        *result = 0;
+    CRYPTO_r_unlock(CRYPTO_LOCK_SSL);
+    return (*result >= 0);
 }
 
 /**

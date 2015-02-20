@@ -899,6 +899,7 @@ const SSL_METHOD *func_name(void)  \
                 ssl_undefined_void_function, \
                 ssl3_callback_ctrl, \
                 ssl3_ctx_callback_ctrl, \
+                ssl3_signal_event, \
         }; \
         return &func_name##_data; \
         }
@@ -936,6 +937,7 @@ const SSL_METHOD *func_name(void)  \
                 ssl_undefined_void_function, \
                 ssl3_callback_ctrl, \
                 ssl3_ctx_callback_ctrl, \
+                ssl3_signal_event, \
         }; \
         return &func_name##_data; \
         }
@@ -973,6 +975,7 @@ const SSL_METHOD *func_name(void)  \
         ssl_undefined_void_function, \
         ssl3_callback_ctrl, \
         ssl3_ctx_callback_ctrl, \
+        ssl3_signal_event, \
         }; \
         return &func_name##_data; \
         }
@@ -1048,6 +1051,7 @@ const SSL_METHOD *func_name(void)  \
                 ssl_undefined_void_function, \
                 ssl3_callback_ctrl, \
                 ssl3_ctx_callback_ctrl, \
+                ssl3_signal_event, \
         }; \
         return &func_name##_data; \
         }
@@ -1157,6 +1161,10 @@ long ssl2_callback_ctrl(SSL *s, int cmd, void (*fp) (void));
 long ssl2_ctx_callback_ctrl(SSL_CTX *s, int cmd, void (*fp) (void));
 int ssl2_pending(const SSL *s);
 long ssl2_default_timeout(void);
+void ssl_task_rsa_decrypt(SSL *s, SSL_rsa_decrypt_ctx *ctx);
+int ssl_schedule_task(SSL *s, int task_type, SSL_task_ctx *ctx, SSL_task_fn fn);
+int ssl_get_event_result(SSL *s);
+int ssl_event_did_succeed(SSL *s, int event, int *result);
 
 const SSL_CIPHER *ssl3_get_cipher_by_char(const unsigned char *p);
 int ssl3_put_cipher_by_char(const SSL_CIPHER *c, unsigned char *p);
@@ -1217,6 +1225,7 @@ int ssl3_pending(const SSL *s);
 void ssl3_record_sequence_update(unsigned char *seq);
 int ssl3_do_change_cipher_spec(SSL *ssl);
 long ssl3_default_timeout(void);
+int ssl3_signal_event(SSL *s, int event, int retcode);
 
 void ssl3_set_handshake_header(SSL *s, int htype, unsigned long len);
 int ssl3_handshake_write(SSL *s);
@@ -1305,6 +1314,7 @@ int ssl3_send_certificate_request(SSL *s);
 int ssl3_send_server_done(SSL *s);
 int ssl3_get_client_certificate(SSL *s);
 int ssl3_get_client_key_exchange(SSL *s);
+int ssl3_process_client_key_exchange(SSL *s);
 int ssl3_get_cert_verify(SSL *s);
 #  ifndef OPENSSL_NO_NEXTPROTONEG
 int ssl3_get_next_proto(SSL *s);

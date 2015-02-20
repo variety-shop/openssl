@@ -4498,6 +4498,11 @@ int ssl3_peek(SSL *s, void *buf, int len)
     return ssl3_read_internal(s, buf, len, 1);
 }
 
+int ssl3_signal_event(SSL *s, int event, int retcode)
+{
+    return (1);
+}
+
 int ssl3_renegotiate(SSL *s)
 {
     if (s->handshake_func == NULL)
@@ -4547,3 +4552,4 @@ long ssl_get_algorithm2(SSL *s)
         return SSL_HANDSHAKE_MAC_SHA256 | TLS1_PRF_SHA256;
     return alg2;
 }
+
