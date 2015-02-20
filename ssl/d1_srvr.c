@@ -647,7 +647,20 @@ int dtls1_accept(SSL *s)
 
         case SSL3_ST_SR_KEY_EXCH_A:
         case SSL3_ST_SR_KEY_EXCH_B:
+            s->s3->tmp.skip_client_verify = 0;
             ret = ssl3_get_client_key_exchange(s);
+            if (ret <= 0)
+                goto end;
+            /* fall through */
+			
+        case SSL3_ST_SR_KEY_EXCH_PROCESS:
+            /* Are we waiting for decryption to complete? */
+            if (s->rwstate == SSL_EVENT_KEY_EXCH_DECRYPT_DONE) {
+                ret = -1;
+                goto end;
+            }
+
+            ret=ssl3_process_client_key_exchange(s);
             if (ret <= 0)
                 goto end;
 #ifndef OPENSSL_NO_SCTP
@@ -673,7 +686,7 @@ int dtls1_accept(SSL *s)
             s->state = SSL3_ST_SR_CERT_VRFY_A;
             s->init_num = 0;
 
-            if (ret == 2) {
+            if (s->s3->tmp.skip_client_verify) {
                 /*
                  * For the ECDH ciphersuites when the client sends its ECDH
                  * pub key in a certificate, the CertificateVerify message is
