@@ -272,7 +272,8 @@ void BIO_clear_flags(BIO *b, int flags);
 /*
  * Returned from the SSL bio when the certificate retrieval code had an error
  */
-# define BIO_RR_SSL_X509_LOOKUP          0x01
+# define BIO_RR_WANT_EVENT               0x01
+# define BIO_RR_SSL_X509_LOOKUP          BIO_RR_WANT_EVENT
 /* Returned from the connect BIO when a connect would have blocked */
 # define BIO_RR_CONNECT                  0x02
 /* Returned from the accept BIO when an accept would have blocked */
