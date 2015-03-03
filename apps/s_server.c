@@ -501,6 +501,8 @@ static void sv_usage(void)
 {
     BIO_printf(bio_err, "usage: s_server [args ...]\n");
     BIO_printf(bio_err, "\n");
+    BIO_printf(bio_err, " -4            - use IPv4 sockets\n");
+    BIO_printf(bio_err, " -6            - use IPv6 sockets\n");
     BIO_printf(bio_err,
                " -accept arg   - port to accept on (default is %d)\n", PORT);
     BIO_printf(bio_err,
@@ -1094,6 +1096,7 @@ int MAIN(int argc, char *argv[])
     X509_VERIFY_PARAM *vpm = NULL;
     int badarg = 0;
     short port = PORT;
+    int family = AF_UNSPEC;
     char *CApath = NULL, *CAfile = NULL;
     char *chCApath = NULL, *chCAfile = NULL;
     char *vfyCApath = NULL, *vfyCAfile = NULL;
@@ -1190,6 +1193,10 @@ int MAIN(int argc, char *argv[])
                 BIO_printf(bio_err, "bad accept value %s\n", *argv);
                 goto bad;
             }
+        } else if (strcmp(*argv,"-4") == 0) {
+            family = AF_INET;
+        } else if (strcmp(*argv,"-6") == 0) {
+            family = AF_INET6;
         } else if (strcmp(*argv, "-verify") == 0) {
             s_server_verify = SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE;
             if (--argc < 1)
@@ -2051,13 +2058,13 @@ int MAIN(int argc, char *argv[])
     (void)BIO_flush(bio_s_out);
     if (rev)
         do_server(port, socket_type, &accept_socket, rev_body, context,
-                  naccept);
+                  naccept, family);
     else if (www)
         do_server(port, socket_type, &accept_socket, www_body, context,
-                  naccept);
+                  naccept, family);
     else
         do_server(port, socket_type, &accept_socket, sv_body, context,
-                  naccept);
+                  naccept, family);
     print_stats(bio_s_out, ctx);
     ret = 0;
  end:
