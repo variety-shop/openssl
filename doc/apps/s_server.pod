@@ -9,6 +9,8 @@ s_server - SSL/TLS server program
 =head1 SYNOPSIS
 
 B<openssl> B<s_server>
+[B<-4>]
+[B<-6>]
 [B<-accept port>]
 [B<-context id>]
 [B<-verify depth>]
@@ -77,6 +79,14 @@ for connections on a given port using SSL/TLS.
 =head1 OPTIONS
 
 =over 4
+
+=item B<-4>
+
+let the server listen using IPv4.
+
+=item B<-6>
+
+let the server listen using IPv6.
 
 =item B<-accept port>
 
