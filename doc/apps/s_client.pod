@@ -9,6 +9,8 @@ s_client - SSL/TLS client program
 =head1 SYNOPSIS
 
 B<openssl> B<s_client>
+[B<-4>]
+[B<-6>]
 [B<-connect host:port>]
 [B<-servername name>]
 [B<-verify depth>]
@@ -68,6 +70,14 @@ SSL servers.
 =head1 OPTIONS
 
 =over 4
+
+=item B<-4>
+
+Use only IPv4 addresses when resolving the host name.
+
+=item B<-6>
+
+Use only IPv6 addresses when resolving the host name.
 
 =item B<-connect host:port>
 
