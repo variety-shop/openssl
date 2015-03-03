@@ -106,9 +106,9 @@ static struct hostent *GetHostByName(char *name);
 static void ssl_sock_cleanup(void);
 # endif
 static int ssl_sock_init(void);
-static int init_client_ip(int *sock, unsigned char ip[4], int port, int type);
-static int init_server(int *sock, int port, int type);
-static int init_server_long(int *sock, int port, char *ip, int type);
+static int init_client_ip(int *sock, const char *host, int port, int type, int af);
+static int init_server(int *sock, int port, int type, int af);
+static int init_server_long(int *sock, int port, char *ip, int type, int af);
 static int do_accept(int acc_sock, int *sock);
 static int host_ip(char *str, unsigned char ip[4]);
 
@@ -231,73 +231,82 @@ static int ssl_sock_init(void)
     return (1);
 }
 
-int init_client(int *sock, char *host, int port, int type)
+int init_client(int *sock, const char *host, int port, int type, int af)
 {
-    unsigned char ip[4];
-
-    memset(ip, '\0', sizeof(ip));
-    if (!host_ip(host, &(ip[0])))
-        return 0;
-    return init_client_ip(sock, ip, port, type);
+    /* Only a wrapper functionality remains. */
+    return init_client_ip(sock, host, port, type, af);
 }
 
-static int init_client_ip(int *sock, unsigned char ip[4], int port, int type)
+static int init_client_ip(int *sock, const char *host, int port, int type, int af)
 {
-    unsigned long addr;
-    struct sockaddr_in them;
-    int s, i;
+    struct sockaddr_storage them;
+    struct addrinfo hints, *ai, *aiptr;
+    char portstr[12];
+    int s, ret;
 
     if (!ssl_sock_init())
         return (0);
 
-    memset((char *)&them, 0, sizeof(them));
-    them.sin_family = AF_INET;
-    them.sin_port = htons((unsigned short)port);
-    addr = (unsigned long)
-        ((unsigned long)ip[0] << 24L) |
-        ((unsigned long)ip[1] << 16L) |
-        ((unsigned long)ip[2] << 8L) | ((unsigned long)ip[3]);
-    them.sin_addr.s_addr = htonl(addr);
+    snprintf(portstr, sizeof(portstr), "%u", port);
 
-    if (type == SOCK_STREAM)
-        s = socket(AF_INET, SOCK_STREAM, SOCKET_PROTOCOL);
-    else                        /* ( type == SOCK_DGRAM) */
-        s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    memset(&them, 0, sizeof(them));
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = af;
+    hints.ai_socktype = type;
+    hints.ai_flags = AI_ADDRCONFIG;
 
-    if (s == INVALID_SOCKET) {
-        perror("socket");
-        return (0);
+    if ((ret = getaddrinfo(host, portstr, &hints, &aiptr))) {
+        /* Lookup failed. */
+        fprintf(stderr, "getaddrinfo(): %s\n", gai_strerror(ret));
+        return(0);
     }
-# if defined(SO_KEEPALIVE) && !defined(OPENSSL_SYS_MPE)
-    if (type == SOCK_STREAM) {
-        i = 0;
-        i = setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, (char *)&i, sizeof(i));
-        if (i < 0) {
-            closesocket(s);
-            perror("keepalive");
-            return (0);
+
+    for (ai = aiptr; ai != NULL; ai = ai->ai_next) {
+      if ((s = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol)) < 0) {
+            perror("socket");
+            continue;
+      }
+
+#if defined(SO_KEEPALIVE) && !defined(OPENSSL_SYS_MPE)
+        if (type == SOCK_STREAM) {
+	    int i = 0;
+	    i = setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, (char *)&i, sizeof(i));
+            if (i < 0) {
+                perror("keepalive");
+                close(s);
+                continue;
+            }
         }
-    }
-# endif
+#endif
+	if (connect(s, ai->ai_addr, ai->ai_addrlen) < 0) {
+            perror("connect");
+            close(s);
+            continue;
+        }
 
-    if (connect(s, (struct sockaddr *)&them, sizeof(them)) == -1) {
-        closesocket(s);
-        perror("connect");
-        return (0);
+        /* Connection has been established. */
+        break;
     }
-    *sock = s;
-    return (1);
+
+    freeaddrinfo(aiptr);
+
+    if (ai) {
+        /* Success. */
+        *sock = s;
+        return (1);
+    }
+    return (0);
 }
 
 int do_server(int port, int type, int *ret,
               int (*cb) (int s, int stype, unsigned char *context),
-              unsigned char *context, int naccept)
+              unsigned char *context, int naccept, int family)
 {
     int sock;
     int accept_socket = 0;
     int i;
 
-    if (!init_server(&accept_socket, port, type))
+    if (!init_server(&accept_socket, port, type, family))
         return (0);
 
     if (ret != NULL) {
@@ -324,52 +333,62 @@ int do_server(int port, int type, int *ret,
     }
 }
 
-static int init_server_long(int *sock, int port, char *ip, int type)
+static int init_server_long(int *sock, int port, char *ip, int type, int af)
 {
-    int ret = 0;
-    struct sockaddr_in server;
+    int ret = 0, rc;
+    char portstr[12];
+    struct addrinfo hints, *ai, *aiptr;
     int s = -1;
 
     if (!ssl_sock_init())
         return (0);
 
-    memset((char *)&server, 0, sizeof(server));
-    server.sin_family = AF_INET;
-    server.sin_port = htons((unsigned short)port);
-    if (ip == NULL)
-        server.sin_addr.s_addr = INADDR_ANY;
-    else
-/* Added for T3E, address-of fails on bit field (beckman@acl.lanl.gov) */
-# ifndef BIT_FIELD_LIMITS
-        memcpy(&server.sin_addr.s_addr, ip, 4);
-# else
-        memcpy(&server.sin_addr, ip, 4);
-# endif
+    snprintf(portstr, sizeof(portstr), "%u", port);
 
-    if (type == SOCK_STREAM)
-        s = socket(AF_INET, SOCK_STREAM, SOCKET_PROTOCOL);
-    else                        /* type == SOCK_DGRAM */
-        s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = af;
+    hints.ai_socktype = type;
+    hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV | AI_ADDRCONFIG;
 
-    if (s == INVALID_SOCKET)
+    if ((rc = getaddrinfo(NULL, portstr, &hints, &aiptr))) {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rc));
         goto err;
-# if defined SOL_SOCKET && defined SO_REUSEADDR
-    {
-        int j = 1;
-        setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (void *)&j, sizeof(j));
+    } else {
+        for (ai = aiptr; ai; ai = ai->ai_next) {
+            if ((s = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol)) < 0) {
+                perror("bind");
+                continue;
+            }
+#if defined SOL_SOCKET && defined SO_REUSEADDR
+            {
+                int j = 1;
+                setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char*)&j, sizeof(j));
+            }
+#endif
+            if (bind(s, ai->ai_addr, ai->ai_addrlen) < 0) {
+                perror("bind");
+                close(s);
+                s = -1;
+                continue;
+            }
+            /* Make it 128 for linux */
+            if (type == SOCK_STREAM && listen(s, 128) == -1) {
+                perror("listen");
+                close(s);
+                s = -1;
+                continue;
+            }
+            /* Successfully listening. */
+            break;
+        }
+
+        freeaddrinfo(aiptr);
+        if (ai) {
+            /* Success. */
+            *sock = s;
+            ret = 1;
+        }
     }
-# endif
-    if (bind(s, (struct sockaddr *)&server, sizeof(server)) == -1) {
-# ifndef OPENSSL_SYS_WINDOWS
-        perror("bind");
-# endif
-        goto err;
-    }
-    /* Make it 128 for linux */
-    if (type == SOCK_STREAM && listen(s, 128) == -1)
-        goto err;
-    *sock = s;
-    ret = 1;
  err:
     if ((ret == 0) && (s != -1)) {
         SHUTDOWN(s);
@@ -377,9 +396,9 @@ static int init_server_long(int *sock, int port, char *ip, int type)
     return (ret);
 }
 
-static int init_server(int *sock, int port, int type)
+static int init_server(int *sock, int port, int type, int family)
 {
-    return (init_server_long(sock, port, NULL, type));
+    return (init_server_long(sock, port, NULL, type, family));
 }
 
 static int do_accept(int acc_sock, int *sock)
@@ -428,7 +447,7 @@ int extract_host_port(char *str, char **host_ptr, unsigned char *ip,
     char *h, *p;
 
     h = str;
-    p = strchr(str, ':');
+    p = strrchr(str, ':');
     if (p == NULL) {
         BIO_printf(bio_err, "no port defined\n");
         return (0);
@@ -467,7 +486,7 @@ static int host_ip(char *str, unsigned char ip[4])
         struct hostent *he;
 
         if (!ssl_sock_init())
-            return (0);
+            goto err;
 
         he = GetHostByName(str);
         if (he == NULL) {
@@ -477,7 +496,7 @@ static int host_ip(char *str, unsigned char ip[4])
         /* cast to short because of win16 winsock definition */
         if ((short)he->h_addrtype != AF_INET) {
             BIO_printf(bio_err, "gethostbyname addr is not AF_INET\n");
-            return (0);
+            goto err;
         }
         ip[0] = he->h_addr_list[0][0];
         ip[1] = he->h_addr_list[0][1];
