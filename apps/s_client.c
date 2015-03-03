@@ -299,6 +299,8 @@ static void sc_usage(void)
 {
     BIO_printf(bio_err, "usage: s_client args\n");
     BIO_printf(bio_err, "\n");
+    BIO_printf(bio_err, " -4             - use IPv4 address for host\n");
+    BIO_printf(bio_err, " -6             - use IPv6 address for host\n");
     BIO_printf(bio_err, " -host host     - use -connect instead\n");
     BIO_printf(bio_err, " -port port     - use -connect instead\n");
     BIO_printf(bio_err,
@@ -669,6 +671,7 @@ int MAIN(int argc, char **argv)
     int sbuf_len, sbuf_off;
     fd_set readfds, writefds;
     short port = PORT;
+    int family = AF_UNSPEC;
     int full_log = 1;
     char *host = SSL_HOST_NAME;
     char *cert_file = NULL, *key_file = NULL, *chain_file = NULL;
@@ -795,6 +798,10 @@ int MAIN(int argc, char **argv)
             port = atoi(*(++argv));
             if (port == 0)
                 goto bad;
+        } else if (strcmp(*argv,"-6") == 0) {
+            family = AF_INET6;
+        } else if (strcmp(*argv,"-4") == 0) {
+            family = AF_INET;
         } else if (strcmp(*argv, "-connect") == 0) {
             if (--argc < 1)
                 goto bad;
@@ -1174,6 +1181,9 @@ int MAIN(int argc, char **argv)
     OpenSSL_add_ssl_algorithms();
     SSL_load_error_strings();
 
+	if (next_proto.data)
+		SSL_CTX_set_next_proto_select_cb(ctx, next_proto_cb, &next_proto);
+
 #if !defined(OPENSSL_NO_TLSEXT) && !defined(OPENSSL_NO_NEXTPROTONEG)
     next_proto.status = -1;
     if (next_proto_neg_in) {
@@ -1449,7 +1459,7 @@ int MAIN(int argc, char **argv)
 
  re_start:
 
-    if (init_client(&s, host, port, socket_type) == 0) {
+    if (init_client(&s, host, port, socket_type, family) == 0) {
         BIO_printf(bio_err, "connect:errno=%d\n", get_last_socket_error());
         SHUTDOWN(s);
         goto end;
