@@ -515,6 +515,9 @@ typedef unsigned long clock_t;
 #    define SHUTDOWN(fd)              close(fd)
 #    define SHUTDOWN2(fd)             close(fd)
 #   elif !defined(__DJGPP__)
+#    include <winsock2.h>
+#    include <WS2tcpip.h>
+#    include <WSPiApi.h>
 #    if defined(_WIN32_WCE) && _WIN32_WCE<410
 #     define getservbyname _masked_declaration_getservbyname
 #    endif
