@@ -153,7 +153,7 @@ typedef fd_mask fd_set;
 
 int do_server(int port, int type, int *ret,
               int (*cb) (int s, int stype, unsigned char *context),
-              unsigned char *context, int naccept);
+              unsigned char *context, int naccept, int family);
 #ifdef HEADER_X509_H
 int MS_CALLBACK verify_callback(int ok, X509_STORE_CTX *ctx);
 #endif
@@ -166,7 +166,7 @@ int ssl_print_point_formats(BIO *out, SSL *s);
 int ssl_print_curves(BIO *out, SSL *s, int noshared);
 #endif
 int ssl_print_tmp_key(BIO *out, SSL *s);
-int init_client(int *sock, char *server, int port, int type);
+int init_client(int *sock, const char *server, int port, int type, int af);
 int should_retry(int i);
 int extract_port(char *str, short *port_ptr);
 int extract_host_port(char *str, char **host_ptr, unsigned char *ip,
@@ -187,6 +187,8 @@ int MS_CALLBACK generate_cookie_callback(SSL *ssl, unsigned char *cookie,
                                          unsigned int *cookie_len);
 int MS_CALLBACK verify_cookie_callback(SSL *ssl, unsigned char *cookie,
                                        unsigned int cookie_len);
+
+unsigned char *next_protos_parse(unsigned short *outlen, const char *in);
 
 typedef struct ssl_excert_st SSL_EXCERT;
 
