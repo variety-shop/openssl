@@ -43,6 +43,11 @@ typedef struct handshake_result {
     /* Was the handshake resumed? */
     int client_resumed;
     int server_resumed;
+#ifndef OPENSSL_NO_AKAMAI
+    /* Did the write/read match? */
+    int client_read;
+    int server_read;
+#endif
 } HANDSHAKE_RESULT;
 
 HANDSHAKE_RESULT *HANDSHAKE_RESULT_new(void);
