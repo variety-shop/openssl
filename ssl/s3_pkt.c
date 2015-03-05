@@ -132,8 +132,9 @@
 # define EVP_CIPH_FLAG_TLS1_1_MULTIBLOCK 0
 #endif
 
-static int do_ssl3_write(SSL *s, int type, const unsigned char *buf,
-                         unsigned int len, int create_empty_fragment);
+static int do_ssl3_write(SSL *s, int type, const ssl_bucket *buckets,
+                         int count, int offset, int len,
+                         int create_empty_fragment);
 static int ssl3_get_record(SSL *s);
 
 int ssl3_read_n(SSL *s, int n, int max, int extend)
@@ -628,15 +629,42 @@ int ssl3_do_compress(SSL *ssl)
     return (1);
 }
 
+int ssl3_do_vcompress(SSL *ssl, const ssl_bucket *buckets, int count, size_t offset, size_t len)
+{
+#ifndef OPENSSL_NO_COMP
+    int nlen = 0, i;
+    SSL3_RECORD *wr = &(ssl->s3->wrec);
+    for (i = 0; i < count && len > 0; ++i) {
+        size_t blen = buckets[i].iov_len;
+        int n;
+        if (offset >= blen) {
+            offset -= blen;
+            continue;
+        }
+        n = COMP_compress_block(ssl->compress, wr->data+nlen,
+                                SSL3_RT_MAX_COMPRESSED_LENGTH,
+                                (unsigned char*)buckets[i].iov_base + offset,
+                                (int)blen - offset);
+        if (n < 0)
+            return (0);
+        offset = 0;
+        nlen += n;
+        len -= n;
+    }
+    wr->length = nlen;
+    wr->input = wr->data;
+#endif
+    return (1);
+}
+
 /*
  * Call this to write data in records of type 'type' It will return <= 0 if
  * not all data has been sent or non-blocking IO.
  */
-int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
+int ssl3_writev_bytes(SSL *s, int type, const ssl_bucket *buckets,
+                      int count)
 {
-    const unsigned char *buf = buf_;
-    int tot;
-    unsigned int n, nw;
+    unsigned int n, nw, len, tot;
 #if !defined(OPENSSL_NO_MULTIBLOCK) && EVP_CIPH_FLAG_TLS1_1_MULTIBLOCK
     unsigned int max_send_fragment;
 #endif
@@ -662,11 +690,12 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
      * ensure that if we end up with a smaller value of data to write out
      * than the the original len from a write which didn't complete for
      * non-blocking I/O and also somehow ended up avoiding the check for
-     * this in ssl3_write_pending/SSL_R_BAD_WRITE_RETRY as it must never be
+     * this in ssl3_writev_pending/SSL_R_BAD_WRITE_RETRY as it must never be
      * possible to end up with (len-tot) as a large number that will then
      * promptly send beyond the end of the users buffer ... so we trap and
      * report the error in a way the user will notice
      */
+    len = ssl_bucket_len(buckets, count);
     if (len < tot) {
         SSLerr(SSL_F_SSL3_WRITE_BYTES, SSL_R_BAD_LENGTH);
         return (-1);
@@ -677,7 +706,7 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
      * will happen with non blocking IO
      */
     if (wb->left != 0) {
-        i = ssl3_write_pending(s, type, &buf[tot], s->s3->wpend_tot);
+        i = ssl3_writev_pending(s, type, buckets, count, s->s3->wpend_tot, 0);
         if (i <= 0) {
             /* XXX should we ssl3_release_write_buffer if i<0? */
             s->s3->wnum = tot;
@@ -693,12 +722,13 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
      * compromise is considered worthy.
      */
     if (type == SSL3_RT_APPLICATION_DATA &&
-        len >= 4 * (int)(max_send_fragment = s->max_send_fragment) &&
+        len >= 4 * (max_send_fragment = s->max_send_fragment) &&
         s->compress == NULL && s->msg_callback == NULL &&
         SSL_USE_EXPLICIT_IV(s) &&
         EVP_CIPHER_flags(s->enc_write_ctx->cipher) &
         EVP_CIPH_FLAG_TLS1_1_MULTIBLOCK) {
         unsigned char aad[13];
+        unsigned char *ptr;
         EVP_CTRL_TLS1_1_MULTIBLOCK_PARAM mb_param;
         int packlen;
 
@@ -713,7 +743,7 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
                                           EVP_CTRL_TLS1_1_MULTIBLOCK_MAX_BUFSIZE,
                                           max_send_fragment, NULL);
 
-            if (len >= 8 * (int)max_send_fragment)
+            if (len >= 8 * max_send_fragment)
                 packlen *= 8;
             else
                 packlen *= 4;
@@ -751,6 +781,9 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
             else
                 nw = max_send_fragment * (mb_param.interleave = 4);
 
+            /* get pointer into a bucket, and update number to write */
+            ptr = ssl_bucket_get_pointer(buckets, count, tot, &nw);
+
             memcpy(aad, s->s3->write_sequence, 8);
             aad[8] = type;
             aad[9] = (unsigned char)(s->version >> 8);
@@ -772,7 +805,7 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
             }
 
             mb_param.out = wb->buf;
-            mb_param.inp = &buf[tot];
+            mb_param.inp = ptr;
             mb_param.len = nw;
 
             if (EVP_CIPHER_CTX_ctrl(s->enc_write_ctx,
@@ -790,11 +823,12 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
             wb->left = packlen;
 
             s->s3->wpend_tot = nw;
-            s->s3->wpend_buf = &buf[tot];
+            memcpy(s->s3->wpend_bucket, buckets, sizeof(ssl_bucket)*count);
+            s->s3->wpend_bucket_count = count;
             s->s3->wpend_type = type;
             s->s3->wpend_ret = nw;
 
-            i = ssl3_write_pending(s, type, &buf[tot], nw);
+            i = ssl3_writev_pending(s, type, buckets, count, nw, 0);
             if (i <= 0) {
                 if (i < 0 && (!s->wbio || !BIO_should_retry(s->wbio))) {
                     OPENSSL_free(wb->buf);
@@ -827,7 +861,7 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
         else
             nw = n;
 
-        i = do_ssl3_write(s, type, &(buf[tot]), nw, 0);
+        i = do_ssl3_write(s, type, buckets, count, tot, nw, 0);
         if (i <= 0) {
             /* XXX should we ssl3_release_write_buffer if i<0? */
             s->s3->wnum = tot;
@@ -855,8 +889,17 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
     }
 }
 
-static int do_ssl3_write(SSL *s, int type, const unsigned char *buf,
-                         unsigned int len, int create_empty_fragment)
+int ssl3_write_bytes(SSL *s, int type, const void *buf, int len)
+{
+    ssl_bucket bucket;
+    bucket.iov_base = (void*)buf;
+    bucket.iov_len = len;
+    return (ssl3_writev_bytes(s, type, &bucket, 1));
+}
+
+static int do_ssl3_write(SSL *s, int type, const ssl_bucket *buckets,
+                         int count, int offset, int len,
+                         int create_empty_fragment)
 {
     unsigned char *p, *plen;
     int i, mac_size, clear = 0;
@@ -872,7 +915,7 @@ static int do_ssl3_write(SSL *s, int type, const unsigned char *buf,
      * will happen with non blocking IO
      */
     if (wb->left != 0)
-        return (ssl3_write_pending(s, type, buf, len));
+        return (ssl3_writev_pending(s, type, buckets, count, len, 0));
 
     /* If we have an alert to send, lets send it */
     if (s->s3->alert_dispatch) {
@@ -923,7 +966,7 @@ static int do_ssl3_write(SSL *s, int type, const unsigned char *buf,
              * 'prefix_len' bytes are sent out later together with the actual
              * payload)
              */
-            prefix_len = do_ssl3_write(s, type, buf, 0, 1);
+            prefix_len = do_ssl3_write(s, type, buckets, count, offset, 0, 1);
             if (prefix_len <= 0)
                 goto err;
 
@@ -999,8 +1042,6 @@ static int do_ssl3_write(SSL *s, int type, const unsigned char *buf,
 
     /* lets setup the record stuff. */
     wr->data = p + eivlen;
-    wr->length = (int)len;
-    wr->input = (unsigned char *)buf;
 
     /*
      * we now 'read' from wr->input, wr->length bytes into wr->data
@@ -1008,12 +1049,13 @@ static int do_ssl3_write(SSL *s, int type, const unsigned char *buf,
 
     /* first we compress */
     if (s->compress != NULL) {
-        if (!ssl3_do_compress(s)) {
+        if (!ssl3_do_vcompress(s, buckets, count, offset, len)) {
             SSLerr(SSL_F_DO_SSL3_WRITE, SSL_R_COMPRESSION_FAILURE);
             goto err;
         }
     } else {
-        memcpy(wr->data, wr->input, wr->length);
+        wr->length = ssl_bucket_cpy_out(wr->data, buckets, count,
+                                        offset, len);
         wr->input = wr->data;
     }
 
@@ -1067,33 +1109,34 @@ static int do_ssl3_write(SSL *s, int type, const unsigned char *buf,
     /* now let's set up wb */
     wb->left = prefix_len + wr->length;
 
-    /*
-     * memorize arguments so that ssl3_write_pending can detect bad write
-     * retries later
-     */
-    s->s3->wpend_tot = len;
-    s->s3->wpend_buf = buf;
-    s->s3->wpend_type = type;
-    s->s3->wpend_ret = len;
-
     /* we now just need to write the buffer */
-    return ssl3_write_pending(s, type, buf, len);
+    return ssl3_writev_pending(s, type, buckets, count, len, 1);
  err:
     return -1;
 }
 
 /* if s->s3->wbuf.left != 0, we need to call this */
-int ssl3_write_pending(SSL *s, int type, const unsigned char *buf,
-                       unsigned int len)
+int ssl3_writev_pending(SSL *s, int type, const ssl_bucket *buckets,
+                        int count, unsigned int len, int reset)
 {
     int i;
     SSL3_BUFFER *wb = &(s->s3->wbuf);
 
 /* XXXX */
-    if ((s->s3->wpend_tot > (int)len)
-        || ((s->s3->wpend_buf != buf) &&
-            !(s->mode & SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER))
-        || (s->s3->wpend_type != type)) {
+    if (reset) {
+        /* memorize arguments so that ssl3_writev_pending can detect bad write retries later */
+        s->s3->wpend_tot = len;
+        OPENSSL_assert(count <= SSL_BUCKET_MAX);
+        memcpy(s->s3->wpend_bucket, buckets, sizeof(ssl_bucket)*count);
+        s->s3->wpend_bucket_count = count;
+        s->s3->wpend_type = type;
+        s->s3->wpend_ret = len;
+    } else if ((s->s3->wpend_tot > (int)len)
+               || (!(s->mode & SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER)
+                   && !ssl_bucket_same(s->s3->wpend_bucket,
+                                       s->s3->wpend_bucket_count,
+                                       buckets, count))
+               || (s->s3->wpend_type != type)) {
         SSLerr(SSL_F_SSL3_WRITE_PENDING, SSL_R_BAD_WRITE_RETRY);
         return (-1);
     }
@@ -1157,7 +1200,8 @@ int ssl3_write_pending(SSL *s, int type, const unsigned char *buf,
  *     Application data protocol
  *             none of our business
  */
-int ssl3_read_bytes(SSL *s, int type, unsigned char *buf, int len, int peek)
+int ssl3_readv_bytes(SSL *s, int type, const ssl_bucket *buckets,
+                     int count, int peek)
 {
     int al, i, j, ret;
     unsigned int n;
@@ -1176,25 +1220,21 @@ int ssl3_read_bytes(SSL *s, int type, unsigned char *buf, int len, int peek)
         return -1;
     }
 
-    if ((type == SSL3_RT_HANDSHAKE) && (s->s3->handshake_fragment_len > 0))
+    if ((type == SSL3_RT_HANDSHAKE) && (s->s3->handshake_fragment_len > 0)) {
         /* (partially) satisfy request from storage */
-    {
-        unsigned char *src = s->s3->handshake_fragment;
-        unsigned char *dst = buf;
-        unsigned int k;
-
-        /* peek == 0 */
-        n = 0;
-        while ((len > 0) && (s->s3->handshake_fragment_len > 0)) {
-            *dst++ = *src++;
-            len--;
-            s->s3->handshake_fragment_len--;
-            n++;
+        int copied = ssl_bucket_cpy_in(buckets, count,
+                                       s->s3->handshake_fragment, 
+                                       s->s3->handshake_fragment_len);
+        if (copied > 0 && (unsigned)copied < s->s3->handshake_fragment_len) {
+            s->s3->handshake_fragment_len -= copied;
+            memmove(s->s3->handshake_fragment,
+                    s->s3->handshake_fragment + copied,
+                    s->s3->handshake_fragment_len);
+        } else {
+            s->s3->handshake_fragment_len = 0;
         }
-        /* move any remaining fragment bytes: */
-        for (k = 0; k < s->s3->handshake_fragment_len; k++)
-            s->s3->handshake_fragment[k] = *src++;
-        return n;
+
+        return (copied);
     }
 
     /*
@@ -1251,6 +1291,7 @@ int ssl3_read_bytes(SSL *s, int type, unsigned char *buf, int len, int peek)
 
     if (type == rr->type) {     /* SSL3_RT_APPLICATION_DATA or
                                  * SSL3_RT_HANDSHAKE */
+        size_t len;
         /*
          * make sure that we are not getting application data when we are
          * doing a handshake for the first time
@@ -1262,6 +1303,7 @@ int ssl3_read_bytes(SSL *s, int type, unsigned char *buf, int len, int peek)
             goto f_err;
         }
 
+        len = ssl_bucket_len(buckets, count);
         if (len <= 0)
             return (len);
 
@@ -1270,7 +1312,7 @@ int ssl3_read_bytes(SSL *s, int type, unsigned char *buf, int len, int peek)
         else
             n = (unsigned int)len;
 
-        memcpy(buf, &(rr->data[rr->off]), n);
+        ssl_bucket_cpy_in(buckets, count, &(rr->data[rr->off]), n);
         if (!peek) {
             rr->length -= n;
             rr->off += n;
@@ -1636,6 +1678,14 @@ int ssl3_read_bytes(SSL *s, int type, unsigned char *buf, int len, int peek)
     return (-1);
 }
 
+int ssl3_read_bytes(SSL *s, int type, unsigned char *buf, int len, int peek)
+{
+    ssl_bucket bucket;
+    bucket.iov_base = buf;
+    bucket.iov_len = len;
+    return (ssl3_readv_bytes(s, type, &bucket, 1, peek));
+}
+
 int ssl3_do_change_cipher_spec(SSL *s)
 {
     int i;
@@ -1716,9 +1766,11 @@ int ssl3_dispatch_alert(SSL *s)
 {
     int i, j;
     void (*cb) (const SSL *ssl, int type, int val) = NULL;
+    ssl_bucket bucket;
 
     s->s3->alert_dispatch = 0;
-    i = do_ssl3_write(s, SSL3_RT_ALERT, &s->s3->send_alert[0], 2, 0);
+    ssl_bucket_set(&bucket, &s->s3->send_alert[0], 2);
+    i = do_ssl3_write(s, SSL3_RT_ALERT, &bucket, 1, 0, 2, 0);
     if (i <= 0) {
         s->s3->alert_dispatch = 1;
     } else {
