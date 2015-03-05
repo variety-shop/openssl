@@ -1055,6 +1055,39 @@ int SSL_write(SSL *s, const void *buf, int num)
     return (s->method->ssl_write(s, buf, num));
 }
 
+#ifndef OPENSSL_NO_IOVEC
+
+int SSL_readv(SSL *s, const ssl_bucket *buckets, int count)
+{
+    if (s->handshake_func == 0) {
+        SSLerr(SSL_F_SSL_READ, SSL_R_UNINITIALIZED);
+        return -1;
+    }
+
+    if ((s->shutdown & SSL_RECEIVED_SHUTDOWN)) {
+        s->rwstate=SSL_NOTHING;
+        return(0);
+    }
+    return (s->method->ssl_readv(s, buckets, count));
+}
+
+int SSL_writev(SSL *s, const ssl_bucket *buckets, int count)
+{
+    if (s->handshake_func == 0) {
+        SSLerr(SSL_F_SSL_WRITE, SSL_R_UNINITIALIZED);
+        return -1;
+    }
+
+    if ((s->shutdown & SSL_SENT_SHUTDOWN)) {
+        s->rwstate=SSL_NOTHING;
+        SSLerr(SSL_F_SSL_WRITE,SSL_R_PROTOCOL_IS_SHUTDOWN);
+        return(-1);
+    }
+    return (s->method->ssl_writev(s, buckets, count));
+}
+
+#endif /* !OPENSSL_NO_IOVEC */
+
 int SSL_shutdown(SSL *s)
 {
     /*
