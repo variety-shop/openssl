@@ -4556,3 +4556,83 @@ long ssl_get_algorithm2(SSL *s)
     return alg2;
 }
 
+#ifndef OPENSSL_NO_IOVEC
+
+static int ssl3_readv_internal(SSL *s, const ssl_bucket *buckets, int count, int peek)
+{
+    int ret;
+
+    clear_sys_error();
+    if (s->s3->renegotiate)
+        ssl3_renegotiate_check(s);
+    s->s3->in_read_app_data = 1;
+    ret = s->method->ssl_readv_bytes(s, SSL3_RT_APPLICATION_DATA,
+                                     buckets, count, peek);
+    if ((ret == -1) && (s->s3->in_read_app_data == 2)) {
+        /* ssl3_read_bytes decided to call s->handshake_func, which
+         * called ssl3_read_bytes to read handshake data.
+         * However, ssl3_read_bytes actually found application data
+         * and thinks that application data makes sense here; so disable
+         * handshake processing and try to read application data again. */
+        s->in_handshake++;
+        ret = s->method->ssl_readv_bytes(s, SSL3_RT_APPLICATION_DATA,
+                                         buckets, count, peek);
+        s->in_handshake--;
+    }
+    else
+        s->s3->in_read_app_data = 0;
+
+    return (ret);
+}
+
+int ssl3_readv(SSL *s, const ssl_bucket *buckets, int count)
+{
+    return (ssl3_readv_internal(s, buckets, count, 0));
+}
+
+int ssl3_writev(SSL *s, const ssl_bucket *buckets, int count)
+{
+    int ret, n;
+
+    clear_sys_error();
+    if (s->s3->renegotiate)
+        ssl3_renegotiate_check(s);
+
+    /* This is an experimental flag that sends the
+     * last handshake message in the same packet as the first
+     * use data - used to see if it helps the TCP protocol during
+     * session-id reuse */
+    /* The second test is because the buffer may have been removed */
+    if ((s->s3->flags & SSL3_FLAGS_POP_BUFFER) && (s->wbio == s->bbio)) {
+        /* First time through, we write into the buffer */
+        if (s->s3->delay_buf_pop_ret == 0) {
+            ret = ssl3_writev_bytes(s, SSL3_RT_APPLICATION_DATA,
+                                    buckets, count);
+            if (ret <= 0)
+                return (ret);
+
+            s->s3->delay_buf_pop_ret = ret;
+        }
+
+        s->rwstate = SSL_WRITING;
+        n = BIO_flush(s->wbio);
+        if (n <= 0)
+            return (n);
+        s->rwstate = SSL_NOTHING;
+
+        /* We have flushed the buffer, so remove it */
+        ssl_free_wbio_buffer(s);
+        s->s3->flags &= ~SSL3_FLAGS_POP_BUFFER;
+
+        ret = s->s3->delay_buf_pop_ret;
+        s->s3->delay_buf_pop_ret = 0;
+    } else {
+        ret = s->method->ssl_writev_bytes(s, SSL3_RT_APPLICATION_DATA,
+                                          buckets, count);
+        if (ret <= 0)
+            return (ret);
+    }
+    return (ret);
+}
+
+#endif /* !OPENSSL_NO_IOVEC */
