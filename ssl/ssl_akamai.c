@@ -906,6 +906,101 @@ SSL_AKAMAI_CB SSL_get_akamai_cb(SSL *s)
 
 # endif /* OPENSSL_NO_AKAMAI_CB */
 
+# ifndef OPENSSL_NO_AKAMAI_IOVEC
+
+int SSL_readv(SSL *s, const SSL_BUCKET *buckets, int count)
+{
+    int ret = -1;
+    size_t len;
+    SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
+
+    if (count == 1)
+        return SSL_read(s, buckets[0].iov_base, buckets[0].iov_len);
+
+    len = SSL_BUCKET_len(buckets, count);
+    if (len == 0)
+        return 0;
+
+    if (SSL_IS_DTLS(s)) {
+        SSLerr(SSL_F_SSL_READV, SSL_R_READV_NO_DTLS);
+        return ret;
+    }
+
+    if (ex_data->readv_buckets != NULL) {
+        SSLerr(SSL_F_SSL_READV, SSL_R_READV_IN_PROGRESS);
+        return ret;
+    }
+
+    /* save the bucket/count for internal use */
+    ex_data->readv_buckets = (SSL_BUCKET*)buckets;
+    ex_data->readv_count = count;
+    ret = SSL_read(s, NULL, len);
+    ex_data->readv_buckets = NULL;
+    ex_data->readv_count = 0;
+
+    return ret;
+}
+
+/*
+ * This uses the buckets as a source when copying the data
+ * into the record data field. So, the number of copies
+ * should not change. NULL is used as the buffer value, so
+ * that we can find any bad accesses
+ */
+int SSL_writev(SSL *s, const SSL_BUCKET *buckets, int count)
+{
+    int ret = -1;
+    size_t len;
+    void* buf = NULL;
+    SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
+
+    if (count == 1)
+        return SSL_write(s, buckets[0].iov_base, buckets[0].iov_len);
+
+    len = SSL_BUCKET_len(buckets, count);
+    if (len == 0)
+        return 0;
+
+    if (SSL_IS_DTLS(s)) {
+        SSLerr(SSL_F_SSL_WRITEV, SSL_R_WRITEV_NO_DTLS);
+        return ret;
+    }
+
+    /* We don't directly support compression */
+    if (s->compress != NULL) {
+        buf = OPENSSL_malloc(len);
+        if (buf == NULL) {
+            SSLerr(SSL_F_SSL_WRITEV, ERR_R_MALLOC_FAILURE);
+            goto err;
+        }
+        if (SSL_BUCKET_cpy_out(buf, buckets, count, 0, len) != len) {
+            SSLerr(SSL_F_SSL_WRITEV, SSL_R_UNABLE_TO_COPY);
+            goto err;
+        }
+        ret = SSL_write(s, buf, len);
+    err:
+        OPENSSL_free(buf);
+        return ret;
+    }
+
+    if (ex_data->writev_buckets != NULL) {
+        SSLerr(SSL_F_SSL_WRITEV, SSL_R_WRITEV_IN_PROGRESS);
+        return ret;
+    }
+
+    /* save the bucket/count for internal use */
+    ex_data->writev_buckets = (SSL_BUCKET*)buckets;
+    ex_data->writev_count = count;
+    ex_data->writev_offset = 0;
+    ret = SSL_write(s, buckets, len);
+    ex_data->writev_buckets = NULL;
+    ex_data->writev_count = 0;
+    ex_data->writev_offset = 0;
+    return ret;
+}
+
+# endif /* !OPENSSL_NO_AKAMAI_IOVEC */
+
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b)
 {
     SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(ctx);
