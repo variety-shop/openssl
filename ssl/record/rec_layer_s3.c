@@ -1145,9 +1145,25 @@ int ssl3_read_bytes(SSL *s, int type, int *recvd_type, unsigned char *buf,
                 n = SSL3_RECORD_get_length(rr);
             else
                 n = (unsigned int)len - read_bytes;
-
+#ifdef OPENSSL_NO_AKAMAI_IOVEC
             memcpy(buf, &(rr->data[rr->off]), n);
             buf += n;
+#else
+            {
+                SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
+                if (ex_data->readv_buckets != NULL && ex_data->readv_count != 0) {
+                    if (SSL_BUCKET_cpy_in(ex_data->readv_buckets, ex_data->readv_count,
+                                          read_bytes, &(rr->data[rr->off]), n) != n) {
+                        al = SSL_AD_UNEXPECTED_MESSAGE;
+                        SSLerr(SSL_F_SSL3_READ_BYTES, SSL_R_UNABLE_TO_COPY);
+                        goto f_err;
+                    }
+                } else {
+                    memcpy(buf, &(rr->data[rr->off]), n);
+                    buf += n;
+                }
+            }
+#endif
             if (peek) {
                 /* Mark any zero length record as consumed CVE-2016-6305 */
                 if (SSL3_RECORD_get_length(rr) == 0)
