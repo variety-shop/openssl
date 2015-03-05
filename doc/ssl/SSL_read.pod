@@ -2,18 +2,22 @@
 
 =head1 NAME
 
-SSL_read - read bytes from a TLS/SSL connection
+SSL_read, SSL_readv - read bytes from a TLS/SSL connection
 
 =head1 SYNOPSIS
 
  #include <openssl/ssl.h>
 
  int SSL_read(SSL *ssl, void *buf, int num);
+ int SSL_readv(SSL *ssl, const SSL_BUCKET *buckets, int count);
 
 =head1 DESCRIPTION
 
 SSL_read() tries to read B<num> bytes from the specified B<ssl> into the
 buffer B<buf>.
+
+SSL_readv() tries to read as many bytes as specified by B<count> of B<buckets>
+from the specified B<ssl> into the buffers specified by B<buckets>.
 
 =head1 NOTES
 
@@ -68,6 +72,24 @@ L<SSL_pending(3)> can be used to find out whether there
 are buffered bytes available for immediate retrieval. In this case
 SSL_read() can be called without blocking or actually receiving new
 data from the underlying socket.
+
+The B<SSL_BUCKET> struture is defined as a typedef of B<struct iovec>,
+if available, or a structure that mirrors it:
+
+  typedef struct iovec SSL_BUCKET;
+
+Or:
+
+  typedef ssl_bucket_st SSL_BUCKET;
+  struct ssl_bucket_st {
+    void *iov_base;
+    size_t iov_len;
+  }
+
+The B<buckets> argument is an B<count>-element array of B<SSL_BUCKET> strutures.
+Before calling ssl_readv(), each element in the B<buckets> array must be filled
+with buffers and lengths of those buffers to read data into. The maximum number
+of buckets is defined as SSL_BUCKET_MAX.
 
 =head1 WARNING
 
