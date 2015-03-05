@@ -2219,6 +2219,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_SSL_PARSE_SERVERHELLO_USE_SRTP_EXT         311
 # define SSL_F_SSL_PEEK                                   270
 # define SSL_F_SSL_READ                                   223
+# define SSL_F_SSL_READV                                  4088
 # define SSL_F_SSL_RENEGOTIATE                            516
 # define SSL_F_SSL_RENEGOTIATE_ABBREVIATED                546
 # define SSL_F_SSL_SCAN_CLIENTHELLO_TLSEXT                320
@@ -2258,6 +2259,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_SSL_VALIDATE_CT                            400
 # define SSL_F_SSL_VERIFY_CERT_CHAIN                      207
 # define SSL_F_SSL_WRITE                                  208
+# define SSL_F_SSL_WRITEV                                 4087
 # define SSL_F_STATE_MACHINE                              353
 # define SSL_F_TLS12_CHECK_PEER_SIGALG                    333
 # define SSL_F_TLS1_CHANGE_CIPHER_STATE                   209
@@ -2348,6 +2350,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_R_BIO_NOT_SET                                128
 # define SSL_R_BLOCK_CIPHER_PAD_IS_WRONG                  129
 # define SSL_R_BN_LIB                                     130
+# define SSL_R_BUCKET_COPY_FAILED                         996
 # define SSL_R_CA_DN_LENGTH_MISMATCH                      131
 # define SSL_R_CA_KEY_TOO_SMALL                           397
 # define SSL_R_CA_MD_TOO_WEAK                             398
@@ -2465,6 +2468,8 @@ int ERR_load_SSL_strings(void);
 # define SSL_R_PSK_IDENTITY_NOT_FOUND                     223
 # define SSL_R_PSK_NO_CLIENT_CB                           224
 # define SSL_R_PSK_NO_SERVER_CB                           225
+# define SSL_R_READV_IN_PROGRESS                          998
+# define SSL_R_READV_NO_DTLS                              993
 # define SSL_R_READ_BIO_NOT_SET                           211
 # define SSL_R_READ_TIMEOUT_EXPIRED                       312
 # define SSL_R_RECORD_LENGTH_MISMATCH                     213
@@ -2536,6 +2541,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_R_TLS_ILLEGAL_EXPORTER_LABEL                 367
 # define SSL_R_TLS_INVALID_ECPOINTFORMAT_LIST             157
 # define SSL_R_TOO_MANY_WARN_ALERTS                       409
+# define SSL_R_UNABLE_TO_COPY                             999
 # define SSL_R_UNABLE_TO_FIND_ECDH_PARAMETERS             314
 # define SSL_R_UNABLE_TO_FIND_PUBLIC_KEY_PARAMETERS       239
 # define SSL_R_UNABLE_TO_LOAD_SSL3_MD5_ROUTINES           242
@@ -2565,6 +2571,8 @@ int ERR_load_SSL_strings(void);
 # define SSL_R_USE_SRTP_NOT_NEGOTIATED                    369
 # define SSL_R_VERSION_TOO_HIGH                           166
 # define SSL_R_VERSION_TOO_LOW                            396
+# define SSL_R_WRITEV_IN_PROGRESS                         995
+# define SSL_R_WRITEV_NO_DTLS                             994
 # define SSL_R_WRONG_CERTIFICATE_TYPE                     383
 # define SSL_R_WRONG_CIPHER_RETURNED                      261
 # define SSL_R_WRONG_CURVE                                378
