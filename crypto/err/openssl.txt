@@ -1094,6 +1094,7 @@ SSL_F_SSL_PEEK:270:SSL_peek
 SSL_F_SSL_PEEK_EX:432:SSL_peek_ex
 SSL_F_SSL_PEEK_INTERNAL:522:ssl_peek_internal
 SSL_F_SSL_READ:223:SSL_read
+SSL_F_SSL_READV:4090:SSL_readv
 SSL_F_SSL_READ_EARLY_DATA:529:SSL_read_early_data
 SSL_F_SSL_READ_EX:434:SSL_read_ex
 SSL_F_SSL_READ_INTERNAL:523:ssl_read_internal
@@ -1136,6 +1137,7 @@ SSL_F_SSL_USE_RSAPRIVATEKEY_FILE:206:SSL_use_RSAPrivateKey_file
 SSL_F_SSL_VALIDATE_CT:400:ssl_validate_ct
 SSL_F_SSL_VERIFY_CERT_CHAIN:207:ssl_verify_cert_chain
 SSL_F_SSL_WRITE:208:SSL_write
+SSL_F_SSL_WRITEV:4089:SSL_writev
 SSL_F_SSL_WRITE_EARLY_DATA:526:SSL_write_early_data
 SSL_F_SSL_WRITE_EARLY_FINISH:527:*
 SSL_F_SSL_WRITE_EX:433:SSL_write_ex
@@ -2400,6 +2402,7 @@ SSL_R_PROTOCOL_IS_SHUTDOWN:207:protocol is shutdown
 SSL_R_PSK_IDENTITY_NOT_FOUND:223:psk identity not found
 SSL_R_PSK_NO_CLIENT_CB:224:psk no client cb
 SSL_R_PSK_NO_SERVER_CB:225:psk no server cb
+SSL_R_READV_IN_PROGRESS:999:readv in progress
 SSL_R_READ_BIO_NOT_SET:211:read bio not set
 SSL_R_READ_TIMEOUT_EXPIRED:312:read timeout expired
 SSL_R_RECORD_LENGTH_MISMATCH:213:record length mismatch
@@ -2448,6 +2451,7 @@ SSL_R_TLS_INVALID_ECPOINTFORMAT_LIST:157:tls invalid ecpointformat list
 SSL_R_TOO_MANY_KEY_UPDATES:132:too many key updates
 SSL_R_TOO_MANY_WARN_ALERTS:409:too many warn alerts
 SSL_R_TOO_MUCH_EARLY_DATA:164:too much early data
+SSL_R_UNABLE_TO_COPY:998:unable to copy
 SSL_R_UNABLE_TO_FIND_ECDH_PARAMETERS:314:unable to find ecdh parameters
 SSL_R_UNABLE_TO_FIND_PUBLIC_KEY_PARAMETERS:239:\
 	unable to find public key parameters
