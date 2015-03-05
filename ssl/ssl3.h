@@ -511,7 +511,8 @@ typedef struct ssl3_state_st {
     int wpend_tot;              /* number bytes written */
     int wpend_type;
     int wpend_ret;              /* number of bytes submitted */
-    const unsigned char *wpend_buf;
+    ssl_bucket wpend_bucket[SSL_BUCKET_MAX];
+    size_t wpend_bucket_count;
     /* used during startup, digest all incoming/outgoing packets */
     BIO *handshake_buffer;
     /*

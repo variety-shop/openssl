@@ -772,6 +772,7 @@ if (exists $ENV{FIPSDIR})
 my %disabled = ( # "what"         => "comment" [or special keyword "experimental"]
 		 "ec_nistp_64_gcc_128" => "default",
 		 "gmp"		  => "default",
+		 "iovec"          => "default",
 		 "jpake"          => "experimental",
 		 "libunbound"     => "experimental",
 		 "md2"            => "default",
