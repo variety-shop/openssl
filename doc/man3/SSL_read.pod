@@ -2,6 +2,7 @@
 
 =head1 NAME
 
+SSL_readv,
 SSL_read_ex, SSL_read, SSL_peek_ex, SSL_peek
 - read bytes from a TLS/SSL connection
 
@@ -11,6 +12,7 @@ SSL_read_ex, SSL_read, SSL_peek_ex, SSL_peek
 
  int SSL_read_ex(SSL *ssl, void *buf, size_t num, size_t *readbytes);
  int SSL_read(SSL *ssl, void *buf, int num);
+ int SSL_readv(SSL *ssl, const SSL_BUCKET *buckets, int count);
 
  int SSL_peek_ex(SSL *ssl, void *buf, size_t num, size_t *readbytes);
  int SSL_peek(SSL *ssl, void *buf, int num);
@@ -20,6 +22,9 @@ SSL_read_ex, SSL_read, SSL_peek_ex, SSL_peek
 SSL_read_ex() and SSL_read() try to read B<num> bytes from the specified B<ssl>
 into the buffer B<buf>. On success SSL_read_ex() will store the number of bytes
 actually read in B<*readbytes>.
+
+SSL_readv() tries to read as many bytes as specified by B<count> of B<buckets>
+from the specified B<ssl> into the buffers specified by B<buckets>.
 
 SSL_peek_ex() and SSL_peek() are identical to SSL_read_ex() and SSL_read()
 respectively except no bytes are actually removed from the underlying BIO during
@@ -92,6 +97,30 @@ L<SSL_pending(3)> can be used to find out whether there
 are buffered bytes available for immediate retrieval.
 In this case the read function can be called without blocking or actually
 receiving new data from the underlying socket.
+
+The B<SSL_BUCKET> struture is defined as a typedef of B<struct iovec>,
+if available, or a structure that mirrors it:
+
+  typedef struct iovec SSL_BUCKET;
+
+Or:
+
+  typedef ssl_bucket_st SSL_BUCKET;
+  struct ssl_bucket_st {
+    void *iov_base;
+    size_t iov_len;
+  }
+
+The B<buckets> argument is an B<count>-element array of B<SSL_BUCKET> strutures.
+Before calling ssl_readv(), each element in the B<buckets> array must be filled
+with buffers and lengths of those buffers to read data into. The maximum number
+of buckets is defined as SSL_BUCKET_MAX.
+
+=head1 WARNING
+
+When a read function operation has to be repeated because L<SSL_get_error(3)>
+returned B<SSL_ERROR_WANT_READ> or B<SSL_ERROR_WANT_WRITE>, it must be repeated
+with the same arguments.
 
 =head1 RETURN VALUES
 

@@ -1298,6 +1298,7 @@ SSL_F_SSL_PEEK:270:SSL_peek
 SSL_F_SSL_PEEK_EX:432:SSL_peek_ex
 SSL_F_SSL_PEEK_INTERNAL:522:ssl_peek_internal
 SSL_F_SSL_READ:223:SSL_read
+SSL_F_SSL_READV:4090:SSL_readv
 SSL_F_SSL_READ_EARLY_DATA:529:SSL_read_early_data
 SSL_F_SSL_READ_EX:434:SSL_read_ex
 SSL_F_SSL_READ_INTERNAL:523:ssl_read_internal
@@ -1342,6 +1343,7 @@ SSL_F_SSL_VALIDATE_CT:400:ssl_validate_ct
 SSL_F_SSL_VERIFY_CERT_CHAIN:207:ssl_verify_cert_chain
 SSL_F_SSL_VERIFY_CLIENT_POST_HANDSHAKE:616:SSL_verify_client_post_handshake
 SSL_F_SSL_WRITE:208:SSL_write
+SSL_F_SSL_WRITEV:4089:SSL_writev
 SSL_F_SSL_WRITE_EARLY_DATA:526:SSL_write_early_data
 SSL_F_SSL_WRITE_EARLY_FINISH:527:*
 SSL_F_SSL_WRITE_EX:433:SSL_write_ex
@@ -2619,6 +2621,7 @@ SSL_R_BINDER_DOES_NOT_VERIFY:253:binder does not verify
 SSL_R_BIO_NOT_SET:128:bio not set
 SSL_R_BLOCK_CIPHER_PAD_IS_WRONG:129:block cipher pad is wrong
 SSL_R_BN_LIB:130:bn lib
+SSL_R_BUCKET_COPY_FAILED:993:bucket copy failed
 SSL_R_CALLBACK_FAILED:234:callback failed
 SSL_R_CANNOT_CHANGE_CIPHER:109:cannot change cipher
 SSL_R_CA_DN_LENGTH_MISMATCH:131:ca dn length mismatch
@@ -2775,6 +2778,8 @@ SSL_R_PROTOCOL_IS_SHUTDOWN:207:protocol is shutdown
 SSL_R_PSK_IDENTITY_NOT_FOUND:223:psk identity not found
 SSL_R_PSK_NO_CLIENT_CB:224:psk no client cb
 SSL_R_PSK_NO_SERVER_CB:225:psk no server cb
+SSL_R_READV_IN_PROGRESS:997:readv in progress
+SSL_R_READV_NO_DTLS:996:readv no dtls
 SSL_R_READ_BIO_NOT_SET:211:read bio not set
 SSL_R_READ_TIMEOUT_EXPIRED:312:read timeout expired
 SSL_R_RECORD_LENGTH_MISMATCH:213:record length mismatch
@@ -2827,6 +2832,7 @@ SSL_R_TLS_INVALID_ECPOINTFORMAT_LIST:157:tls invalid ecpointformat list
 SSL_R_TOO_MANY_KEY_UPDATES:132:too many key updates
 SSL_R_TOO_MANY_WARN_ALERTS:409:too many warn alerts
 SSL_R_TOO_MUCH_EARLY_DATA:164:too much early data
+SSL_R_UNABLE_TO_COPY:998:unable to copy
 SSL_R_UNABLE_TO_FIND_ECDH_PARAMETERS:314:unable to find ecdh parameters
 SSL_R_UNABLE_TO_FIND_PUBLIC_KEY_PARAMETERS:239:\
 	unable to find public key parameters
@@ -2860,6 +2866,8 @@ SSL_R_UNSUPPORTED_STATUS_TYPE:329:unsupported status type
 SSL_R_USE_SRTP_NOT_NEGOTIATED:369:use srtp not negotiated
 SSL_R_VERSION_TOO_HIGH:166:version too high
 SSL_R_VERSION_TOO_LOW:396:version too low
+SSL_R_WRITEV_IN_PROGRESS:995:writev in progress
+SSL_R_WRITEV_NO_DTLS:994:writev no dtls
 SSL_R_WRONG_CERTIFICATE_TYPE:383:wrong certificate type
 SSL_R_WRONG_CIPHER_RETURNED:261:wrong cipher returned
 SSL_R_WRONG_CURVE:378:wrong curve
