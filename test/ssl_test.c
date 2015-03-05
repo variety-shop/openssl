@@ -351,6 +351,21 @@ static int check_cipher(HANDSHAKE_RESULT *result, SSL_TEST_CTX *test_ctx)
     return 1;
 }
 
+#ifndef OPENSSL_NO_AKAMAI
+static int check_data(HANDSHAKE_RESULT *result, SSL_TEST_CTX *test_ctx)
+{
+    if (result->client_read == 0) {
+        fprintf(stderr, "Client read failed to match\n");
+        return 0;
+    }
+    if (result->server_read == 0) {
+        fprintf(stderr, "Server read failed to match\n");
+        return 0;
+    }
+    return 1;
+}
+#endif
+
 /*
  * This could be further simplified by constructing an expected
  * HANDSHAKE_RESULT, and implementing comparison methods for
@@ -384,6 +399,9 @@ static int check_test(HANDSHAKE_RESULT *result, SSL_TEST_CTX *test_ctx)
         ret &= check_client_sign_hash(result, test_ctx);
         ret &= check_client_sign_type(result, test_ctx);
         ret &= check_client_ca_names(result, test_ctx);
+#ifndef OPENSSL_NO_AKAMAI
+        ret &= check_data(result, test_ctx);
+#endif
     }
     return ret;
 }
