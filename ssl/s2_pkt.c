@@ -117,21 +117,25 @@
 
 static int read_n(SSL *s, unsigned int n, unsigned int max,
                   unsigned int extend);
-static int n_do_ssl_write(SSL *s, const unsigned char *buf, unsigned int len);
-static int write_pending(SSL *s, const unsigned char *buf, unsigned int len);
+static int n_do_ssl_write(SSL *s, const ssl_bucket *buckets, int count, int offset, int len);
+static int write_pending(SSL *s, const ssl_bucket * buckets, int count, unsigned int len);
 static int ssl_mt_error(int n);
 
 /*
  * SSL 2.0 imlementation for SSL_read/SSL_peek - This routine will return 0
  * to len bytes, decrypted etc if required.
  */
-static int ssl2_read_internal(SSL *s, void *buf, int len, int peek)
+static int ssl2_read_internal(SSL *s, const ssl_bucket *buckets, size_t count, int peek)
 {
     int n;
     unsigned char mac[MAX_MAC_SIZE];
     unsigned char *p;
     int i;
     int mac_size;
+    int len = 0;
+
+    for (i=0; i < count; i++)
+        len += buckets[i].iov_len;
 
  ssl2_read_again:
     if (SSL_in_init(s) && !s->in_handshake) {
@@ -155,7 +159,7 @@ static int ssl2_read_internal(SSL *s, void *buf, int len, int peek)
         else
             n = len;
 
-        memcpy(buf, s->s2->ract_data, (unsigned int)n);
+        ssl_bucket_cpy_in(buckets, count, s->s2->ract_data, n);
         if (!peek) {
             s->s2->ract_data_length -= n;
             s->s2->ract_data += n;
@@ -299,12 +303,14 @@ static int ssl2_read_internal(SSL *s, void *buf, int len, int peek)
 
 int ssl2_read(SSL *s, void *buf, int len)
 {
-    return ssl2_read_internal(s, buf, len, 0);
+    ssl_bucket bucket = { buf, len };
+    return ssl2_read_internal(s, &bucket, 1, 0);
 }
 
 int ssl2_peek(SSL *s, void *buf, int len)
 {
-    return ssl2_read_internal(s, buf, len, 1);
+    ssl_bucket bucket = { buf, len };
+    return ssl2_read_internal(s, &bucket, 1, 1);
 }
 
 /*
@@ -398,10 +404,8 @@ static int read_n(SSL *s, unsigned int n, unsigned int max,
     return (n);
 }
 
-int ssl2_write(SSL *s, const void *_buf, int len)
+static int ssl2_write_preflight(SSL *s)
 {
-    const unsigned char *buf = _buf;
-    unsigned int n, tot;
     int i;
 
     if (SSL_in_init(s) && !s->in_handshake) {
@@ -422,6 +426,17 @@ int ssl2_write(SSL *s, const void *_buf, int len)
 
     clear_sys_error();
     s->rwstate = SSL_NOTHING;
+    return (1);
+}
+int ssl2_write(SSL *s, const void *_buf, int len)
+{
+    const unsigned char *buf=_buf;
+    unsigned int n, tot;
+    ssl_bucket data = { (void*)buf, len };
+
+    int i = ssl2_write_preflight(s);
+    if (i <= 0)
+        return (i);
     if (len <= 0)
         return (len);
 
@@ -430,7 +445,7 @@ int ssl2_write(SSL *s, const void *_buf, int len)
 
     n = (len - tot);
     for (;;) {
-        i = n_do_ssl_write(s, &(buf[tot]), n);
+        i = n_do_ssl_write(s, &data, 1, tot, n);
         if (i <= 0) {
             s->s2->wnum = tot;
             return (i);
@@ -447,7 +462,7 @@ int ssl2_write(SSL *s, const void *_buf, int len)
 /*
  * Return values are as per SSL_write()
  */
-static int write_pending(SSL *s, const unsigned char *buf, unsigned int len)
+static int write_pending(SSL *s, const ssl_bucket *buckets, int count, unsigned int len)
 {
     int i;
 
@@ -457,8 +472,8 @@ static int write_pending(SSL *s, const unsigned char *buf, unsigned int len)
      * check that they have given us the same buffer to write
      */
     if ((s->s2->wpend_tot > (int)len) ||
-        ((s->s2->wpend_buf != buf) &&
-         !(s->mode & SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER))) {
+        (!(s->mode & SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER) &&
+         !ssl_bucket_same(s->s2->wpend_bucket, s->s2->wpend_bucket_count, buckets, count) )) {
         SSLerr(SSL_F_WRITE_PENDING, SSL_R_BAD_WRITE_RETRY);
         return (-1);
     }
@@ -489,7 +504,7 @@ static int write_pending(SSL *s, const unsigned char *buf, unsigned int len)
     }
 }
 
-static int n_do_ssl_write(SSL *s, const unsigned char *buf, unsigned int len)
+static int n_do_ssl_write(SSL *s, const ssl_bucket *buckets, int count, int offset, int len)
 {
     unsigned int j, k, olen, p, bs;
     int mac_size;
@@ -503,7 +518,7 @@ static int n_do_ssl_write(SSL *s, const unsigned char *buf, unsigned int len)
      * with non-blocking IO.  We print it and then return.
      */
     if (s->s2->wpend_len != 0)
-        return (write_pending(s, buf, len));
+        return (write_pending(s, buckets, count, len));
 
     /* set mac_size to mac size */
     if (s->s2->clear_text)
@@ -597,7 +612,7 @@ static int n_do_ssl_write(SSL *s, const unsigned char *buf, unsigned int len)
         return -1;
     }
     /* we copy the data into s->s2->wbuf */
-    memcpy(s->s2->wact_data, buf, len);
+    ssl_bucket_cpy_out(s->s2->wact_data, buckets, count, offset, len);
     if (p)
         memset(&(s->s2->wact_data[len]), 0, p); /* arbitrary padding */
 
@@ -633,12 +648,13 @@ static int n_do_ssl_write(SSL *s, const unsigned char *buf, unsigned int len)
 
     /* lets try to actually write the data */
     s->s2->wpend_tot = olen;
-    s->s2->wpend_buf = buf;
+    memcpy(s->s2->wpend_bucket, buckets, sizeof(ssl_bucket)*count);
+    s->s2->wpend_bucket_count = count;
 
     s->s2->wpend_ret = len;
 
     s->s2->wpend_off = 0;
-    return (write_pending(s, buf, olen));
+    return (write_pending(s, buckets, count, olen));
 }
 
 int ssl2_part_read(SSL *s, unsigned long f, int i)
@@ -722,6 +738,46 @@ static int ssl_mt_error(int n)
     }
     return (ret);
 }
+
+# ifndef OPENSSL_NO_IOVEC
+
+int ssl2_readv(SSL *s, const ssl_bucket *buckets, int count)
+{
+    return ssl2_read_internal(s, buckets, count, 0);
+}
+int ssl2_writev(SSL *s, const ssl_bucket *buckets, int count)
+{
+    unsigned int n, offset,len;
+
+    int i = ssl2_write_preflight(s);
+    if (i <= 0)
+        return (i);
+
+    len = ssl_bucket_len(buckets, count);
+    if (len <= 0)
+        return (len);
+
+    offset = s->s2->wnum;
+    s->s2->wnum=0;
+
+    n = len - offset;
+    for (;;) {
+        i = n_do_ssl_write(s, buckets, count, offset, n);
+        if (i <= 0) {
+            s->s2->wnum = offset;
+            return (i);
+        }
+        if ((i == (int)n) || (s->mode & SSL_MODE_ENABLE_PARTIAL_WRITE)) {
+            return (offset + i);
+        }
+
+        n -= i;
+        offset += i;
+    }
+}
+
+# endif /* !OPENSSL_NO_IOVEC */
+
 #else                           /* !OPENSSL_NO_SSL2 */
 
 # if PEDANTIC
