@@ -12,4 +12,4 @@ SOURCE[../libssl]=\
         ssl_asn1.c ssl_txt.c ssl_init.c ssl_conf.c  ssl_mcnf.c \
         bio_ssl.c ssl_err.c t1_reneg.c tls_srp.c t1_trce.c ssl_utst.c \
         record/ssl3_buffer.c record/ssl3_record.c record/dtls1_bitmap.c \
-        statem/statem.c ssl_client_cache.c
+        statem/statem.c ssl_client_cache.c ssl_bucket.c

@@ -349,6 +349,9 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
     unsigned int max_send_fragment, nw;
     unsigned int u_len = (unsigned int)len;
 #endif
+#ifndef OPENSSL_NO_AKAMAI_IOVEC
+    SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
+#endif
     SSL3_BUFFER *wb = &s->rlayer.wbuf[0];
     int i;
 
@@ -409,6 +412,9 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
     if (type == SSL3_RT_APPLICATION_DATA &&
         u_len >= 4 * (max_send_fragment = s->max_send_fragment) &&
         s->compress == NULL && s->msg_callback == NULL &&
+# ifndef OPENSSL_NO_AKAMAI_IOVEC
+        ex_data->writev_buckets == NULL &&
+# endif
         !SSL_WRITE_ETM(s) && SSL_USE_EXPLICIT_IV(s) &&
         EVP_CIPHER_flags(EVP_CIPHER_CTX_cipher(s->enc_write_ctx)) &
         EVP_CIPH_FLAG_TLS1_1_MULTIBLOCK) {
@@ -596,6 +602,9 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
             }
         }
 
+#ifndef OPENSSL_NO_AKAMAI_IOVEC
+        ex_data->writev_offset = tot;
+#endif
         i = do_ssl3_write(s, type, &(buf[tot]), pipelens, numpipes, 0);
         if (i <= 0) {
             /* XXX should we ssl3_release_write_buffer if i<0? */
@@ -638,6 +647,10 @@ int do_ssl3_write(SSL *s, int type, const unsigned char *buf,
     SSL_SESSION *sess;
     unsigned int totlen = 0;
     unsigned int j;
+#ifndef OPENSSL_NO_AKAMAI_IOVEC
+    SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
+    size_t writev_totlen = 0;
+#endif
 
     for (j = 0; j < numpipes; j++)
         totlen += pipelens[j];
@@ -782,6 +795,9 @@ int do_ssl3_write(SSL *s, int type, const unsigned char *buf,
         SSL3_RECORD_set_data(&wr[j], outbuf[j] + eivlen);
         SSL3_RECORD_set_length(&wr[j], (int)pipelens[j]);
         SSL3_RECORD_set_input(&wr[j], (unsigned char *)&buf[totlen]);
+#ifndef OPENSSL_NO_AKAMAI_IOVEC
+        writev_totlen = totlen;
+#endif
         totlen += pipelens[j];
 
         /*
@@ -795,7 +811,21 @@ int do_ssl3_write(SSL *s, int type, const unsigned char *buf,
                 goto err;
             }
         } else {
+#ifndef OPENSSL_NO_AKAMAI_IOVEC
+            if (ex_data->writev_buckets != NULL) {
+                size_t ret = SSL_BUCKET_cpy_out(wr[j].data, ex_data->writev_buckets,
+                                                ex_data->writev_count,
+                                                ex_data->writev_offset + writev_totlen,
+                                                wr[j].length);
+                if (ret != wr[j].length) {
+                    SSLerr(SSL_F_DO_SSL3_WRITE, SSL_R_BUCKET_COPY_FAILED);
+                    goto err;
+                }
+            } else
+                memcpy(wr[j].data, wr[j].input, wr[j].length);
+#else
             memcpy(wr[j].data, wr[j].input, wr[j].length);
+#endif
             SSL3_RECORD_reset_input(&wr[j]);
         }
 
@@ -1149,9 +1179,25 @@ int ssl3_read_bytes(SSL *s, int type, int *recvd_type, unsigned char *buf,
                 n = SSL3_RECORD_get_length(rr);
             else
                 n = (unsigned int)len - read_bytes;
-
+#ifdef OPENSSL_NO_AKAMAI_IOVEC
             memcpy(buf, &(rr->data[rr->off]), n);
             buf += n;
+#else
+            {
+                SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
+                if (ex_data->readv_buckets != NULL && ex_data->readv_count != 0) {
+                    if (SSL_BUCKET_cpy_in(ex_data->readv_buckets, ex_data->readv_count,
+                                          read_bytes, &(rr->data[rr->off]), n) != n) {
+                        al = SSL_AD_UNEXPECTED_MESSAGE;
+                        SSLerr(SSL_F_SSL3_READ_BYTES, SSL_R_UNABLE_TO_COPY);
+                        goto f_err;
+                    }
+                } else {
+                    memcpy(buf, &(rr->data[rr->off]), n);
+                    buf += n;
+                }
+            }
+#endif
             if (peek) {
                 /* Mark any zero length record as consumed CVE-2016-6305 */
                 if (SSL3_RECORD_get_length(rr) == 0)

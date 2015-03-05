@@ -209,6 +209,21 @@ static int check_tmp_key(HANDSHAKE_RESULT *result, SSL_TEST_CTX *test_ctx)
     return 0;
 }
 
+#ifndef OPENSSL_NO_AKAMAI
+static int check_data(HANDSHAKE_RESULT *result, SSL_TEST_CTX *test_ctx)
+{
+    if (result->client_read == 0) {
+        fprintf(stderr, "Client read failed to match\n");
+        return 0;
+    }
+    if (result->server_read == 0) {
+        fprintf(stderr, "Server read failed to match\n");
+        return 0;
+    }
+    return 1;
+}
+#endif
+
 /*
  * This could be further simplified by constructing an expected
  * HANDSHAKE_RESULT, and implementing comparison methods for
@@ -230,6 +245,9 @@ static int check_test(HANDSHAKE_RESULT *result, SSL_TEST_CTX *test_ctx)
         ret &= check_alpn(result, test_ctx);
         ret &= check_resumption(result, test_ctx);
         ret &= check_tmp_key(result, test_ctx);
+#ifndef OPENSSL_NO_AKAMAI
+        ret &= check_data(result, test_ctx);
+#endif
     }
     return ret;
 }
