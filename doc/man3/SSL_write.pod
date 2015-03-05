@@ -2,6 +2,7 @@
 
 =head1 NAME
 
+SSL_writev,
 SSL_write_ex, SSL_write - write bytes to a TLS/SSL connection
 
 =head1 SYNOPSIS
@@ -10,12 +11,16 @@ SSL_write_ex, SSL_write - write bytes to a TLS/SSL connection
 
  int SSL_write_ex(SSL *s, const void *buf, size_t num, size_t *written);
  int SSL_write(SSL *ssl, const void *buf, int num);
+ int SSL_writev(SSL *ssl, const SSL_BUCKET *buckets, int count);
 
 =head1 DESCRIPTION
 
 SSL_write_ex() and SSL_write() write B<num> bytes from the buffer B<buf> into
 the specified B<ssl> connection. On success SSL_write_ex() will store the number
 of bytes written in B<*written>.
+
+SSL_writev() writes B<count> number of data buffers from the list of B<buckets>
+into the specified B<ssl> connection.
 
 =head1 NOTES
 
@@ -56,6 +61,24 @@ partial write has been successfully completed. In this case the write function
 operation is considered completed. The bytes are sent and a new write call with
 a new buffer (with the already sent bytes removed) must be started. A partial
 write is performed with the size of a message block, which is 16kB.
+
+The B<SSL_BUCKET> struture is defined as a typedef of B<struct iovec>,
+if available, or a structure that mirrors it:
+
+  typedef struct iovec SSL_BUCKET;
+
+Or:
+
+  typedef ssl_bucket_st SSL_BUCKET;
+  struct ssl_bucket_st {
+    void *iov_base;
+    size_t iov_len;
+  }
+
+The B<buckets> argument is an B<count>-element array of B<SSL_BUCKET> strutures.
+Before calling SSL_writev(), each element in the B<buckets> array must be filled
+with buffers and lengths of those buffers to write data from. The maximum number
+of buckets is defined as SSL_BUCKET_MAX.
 
 =head1 WARNING
 

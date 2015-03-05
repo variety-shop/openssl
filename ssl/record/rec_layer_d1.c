@@ -513,7 +513,22 @@ int dtls1_read_bytes(SSL *s, int type, int *recvd_type, unsigned char *buf,
         else
             n = len;
 
+#ifdef OPENSSL_NO_AKAMAI_IOVEC
         memcpy(buf, &(SSL3_RECORD_get_data(rr)[SSL3_RECORD_get_off(rr)]), n);
+#else
+        {
+            SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
+            if (ex_data->readv_buckets != NULL && ex_data->readv_count != 0) {
+                if (SSL_BUCKET_cpy_in(ex_data->readv_buckets, ex_data->readv_count, 0,
+                                      &(SSL3_RECORD_get_data(rr)[SSL3_RECORD_get_off(rr)]), n) != n) {
+                    SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_DTLS1_READ_BYTES,
+                             SSL_R_UNABLE_TO_COPY);
+                    return -1;
+                }
+            } else
+                memcpy(buf, &(SSL3_RECORD_get_data(rr)[SSL3_RECORD_get_off(rr)]), n);
+        }
+#endif
         if (peek) {
             if (SSL3_RECORD_get_length(rr) == 0)
                 SSL3_RECORD_set_read(rr);

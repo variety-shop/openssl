@@ -31,6 +31,26 @@ extern "C" {
 
 typedef struct ssl_ctx_session_list_st SSL_CTX_SESSION_LIST;
 
+#  ifndef OPENSSL_NO_AKAMAI_IOVEC
+
+typedef struct iovec SSL_BUCKET;
+
+#   ifndef _WIN32
+#    include <sys/uio.h>
+#   else
+#    ifndef HAVE_STRUCT_IOVEC
+struct iovec {
+    void *iov_base;     /* Pointer to data.  */
+    size_t iov_len;     /* Length of data.  */
+};
+#     define HAVE_STRUCT_IOVEC
+#    endif /* HAVE_STRUCT_IOVEC */
+#   endif /* !_WIN32 */
+
+#   define SSL_BUCKET_MAX 32
+
+#  endif /* OPENSSL_NO_AKAMAI_IOVEC */
+
 #  ifdef  __cplusplus
 }
 #  endif
