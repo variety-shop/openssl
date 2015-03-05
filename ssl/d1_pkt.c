@@ -204,8 +204,8 @@ static int satsub64be(const unsigned char *v1, const unsigned char *v2)
         return ret;
 }
 
-static int have_handshake_fragment(SSL *s, int type, unsigned char *buf,
-                                   int len, int peek);
+static int have_handshake_fragment(SSL *s, int type, const ssl_bucket *buckets,
+                                   int count, int peek);
 static int dtls1_record_replay_check(SSL *s, DTLS1_BITMAP *bitmap);
 static void dtls1_record_bitmap_update(SSL *s, DTLS1_BITMAP *bitmap);
 static DTLS1_BITMAP *dtls1_get_bitmap(SSL *s, SSL3_RECORD *rr,
@@ -842,7 +842,7 @@ int dtls1_get_record(SSL *s)
  *     Application data protocol
  *             none of our business
  */
-int dtls1_read_bytes(SSL *s, int type, unsigned char *buf, int len, int peek)
+int dtls1_readv_bytes(SSL *s, int type, const ssl_bucket *buckets, int count, int peek)
 {
     int al, i, j, ret;
     unsigned int n;
@@ -864,7 +864,7 @@ int dtls1_read_bytes(SSL *s, int type, unsigned char *buf, int len, int peek)
     /*
      * check whether there's a handshake message (client hello?) waiting
      */
-    if ((ret = have_handshake_fragment(s, type, buf, len, peek)))
+    if ((ret = have_handshake_fragment(s, type, buckets, count, peek)))
         return ret;
 
     /*
@@ -990,6 +990,7 @@ int dtls1_read_bytes(SSL *s, int type, unsigned char *buf, int len, int peek)
 
     if (type == rr->type) {     /* SSL3_RT_APPLICATION_DATA or
                                  * SSL3_RT_HANDSHAKE */
+        size_t len = ssl_bucket_len(buckets, count);
         /*
          * make sure that we are not getting application data when we are
          * doing a handshake for the first time
@@ -1009,7 +1010,7 @@ int dtls1_read_bytes(SSL *s, int type, unsigned char *buf, int len, int peek)
         else
             n = (unsigned int)len;
 
-        memcpy(buf, &(rr->data[rr->off]), n);
+        ssl_bucket_cpy_in(buckets, count, &(rr->data[rr->off]), n);
         if (!peek) {
             rr->length -= n;
             rr->off += n;
@@ -1511,6 +1512,18 @@ int dtls1_read_bytes(SSL *s, int type, unsigned char *buf, int len, int peek)
     return (-1);
 }
 
+int dtls1_read_bytes(SSL *s, int type, unsigned char *buf, int len, int peek)
+{
+#if PEDANTIC
+    ssl_bucket bucket;
+    bucket.iov_base = buf;
+    bucket.iov_len = len;
+#else
+    ssl_bucket bucket = { buf, len };
+#endif
+    return dtls1_readv_bytes(s, type, &bucket, 1, peek);
+}
+
 int dtls1_write_app_data_bytes(SSL *s, int type, const void *buf_, int len)
 {
     int i;
@@ -1552,28 +1565,25 @@ int dtls1_write_app_data_bytes(SSL *s, int type, const void *buf_, int len)
          * is started.
          */
 static int
-have_handshake_fragment(SSL *s, int type, unsigned char *buf,
-                        int len, int peek)
+have_handshake_fragment(SSL *s, int type, const ssl_bucket *buckets, int count,
+                        int peek)
 {
 
-    if ((type == SSL3_RT_HANDSHAKE) && (s->d1->handshake_fragment_len > 0))
+    if ((type == SSL3_RT_HANDSHAKE) && (s->d1->handshake_fragment_len > 0)) {
         /* (partially) satisfy request from storage */
-    {
-        unsigned char *src = s->d1->handshake_fragment;
-        unsigned char *dst = buf;
-        unsigned int k, n;
+        size_t n = ssl_bucket_cpy_in(buckets, count,
+                                     s->d1->handshake_fragment,
+                                     s->d1->handshake_fragment_len);
+        if (peek)
+            return n;
 
-        /* peek == 0 */
-        n = 0;
-        while ((len > 0) && (s->d1->handshake_fragment_len > 0)) {
-            *dst++ = *src++;
-            len--;
-            s->d1->handshake_fragment_len--;
-            n++;
-        }
-        /* move any remaining fragment bytes: */
-        for (k = 0; k < s->d1->handshake_fragment_len; k++)
-            s->d1->handshake_fragment[k] = *src++;
+        if (n < s->d1->handshake_fragment_len) {
+            s->d1->handshake_fragment_len -= n;
+            memmove(s->d1->handshake_fragment,
+                    s->d1->handshake_fragment+n,
+                    s->d1->handshake_fragment_len);
+        } else
+            s->d1->handshake_fragment_len = 0;
         return n;
     }
 
@@ -1594,8 +1604,8 @@ int dtls1_write_bytes(SSL *s, int type, const void *buf, int len)
     return i;
 }
 
-int do_dtls1_write(SSL *s, int type, const unsigned char *buf,
-                   unsigned int len, int create_empty_fragment)
+static int do_dtls1_writev(SSL *s, int type, const ssl_bucket *buckets,
+                           int count, int create_empty_fragment)
 {
     unsigned char *p, *pseq;
     int i, mac_size, clear = 0;
@@ -1604,6 +1614,7 @@ int do_dtls1_write(SSL *s, int type, const unsigned char *buf,
     SSL3_RECORD *wr;
     SSL3_BUFFER *wb;
     SSL_SESSION *sess;
+    size_t len = ssl_bucket_len(buckets,count);
 
     /*
      * first check if there is a SSL3_BUFFER still being written out.  This
@@ -1611,7 +1622,7 @@ int do_dtls1_write(SSL *s, int type, const unsigned char *buf,
      */
     if (s->s3->wbuf.left != 0) {
         OPENSSL_assert(0);      /* XDTLS: want to see if we ever get here */
-        return (ssl3_write_pending(s, type, buf, len));
+        return (ssl3_writev_pending(s,type,buckets,count,len,0));
     }
 
     /* If we have an alert to send, lets send it */
@@ -1717,8 +1728,6 @@ int do_dtls1_write(SSL *s, int type, const unsigned char *buf,
 
     /* lets setup the record stuff. */
     wr->data = p + eivlen;      /* make room for IV in case of CBC */
-    wr->length = (int)len;
-    wr->input = (unsigned char *)buf;
 
     /*
      * we now 'read' from wr->input, wr->length bytes into wr->data
@@ -1726,12 +1735,12 @@ int do_dtls1_write(SSL *s, int type, const unsigned char *buf,
 
     /* first we compress */
     if (s->compress != NULL) {
-        if (!ssl3_do_compress(s)) {
+        if (!ssl3_do_vcompress(s, buckets, count, 0, len)) {
             SSLerr(SSL_F_DO_DTLS1_WRITE, SSL_R_COMPRESSION_FAILURE);
             goto err;
         }
     } else {
-        memcpy(wr->data, wr->input, wr->length);
+        wr->length = ssl_bucket_cpy_out(wr->data, buckets, count, 0, len);
         wr->input = wr->data;
     }
 
@@ -1808,19 +1817,23 @@ int do_dtls1_write(SSL *s, int type, const unsigned char *buf,
     wb->left = prefix_len + wr->length;
     wb->offset = 0;
 
-    /*
-     * memorize arguments so that ssl3_write_pending can detect bad write
-     * retries later
-     */
-    s->s3->wpend_tot = len;
-    s->s3->wpend_buf = buf;
-    s->s3->wpend_type = type;
-    s->s3->wpend_ret = len;
-
     /* we now just need to write the buffer */
-    return ssl3_write_pending(s, type, buf, len);
+    return ssl3_writev_pending(s, type, buckets, count, len, 1);
  err:
     return -1;
+}
+
+int do_dtls1_write(SSL *s, int type, const unsigned char *buf,
+                   unsigned int len, int create_empty_fragment)
+{
+#if PEDANTIC
+    ssl_bucket bucket;
+    bucket.iov_base = (void*)buf;
+    bucket.iov_len = len;
+#else
+    const ssl_bucket bucket = { buf, len };
+#endif
+    return do_dtls1_writev(s, type, &bucket, 1, create_empty_fragment);
 }
 
 static int dtls1_record_replay_check(SSL *s, DTLS1_BITMAP *bitmap)
@@ -2037,4 +2050,12 @@ void dtls1_reset_seq_numbers(SSL *s, int rw)
     }
 
     memset(seq, 0x00, seq_bytes);
+}
+
+int dtls1_writev_bytes(SSL *s, int type, const ssl_bucket *buckets,
+                       int count)
+{
+    OPENSSL_assert(ssl_bucket_len(buckets,count) <= SSL3_RT_MAX_PLAIN_LENGTH);
+    s->rwstate = SSL_NOTHING;
+    return do_dtls1_writev(s, type, buckets,count, 0);
 }
