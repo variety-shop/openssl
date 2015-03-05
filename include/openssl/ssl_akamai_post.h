@@ -207,6 +207,23 @@ __owur SSL_AKAMAI_CB SSL_get_akamai_cb(SSL *ssl);
 
 #  endif /* OPENSSL_NO_AKAMAI_CB */
 
+#  ifndef OPENSSL_NO_AKAMAI_IOVEC
+
+__owur int SSL_readv(SSL *ssl, const SSL_BUCKET *buckets, int count);
+__owur int SSL_writev(SSL *ssl, const SSL_BUCKET *buckets, int count);
+__owur size_t SSL_BUCKET_len(const SSL_BUCKET *buckets, unsigned int count);
+__owur int SSL_BUCKET_same(const SSL_BUCKET *buckets1, unsigned int count1,
+                           const SSL_BUCKET *buckets2, unsigned int count2);
+void SSL_BUCKET_set(SSL_BUCKET *bucket, void *buf, size_t len);
+__owur size_t SSL_BUCKET_cpy_out(void *buf, const SSL_BUCKET *bucket,
+                                 unsigned int count, size_t offset, size_t len);
+__owur size_t SSL_BUCKET_cpy_in(const SSL_BUCKET *buckets, unsigned int count,
+                                size_t offset, void *buf, size_t len);
+__owur unsigned char *SSL_BUCKET_get_pointer(const SSL_BUCKET *buckets,
+                                             unsigned int count,
+                                             size_t offset, unsigned int *nw);
+#  endif /* !OPENSSL_NO_AKAMAI_IOVEC */
+
 #  ifdef  __cplusplus
 }
 #  endif

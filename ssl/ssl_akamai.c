@@ -991,4 +991,78 @@ SSL_AKAMAI_CB SSL_get_akamai_cb(SSL *s)
 }
 
 # endif /* OPENSSL_NO_AKAMAI_CB */
+
+# ifndef OPENSSL_NO_AKAMAI_IOVEC
+
+int SSL_readv(SSL *s, const SSL_BUCKET *buckets, int count)
+{
+    int ret = -1;
+    size_t len;
+    SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
+
+    if (count == 1)
+        return SSL_read(s, buckets[0].iov_base, buckets[0].iov_len);
+
+    len = SSL_BUCKET_len(buckets, count);
+
+    if (len == 0)
+        return 0;
+
+    if (ex_data->readv_buckets != NULL ||
+        ex_data->readv_count != 0) {
+        SSLerr(SSL_F_SSL_READV, SSL_R_READV_IN_PROGRESS);
+        return ret;
+    }
+
+    /* save the bucket/count for internal use */
+    ex_data->readv_buckets = (SSL_BUCKET*)buckets;
+    ex_data->readv_count = count;
+    ret = SSL_read(s, NULL, len);
+    ex_data->readv_buckets = NULL;
+    ex_data->readv_count = 0;
+
+    return ret;
+}
+
+/*
+ * CHEATING NOW BY ALLOCATING A BUFFER and calling
+ * the regular routine (for writev)
+ * With pipelining, not sure we can optimize writev,
+ * at a fairly low level (do_ssl3_write), each pipelined
+ * chunk is a TLS record, not something we want for
+ * possibly small chunks of data, so to maintain
+ * semantics, copying to a buffer works well, but may
+ * get expensive if we have to keep writing the data
+ */
+int SSL_writev(SSL *s, const SSL_BUCKET *buckets, int count)
+{
+    int ret = -1;
+    size_t len;
+    void* buf = NULL;
+
+    if (count == 1)
+        return SSL_write(s, buckets[0].iov_base, buckets[0].iov_len);
+
+    len = SSL_BUCKET_len(buckets, count);
+
+    if (len == 0)
+        return 0;
+
+    buf = OPENSSL_malloc(len);
+    if (buf == NULL) {
+        SSLerr(SSL_F_SSL_WRITEV, ERR_R_MALLOC_FAILURE);
+        goto err;
+    }
+    if (SSL_BUCKET_cpy_out(buf, buckets, count, 0, len) != len) {
+        SSLerr(SSL_F_SSL_WRITEV, SSL_R_UNABLE_TO_COPY);
+        goto err;
+    }
+
+    ret = SSL_write(s, buf, len);
+ err:
+    OPENSSL_free(buf);
+    return ret;
+}
+
+# endif /* !OPENSSL_NO_AKAMAI_IOVEC */
 #endif /* OPENSSL_NO_AKAMAI */
