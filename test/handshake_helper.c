@@ -15,6 +15,9 @@
 #ifndef OPENSSL_NO_SRP
 #include <openssl/srp.h>
 #endif
+#ifndef OPENSSL_NO_AKAMAI
+# include <openssl/rand.h>
+#endif
 
 #ifndef OPENSSL_NO_SOCK
 # define USE_SOCKETS
@@ -685,6 +688,10 @@ typedef struct peer_st {
     int read_buf_len;
     int bytes_to_write;
     int bytes_to_read;
+#ifndef OPENSSL_NO_AKAMAI
+    int bytes_read;
+    int bytes_written;
+#endif
     peer_status_t status;
 } PEER;
 
@@ -754,6 +761,9 @@ static void do_handshake_step(PEER *peer)
 static void do_app_data_step(PEER *peer)
 {
     int ret = 1, write_bytes;
+#ifndef OPENSSL_NO_AKAMAI
+    int read_bytes;
+#endif
 
     if (!TEST_int_eq(peer->status, PEER_RETRY)) {
         peer->status = PEER_TEST_FAILURE;
@@ -762,13 +772,35 @@ static void do_app_data_step(PEER *peer)
 
     /* We read everything available... */
     while (ret > 0 && peer->bytes_to_read) {
+#ifdef OPENSSL_NO_AKAMAI
         ret = SSL_read(peer->ssl, peer->read_buf, peer->read_buf_len);
+#else
+        read_bytes = MIN(peer->bytes_to_read, (peer->read_buf_len - (peer->bytes_read % peer->read_buf_len)));
+# ifndef OPENSSL_NO_AKAMAI_IOVEC
+        if (read_bytes > 3) {
+            /* really simply way to force the use of more than one bucket */
+            SSL_BUCKET ssl_buckets[3];
+            ssl_buckets[0].iov_base = &peer->read_buf[(peer->bytes_read % peer->read_buf_len)];
+            ssl_buckets[0].iov_len = 1;
+            ssl_buckets[1].iov_base = (unsigned char*)ssl_buckets[0].iov_base + ssl_buckets[0].iov_len;
+            ssl_buckets[1].iov_len = 1;
+            ssl_buckets[2].iov_base = (unsigned char*)ssl_buckets[1].iov_base + ssl_buckets[1].iov_len;
+            ssl_buckets[2].iov_len = read_bytes - ssl_buckets[0].iov_len - ssl_buckets[1].iov_len;
+            ret = SSL_readv(peer->ssl, ssl_buckets, 3);
+        } else
+# endif /* OPENSSL_NO_AKAMAI_IOVEC */
+        ret = SSL_read(peer->ssl, &peer->read_buf[(peer->bytes_read % peer->read_buf_len)], read_bytes);
+#endif /* OPENSSL_NO_AKAMAI */
         if (ret > 0) {
             if (!TEST_int_le(ret, peer->bytes_to_read)) {
                 peer->status = PEER_TEST_FAILURE;
                 return;
             }
             peer->bytes_to_read -= ret;
+#ifndef OPENSSL_NO_AKAMAI
+            TEST_int_le(ret, read_bytes);
+            peer->bytes_read += ret;
+#endif
         } else if (ret == 0) {
             peer->status = PEER_ERROR;
             return;
@@ -782,10 +814,33 @@ static void do_app_data_step(PEER *peer)
     }
 
     /* ... but we only write one write-buffer-full of data. */
+#ifdef OPENSSL_NO_AKAMAI
     write_bytes = peer->bytes_to_write < peer->write_buf_len ? peer->bytes_to_write :
         peer->write_buf_len;
+#else
+    write_bytes = MIN(peer->bytes_to_write, peer->write_buf_len);
+    write_bytes = MIN(write_bytes, (peer->write_buf_len - (peer->bytes_written % peer->write_buf_len)));
+#endif
     if (write_bytes) {
+#ifdef OPENSSL_NO_AKAMAI
         ret = SSL_write(peer->ssl, peer->write_buf, write_bytes);
+#else
+# ifndef OPENSSL_NO_AKAMAI_IOVEC
+        if (write_bytes > 3)
+        {
+            /* really simply way to force the use of more than one bucket */
+            SSL_BUCKET ssl_buckets[3];
+            ssl_buckets[0].iov_base = &peer->write_buf[(peer->bytes_written % peer->write_buf_len)];
+            ssl_buckets[0].iov_len = 1;
+            ssl_buckets[1].iov_base = (unsigned char*)ssl_buckets[0].iov_base + ssl_buckets[0].iov_len;
+            ssl_buckets[1].iov_len = 1;
+            ssl_buckets[2].iov_base = (unsigned char*)ssl_buckets[1].iov_base + ssl_buckets[1].iov_len;
+            ssl_buckets[2].iov_len = write_bytes - ssl_buckets[0].iov_len - ssl_buckets[1].iov_len;
+            ret = SSL_writev(peer->ssl, ssl_buckets, 3);
+        } else
+# endif /* OPENSSL_NO_AKAMAI_IOVEC */
+        ret = SSL_write(peer->ssl, &peer->write_buf[(peer->bytes_written % peer->write_buf_len)], write_bytes);
+#endif /* OPENSSL_NO_AKAMAI */
         if (ret > 0) {
             /* SSL_write will only succeed with a complete write. */
             if (!TEST_int_eq(ret, write_bytes)) {
@@ -793,6 +848,9 @@ static void do_app_data_step(PEER *peer)
                 return;
             }
             peer->bytes_to_write -= ret;
+#ifndef OPENSSL_NO_AKAMAI
+            peer->bytes_written += ret;
+#endif
         } else {
             /*
              * We should perhaps check for SSL_ERROR_WANT_READ/WRITE here
@@ -1348,6 +1406,11 @@ static HANDSHAKE_RESULT *do_handshake_internal(
     server.bytes_to_write = client.bytes_to_read = test_ctx->app_data_size;
     client.bytes_to_write = server.bytes_to_read = test_ctx->app_data_size;
 
+#ifndef OPENSSL_NO_AKAMAI
+    RAND_bytes(server.write_buf, server.write_buf_len);
+    RAND_bytes(client.write_buf, client.write_buf_len);
+#endif
+
     configure_handshake_ssl(server.ssl, client.ssl, extra);
     if (session_in != NULL) {
         /* In case we're testing resumption without tickets. */
@@ -1532,6 +1595,11 @@ static HANDSHAKE_RESULT *do_handshake_internal(
 #ifndef OPENSSL_NO_AKAMAI
     cipher = SSL_CIPHER_get_name(SSL_get_current_cipher(client.ssl));
     ret->cipher = dup_str((const unsigned char*)cipher, strlen(cipher));
+
+    ret->server_read = !memcmp(client.write_buf, server.read_buf,
+                               MIN(server.bytes_read, server.read_buf_len));
+    ret->client_read = !memcmp(server.write_buf, client.read_buf,
+                               MIN(client.bytes_read, client.read_buf_len));
 #endif
 
     if (session_out != NULL)

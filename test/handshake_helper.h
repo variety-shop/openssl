@@ -64,6 +64,9 @@ typedef struct handshake_result {
     STACK_OF(X509_NAME) *client_ca_names;
 #ifndef OPENSSL_NO_AKAMAI
     char *cipher;
+    /* Did the write/read match? */
+    int client_read;
+    int server_read;
 #endif
 } HANDSHAKE_RESULT;
 

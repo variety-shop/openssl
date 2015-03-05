@@ -173,6 +173,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_SSL_PEEK_EX                                432
 # define SSL_F_SSL_PEEK_INTERNAL                          522
 # define SSL_F_SSL_READ                                   223
+# define SSL_F_SSL_READV                                  4090
 # define SSL_F_SSL_READ_EARLY_DATA                        529
 # define SSL_F_SSL_READ_EX                                434
 # define SSL_F_SSL_READ_INTERNAL                          523
@@ -215,6 +216,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_SSL_VALIDATE_CT                            400
 # define SSL_F_SSL_VERIFY_CERT_CHAIN                      207
 # define SSL_F_SSL_WRITE                                  208
+# define SSL_F_SSL_WRITEV                                 4089
 # define SSL_F_SSL_WRITE_EARLY_DATA                       526
 # define SSL_F_SSL_WRITE_EARLY_FINISH                     527
 # define SSL_F_SSL_WRITE_EX                               433
@@ -533,6 +535,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_R_PSK_IDENTITY_NOT_FOUND                     223
 # define SSL_R_PSK_NO_CLIENT_CB                           224
 # define SSL_R_PSK_NO_SERVER_CB                           225
+# define SSL_R_READV_IN_PROGRESS                          999
 # define SSL_R_READ_BIO_NOT_SET                           211
 # define SSL_R_READ_TIMEOUT_EXPIRED                       312
 # define SSL_R_RECORD_LENGTH_MISMATCH                     213
@@ -607,6 +610,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_R_TOO_MANY_KEY_UPDATES                       132
 # define SSL_R_TOO_MANY_WARN_ALERTS                       409
 # define SSL_R_TOO_MUCH_EARLY_DATA                        164
+# define SSL_R_UNABLE_TO_COPY                             998
 # define SSL_R_UNABLE_TO_FIND_ECDH_PARAMETERS             314
 # define SSL_R_UNABLE_TO_FIND_PUBLIC_KEY_PARAMETERS       239
 # define SSL_R_UNABLE_TO_LOAD_SSL3_MD5_ROUTINES           242
