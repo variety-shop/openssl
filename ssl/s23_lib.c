@@ -124,24 +124,31 @@ int ssl23_put_cipher_by_char(const SSL_CIPHER *c, unsigned char *p)
     return (3);
 }
 
-int ssl23_read(SSL *s, void *buf, int len)
+static int ssl23_read_preflight(SSL *s)
 {
-    int n;
-
     clear_sys_error();
     if (SSL_in_init(s) && (!s->in_handshake)) {
-        n = s->handshake_func(s);
+        int n = s->handshake_func(s);
         if (n < 0)
             return (n);
         if (n == 0) {
             SSLerr(SSL_F_SSL23_READ, SSL_R_SSL_HANDSHAKE_FAILURE);
             return (-1);
         }
-        return (SSL_read(s, buf, len));
+        return (1);
     } else {
         ssl_undefined_function(s);
         return (-1);
     }
+}
+
+int ssl23_read(SSL *s, void *buf, int len)
+{
+    int n = ssl23_read_preflight(s);
+    if (n > 0)
+        return (SSL_read(s, buf, len));
+    else
+        return (n);
 }
 
 int ssl23_peek(SSL *s, void *buf, int len)
@@ -183,3 +190,36 @@ int ssl23_write(SSL *s, const void *buf, int len)
         return (-1);
     }
 }
+
+#ifndef OPENSSL_NO_IOVEC
+
+int ssl23_readv(SSL *s, const ssl_bucket *buckets, int count)
+{
+    int n = ssl23_read_preflight(s);
+    if (n > 0)
+        return (SSL_readv(s, buckets, count));
+    else
+        return (n);
+}
+
+int ssl23_writev(SSL *s, const ssl_bucket *buckets, int count)
+{
+    int n;
+
+    clear_sys_error();
+    if (SSL_in_init(s) && (!s->in_handshake)) {
+        n=s->handshake_func(s);
+        if (n < 0)
+            return(n);
+        if (n == 0) {
+            SSLerr(SSL_F_SSL23_WRITE,SSL_R_SSL_HANDSHAKE_FAILURE);
+            return(-1);
+        }
+        return (SSL_writev(s,buckets,count));
+    } else {
+        ssl_undefined_function(s);
+        return(-1);
+    }
+}
+
+#endif /* !OPENSSL_NO_IOVEC */
