@@ -20,6 +20,16 @@
 NON_EMPTY_TRANSLATION_UNIT
 #else
 
+#ifndef OPENSSL_NO_AKAMAI
+# if defined(__GNUC__) || defined(__clang__)
+#  define USED __attribute__((used))
+# else
+#  define USED
+# endif
+static char OPENSSL_PERFORCE_ID_SSL[] USED = "$Id: $";
+static char OPENSSL_VERSION_ID_SSL[] USED = "$" "Id: Akamai-" OPENSSL_VERSION_TEXT " $";
+#endif
+
 /* AKAMAI EX_DATA: EXTENSIONS TO THE SSL/SSL_CTX DATA STRUCTURES THAT ARE ABI COMPLIANT */
 static void ssl_ctx_ex_data_akamai_new(void* parent, void* ptr,
                                        CRYPTO_EX_DATA* ad,
