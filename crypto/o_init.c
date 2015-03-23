@@ -15,6 +15,17 @@
  * nothing.
  */
 
+#ifndef OPENSSL_NO_AKAMAI
+# include <openssl/opensslv.h>
+# if defined(__GNUC__) || defined(__clang__)
+#  define USED __attribute__((used))
+# else
+#  define USED
+# endif
+static char OPENSSL_PERFORCE_ID[] USED = "$Id: $";
+static char OPENSSL_VERSION_ID[] USED = "$" "Id: Akamai-" OPENSSL_VERSION_TEXT " $";
+#endif
+
 void OPENSSL_init(void)
 {
     return;
