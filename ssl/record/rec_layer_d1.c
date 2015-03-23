@@ -668,9 +668,16 @@ int dtls1_read_bytes(SSL *s, int type, int *recvd_type, unsigned char *buf,
                             s->rlayer.d->handshake_fragment, 4, s,
                             s->msg_callback_arg);
 
+#ifdef OPENSSL_NO_AKAMAI
         if (SSL_is_init_finished(s) &&
             !(s->s3->flags & SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS) &&
             !s->s3->renegotiate) {
+#else
+        if (SSL_is_init_finished(s) &&
+            !(s->s3->flags & SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS) &&
+            !SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION) &&
+            !s->s3->renegotiate) {
+#endif
             s->d1->handshake_read_seq++;
             s->new_session = 1;
             ssl3_renegotiate(s);
@@ -850,8 +857,14 @@ int dtls1_read_bytes(SSL *s, int type, int *recvd_type, unsigned char *buf,
             goto start;
         }
 
+#ifdef OPENSSL_NO_AKAMAI
         if (SSL_is_init_finished(s) &&
             !(s->s3->flags & SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS)) {
+#else
+        if (SSL_is_init_finished(s) &&
+            !SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION) &&
+            !(s->s3->flags & SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS)) {
+#endif
             ossl_statem_set_in_init(s, 1);
             s->renegotiate = 1;
             s->new_session = 1;

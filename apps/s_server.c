@@ -676,7 +676,12 @@ typedef enum OPTION_choice {
     OPT_SRTP_PROFILES, OPT_KEYMATEXPORT, OPT_KEYMATEXPORTLEN,
     OPT_S_ENUM,
     OPT_V_ENUM,
+#ifdef OPENSSL_NO_AKAMAI
     OPT_X_ENUM
+#else
+    OPT_X_ENUM,
+    OPT_DISALLOW_RENEG
+#endif
 } OPTION_CHOICE;
 
 OPTIONS s_server_options[] = {
@@ -863,6 +868,9 @@ OPTIONS s_server_options[] = {
 #ifndef OPENSSL_NO_ENGINE
     {"engine", OPT_ENGINE, 's', "Use engine, possibly a hardware device"},
 #endif
+#ifndef OPENSSL_NO_AKAMAI
+    {"disallow_renegotiation", OPT_DISALLOW_RENEG, '-', "Disallow use of any renegotiation"},
+#endif
     {NULL, OPT_EOF, 0, NULL}
 };
 
@@ -938,6 +946,9 @@ int s_server_main(int argc, char *argv[])
     int no_resume_ephemeral = 0;
     unsigned int split_send_fragment = 0, max_pipelines = 0;
     const char *s_serverinfo_file = NULL;
+#ifndef OPENSSL_NO_AKAMAI
+    int disallow_reneg = 0;
+#endif
 
     /* Init of few remaining global variables */
     local_argc = argc;
@@ -1429,6 +1440,11 @@ int s_server_main(int argc, char *argv[])
         case OPT_READ_BUF:
             read_buf_len = atoi(opt_arg());
             break;
+#ifndef OPENSSL_NO_AKAMAI
+        case OPT_DISALLOW_RENEG:
+            disallow_reneg = 1;
+            break;
+#endif
 
         }
     }
@@ -1644,6 +1660,10 @@ int s_server_main(int argc, char *argv[])
         BIO_printf(bio_err, "id_prefix '%s' set.\n", session_id_prefix);
     }
     SSL_CTX_set_quiet_shutdown(ctx, 1);
+#ifndef OPENSSL_NO_AKAMAI
+    if (disallow_reneg)
+        SSL_CTX_akamai_opt_set(ctx, SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION);
+#endif
     if (exc)
         ssl_ctx_set_excert(ctx, exc);
 
