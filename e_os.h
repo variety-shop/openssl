@@ -77,6 +77,19 @@ extern "C" {
 #  define REF_PRINT(a,b)  fprintf(stderr,"%08X:%4d:%s\n",(int)b,b->references,a)
 # endif
 
+# ifndef OPENSSL_NO_AKAMAI
+#  if (_MSC_VER < 1500) /* pre-VC9 */                                                                                            
+    /* These are defined in glibc 2.3.3 and 2.3.4 respectively, and are not
+     * defined before in Visual Studio before VC9 */
+#   ifndef AI_ADDRCONFIG
+#    define AI_ADDRCONFIG 0
+#   endif
+#   ifndef AI_NUMERICSERV
+#    define AI_NUMERICSERV 0
+#   endif
+#  endif /* pre-VC9 */
+# endif
+
 # ifndef DEVRANDOM
 /*
  * set this to a comma-separated list of 'random' device files to try out. My
@@ -156,6 +169,13 @@ extern "C" {
 #  define clear_socket_error()    WSASetLastError(0)
 #  define readsocket(s,b,n)       recv((s),(b),(n),0)
 #  define writesocket(s,b,n)      send((s),(b),(n),0)
+#  ifndef OPENSSL_NO_AKAMAI
+#   if (_MSC_VER < 1600) /* pre VC10 */
+#    define EADDRINUSE   WSAEADDRINUSE
+#   else                 /* VC10 and later */
+#    define snprintf     _snprintf
+#   endif
+#  endif /* OPENSSL_NO_AKAMAI */
 # elif defined(__DJGPP__)
 #  define WATT32
 #  define get_last_socket_error() errno
