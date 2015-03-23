@@ -156,6 +156,13 @@ extern "C" {
 #  define clear_socket_error()    WSASetLastError(0)
 #  define readsocket(s,b,n)       recv((s),(b),(n),0)
 #  define writesocket(s,b,n)      send((s),(b),(n),0)
+#  ifndef OPENSSL_NO_AKAMAI
+#   if (_MSC_VER < 1600) /* pre VC10 */
+#    define EADDRINUSE   WSAEADDRINUSE
+#   else                 /* VC10 and later */
+#    define snprintf     _snprintf
+#   endif
+#  endif /* OPENSSL_NO_AKAMAI */
 # elif defined(__DJGPP__)
 #  define WATT32
 #  define get_last_socket_error() errno
