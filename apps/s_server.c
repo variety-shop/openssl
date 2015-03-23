@@ -655,6 +655,10 @@ static void sv_usage(void)
                " -client_sigalgs arg  - Signature algorithms to support for client \n");
     BIO_printf(bio_err,
                "                        certificate authentication (colon-separated list)\n");
+# ifndef OPENSSL_NO_AKAMAI
+    BIO_printf(bio_err,
+               " -disallow_renegotiation - disallow use of any renegotitiation\n");
+# endif
 # ifndef OPENSSL_NO_NEXTPROTONEG
     BIO_printf(bio_err,
                " -nextprotoneg arg - set the advertised protocols for the NPN extension (comma-separated list)\n");
@@ -1134,7 +1138,9 @@ int MAIN(int argc, char *argv[])
     SSL_EXCERT *exc = NULL;
     SSL_CONF_CTX *cctx = NULL;
     STACK_OF(OPENSSL_STRING) *ssl_args = NULL;
-
+#ifndef OPENSSL_NO_AKAMAI
+    int disallow_reneg = 0;
+#endif
     char *crl_file = NULL;
     int crl_format = FORMAT_PEM;
     int crl_download = 0;
@@ -1573,6 +1579,10 @@ int MAIN(int argc, char *argv[])
             keymatexportlen = atoi(*(++argv));
             if (keymatexportlen == 0)
                 goto bad;
+#ifndef OPENSSL_NO_AKAMAI
+        } else if (strcmp(*argv, "-disallow_renegotiation") == 0) {
+            disallow_reneg = 1;
+#endif
         } else {
             BIO_printf(bio_err, "unknown option %s\n", *argv);
             badop = 1;
@@ -1794,6 +1804,10 @@ int MAIN(int argc, char *argv[])
         BIO_printf(bio_err, "id_prefix '%s' set.\n", session_id_prefix);
     }
     SSL_CTX_set_quiet_shutdown(ctx, 1);
+#ifndef OPENSSL_NO_AKAMAI
+    if (disallow_reneg)
+        SSL_CTX_set_options(ctx, SSL_OP_DISALLOW_RENEGOTIATION);
+#endif
     if (hack)
         SSL_CTX_set_options(ctx, SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG);
     if (exc)
