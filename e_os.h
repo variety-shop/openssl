@@ -111,6 +111,25 @@ extern "C" {
 #  define clear_socket_error()    WSASetLastError(0)
 #  define readsocket(s,b,n)       recv((s),(b),(n),0)
 #  define writesocket(s,b,n)      send((s),(b),(n),0)
+#  ifndef OPENSSL_NO_AKAMAI
+#   ifdef _MSC_VER
+#    if (_MSC_VER < 1500) /* pre-VC9 */
+      /* These are defined in glibc 2.3.3 and 2.3.4 respectively,
+       * and are not defined before in Visual Studio before VC9 */
+#     ifndef AI_ADDRCONFIG
+#      define AI_ADDRCONFIG 0
+#     endif
+#     ifndef AI_NUMERICSERV
+#      define AI_NUMERICSERV 0
+#     endif
+#    elif (_MSC_VER < 1600) /* pre-VC10/VS2010 */
+#     define EADDRINUSE   WSAEADDRINUSE
+#    elif (_MSC_VER < 1900) /* VC10/V2010 but pre-VC14/VS2015 */
+#     define snprintf     _snprintf
+      /* else compile error if snprinf is a macro in VC14/VS2015 */
+#    endif
+#   endif
+#  endif /* OPENSSL_NO_AKAMAI */
 # elif defined(__DJGPP__)
 #  define WATT32
 #  define WATT32_NO_OLDIES
