@@ -61,8 +61,17 @@
 #include <e_os.h>
 #include "o_str.h"
 
+#ifndef OPENSSL_NO_AKAMAI
+# if defined(OPENSSL_SYS_LINUX)
+#  undef strncasecmp
+#  undef OPENSSL_IMPLEMENTS_strncasecmp
+#  include <strings.h>
+# endif
+#endif
+
 #if !defined(OPENSSL_IMPLEMENTS_strncasecmp) && \
     !defined(OPENSSL_SYSNAME_WIN32) && !defined(OPENSSL_SYSNAME_WINCE) && \
+    !defined(OPENSSL_SYSNAME_WIN64) && \
     !defined(NETWARE_CLIB)
 # include <strings.h>
 #endif
