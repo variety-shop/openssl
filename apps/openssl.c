@@ -62,6 +62,16 @@ BIO *bio_in = NULL;
 BIO *bio_out = NULL;
 BIO *bio_err = NULL;
 
+#ifndef OPENSSL_NO_AKAMAI
+# if defined(__GNUC__) || defined(__clang__)
+#  define USED __attribute__((used))
+# else
+#  define USED
+# endif
+static char OPENSSL_PERFORCE_ID_SSL[] USED = "$Id: $";
+static char OPENSSL_VERSION_ID_SSL[] USED = "$" "Id: Akamai-" OPENSSL_VERSION_TEXT " $";
+#endif
+
 static int apps_startup()
 {
 #ifdef SIGPIPE
