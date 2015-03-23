@@ -1464,6 +1464,24 @@ int ssl3_readv_bytes(SSL *s, int type, const ssl_bucket *buckets,
         goto start;
     }
 
+#ifndef OPENSSL_NO_AKAMAI
+    /*
+     * CR1105869: Akamai condition to disallow renegotiation.
+     * For SSLv3 we already send fatal alert in such cases from
+     * ssl3_get_client_hello()
+     */
+    if (s->server
+            && SSL_is_init_finished(s)
+            && s->version > SSL3_VERSION
+            && s->s3->handshake_fragment_len >= SSL3_HM_HEADER_LENGTH
+            && s->s3->handshake_fragment[0] == SSL3_MT_CLIENT_HELLO
+            && s->s3->previous_client_finished_len != 0
+            && (s->options & SSL_OP_DISALLOW_RENEGOTIATION)) {
+        al=SSL_AD_NO_RENEGOTIATION;
+        SSLerr(SSL_F_SSL3_READ_BYTES,SSL_R_SSL_HANDSHAKE_FAILURE);
+        goto f_err;
+    } else
+#endif /* OPENSSL_NO_AKAMAI */
     /*
      * If we are a server and get a client hello when renegotiation isn't
      * allowed send back a no renegotiation alert and carry on.

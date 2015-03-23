@@ -1697,7 +1697,12 @@ unsigned char *ssl_add_serverhello_tlsext(SSL *s, unsigned char *buf,
         s2n(0, ret);
     }
 
+#ifdef OPENSSL_NO_AKAMAI
     if (s->s3->send_connection_binding) {
+#else
+    if (!(s->options & SSL_OP_DISALLOW_RENEGOTIATION) &&
+        s->s3->send_connection_binding) {
+#endif
         int el;
 
         if (!ssl_add_serverhello_renegotiate_ext(s, 0, &el, 0)) {
