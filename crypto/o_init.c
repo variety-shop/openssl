@@ -55,6 +55,9 @@
 
 #include <e_os.h>
 #include <openssl/err.h>
+#ifndef OPENSSL_NO_AKAMAI
+# include <openssl/opensslv.h>
+#endif
 #ifdef OPENSSL_FIPS
 # include <openssl/fips.h>
 # include <openssl/rand.h>
@@ -69,6 +72,11 @@ void FIPS_crypto_set_id_callback(unsigned long (*func)(void));
  * Perform any essential OpenSSL initialization operations. Currently only
  * sets FIPS callbacks
  */
+
+#ifndef OPENSSL_NO_AKAMAI
+char OPENSSL_PERFORCE_ID[] = "$Id: $";
+char OPENSSL_VERSION_ID[] = "$" "Id: Akamai-" OPENSSL_VERSION_TEXT " $";
+#endif
 
 void OPENSSL_init(void)
 {
