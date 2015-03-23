@@ -210,6 +210,10 @@ int SSL_CTX_akamai_opt_set(SSL_CTX* s, enum SSL_AKAMAI_OPT opt)
     int ret = -1;
     SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(s);
 
+    /* special case */
+    if (opt == SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION)
+        SSL_CTX_set_options(s, SSL_OP_NO_RENEGOTIATION);
+
     if (akamai_opt_is_ok(opt)) {
         unsigned int val = 1 << opt;
         ret = (ex_data->options & val) ? 1 : 0;
@@ -223,6 +227,10 @@ int SSL_CTX_akamai_opt_clear(SSL_CTX* s, enum SSL_AKAMAI_OPT opt)
 {
     int ret = -1;
     SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(s);
+
+    /* special case */
+    if (opt == SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION)
+        SSL_CTX_clear_options(s, SSL_OP_NO_RENEGOTIATION);
 
     if (akamai_opt_is_ok(opt)) {
         unsigned int val = 1 << opt;
@@ -251,6 +259,10 @@ int SSL_akamai_opt_set(SSL* s, enum SSL_AKAMAI_OPT opt)
     int ret = -1;
     SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
 
+    /* special case */
+    if (opt == SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION)
+        SSL_set_options(s, SSL_OP_NO_RENEGOTIATION);
+
     if (akamai_opt_is_ok(opt)) {
         unsigned int val = 1 << opt;
         ret = (ex_data->options & val) ? 1 : 0;
@@ -264,6 +276,10 @@ int SSL_akamai_opt_clear(SSL* s, enum SSL_AKAMAI_OPT opt)
 {
     int ret = -1;
     SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
+
+    /* special case */
+    if (opt == SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION)
+        SSL_clear_options(s, SSL_OP_NO_RENEGOTIATION);
 
     if (akamai_opt_is_ok(opt)) {
         unsigned int val = 1 << opt;
