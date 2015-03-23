@@ -3870,6 +3870,11 @@ int ssl3_renegotiate(SSL *s)
     if (s->s3->flags & SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS)
         return (0);
 
+#ifndef OPENSSL_NO_AKAMAI
+    if (SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION))
+        return (0);
+#endif
+
     s->s3->renegotiate = 1;
     return (1);
 }
