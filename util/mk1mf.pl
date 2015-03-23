@@ -78,6 +78,9 @@ $infile="MINFO";
 	"VC-WIN64A",  "Microsoft C/C++ - Win64/x64",
 	"VC-CE",   "Microsoft eMbedded Visual C++ 3.0 - Windows CE ONLY",
 	"VC-NT",   "Microsoft Visual C++ [4-6] - Windows NT ONLY",
+	"VC-NT-VC7",  "Microsoft Visual C++ [4-6] - Windows NT ONLY",
+	"VC-NT-VC9",  "Microsoft Visual C++ [4-6] - Windows NT ONLY",
+	"VC-NT-VC10", "Microsoft Visual C++ [4-6] - Windows NT ONLY",
 	"Mingw32", "GNU C++ - Windows NT or 9x",
 	"Mingw32-files", "Create files with DOS copy ...",
 	"BC-NT",   "Borland C++ 4.5 - Windows NT",
@@ -98,9 +101,11 @@ $platform="";
 my $xcflags="";
 foreach (@ARGV)
 	{
+        next if /^[ ]*$/; # Akamai
 	if (!&read_options && !defined($ops{$_}))
 		{
-		print STDERR "unknown option - $_\n";
+		#Akamai print STDERR "unknown option - $_\n";
+		print STDERR "unknown option - \"$_\"\n";
 		print STDERR "usage: perl mk1mf.pl [options] [system]\n";
 		print STDERR "\nwhere [system] can be one of the following\n";
 		foreach $i (sort keys %ops)
@@ -128,7 +133,7 @@ and [options] can be one of
 	gaswin					- Use GNU as with Mingw32
 	no-socks				- No socket code
 	no-err					- No error strings
-	dll/shlib				- Build shared libraries (MS)
+	dll/shlib/dll_lib			- Build shared libraries (MS)
 	debug					- Debug build
         profile                                 - Profiling build
 	gcc					- Use Gcc (unix)
@@ -190,7 +195,8 @@ if (($platform =~ /VC-(.+)/))
 	{
 	$FLAVOR=$1;
 	$NT = 1 if $1 eq "NT";
-	require 'VC-32.pl';
+#Akamai	require 'VC-32.pl';
+	require 'aka-VC-32.pl';
 	}
 elsif ($platform eq "Mingw32")
 	{
@@ -244,8 +250,10 @@ else
 
 $fipsdir =~ s/\//${o}/g;
 
-$out_dir=(defined($VARS{'OUT'}))?$VARS{'OUT'}:$out_def.($debug?".dbg":"");
-$tmp_dir=(defined($VARS{'TMP'}))?$VARS{'TMP'}:$tmp_def.($debug?".dbg":"");
+# Akamai $out_dir=(defined($VARS{'OUT'}))?$VARS{'OUT'}:$out_def.($debug?".dbg":"");
+# Akamai $tmp_dir=(defined($VARS{'TMP'}))?$VARS{'TMP'}:$tmp_def.($debug?".dbg":"");
+$out_dir=(defined($VARS{'OUT'}))?$VARS{'OUT'}:$out_def;
+$tmp_dir=(defined($VARS{'TMP'}))?$VARS{'TMP'}:$tmp_def;
 $inc_dir=(defined($VARS{'INC'}))?$VARS{'INC'}:$inc_def;
 
 $bin_dir=$bin_dir.$o unless ((substr($bin_dir,-1,1) eq $o) || ($bin_dir eq ''));
@@ -557,7 +565,8 @@ L_LIBS= \$(L_SSL) \$(L_CRYPTO) $ex_l_libs
 # Don't touch anything below this point
 ######################################################
 
-INC=-I\$(INC_D) -I\$(INCL_D)
+#Akamai INC=-I\$(INC_D) -I\$(INCL_D)
+INC=-I\$(INC_D) -I\$(INCL_D) -I.
 APP_CFLAGS=\$(INC) \$(CFLAG) \$(APP_CFLAG)
 LIB_CFLAGS=\$(INC) \$(CFLAG) \$(LIB_CFLAG)
 SHLIB_CFLAGS=\$(INC) \$(CFLAG) \$(LIB_CFLAG) \$(SHLIB_CFLAG)
@@ -595,7 +604,11 @@ $banner
 init: \$(TMP_D) \$(LIB_D) \$(INC_D) \$(INCO_D) \$(BIN_D) \$(TEST_D) headers
 	\$(PERL) \$(SRC_D)/util/copy-if-different.pl "\$(SRC_D)/crypto/opensslconf.h" "\$(INCO_D)/opensslconf.h"
 
-headers: \$(HEADER) \$(EXHEADER)
+#Akamai headers: \$(HEADER) \$(EXHEADER)
+\$(SRC_D)\\crypto\\bn\\bn_prime.h : \$(SRC_D)\\crypto\\bn\\bn_prime.pl
+	\$(PERL) \$? > \$@
+
+headers: \$(TMP_D) \$(INCO_D) \$(HEADER) \$(EXHEADER) \$(SRC_D)\\crypto\\bn\\bn_prime.h
 
 lib: \$(LIBS_DEP) \$(E_SHLIB)
 
@@ -748,8 +761,10 @@ foreach (values %lib_nam)
 	}
 
 # hack to add version info on MSVC
+#Akamai if (($platform eq "VC-WIN32") || ($platform eq "VC-WIN64A")
+#Akamai	|| ($platform eq "VC-WIN64I") || ($platform eq "VC-NT")) {
 if (($platform eq "VC-WIN32") || ($platform eq "VC-WIN64A")
-	|| ($platform eq "VC-WIN64I") || ($platform eq "VC-NT")) {
+	|| ($platform eq "VC-WIN64I") || ($platform =~ /VC-NT/)) {
     $rules.= <<"EOF";
 \$(OBJ_D)\\\$(CRYPTO).res: ms\\version32.rc
 	\$(RSC) /fo"\$(OBJ_D)\\\$(CRYPTO).res" /d CRYPTO ms\\version32.rc
@@ -977,7 +992,8 @@ sub do_defs
 		$ret.=$t;
 		}
 	# hack to add version info on MSVC
-	if ($shlib && (($platform eq "VC-WIN32") || ($platfrom eq "VC-WIN64I") || ($platform eq "VC-WIN64A") || ($platform eq "VC-NT")))
+#Akamai	if ($shlib && (($platform eq "VC-WIN32") || ($platfrom eq "VC-WIN64I") || ($platform eq "VC-WIN64A") || ($platform eq "VC-NT")))
+	if ($shlib && (($platform eq "VC-WIN32") || ($platfrom eq "VC-WIN64I") || ($platform eq "VC-WIN64A") || ($platform =~ /VC-NT/)))
 		{
 		if ($var eq "CRYPTOOBJ")
 			{ $ret.="\$(OBJ_D)\\\$(CRYPTO).res "; }
@@ -1235,6 +1251,8 @@ sub read_options
 		"profile" => \$profile,
 		"shlib" => \$shlib,
 		"dll" => \$shlib,
+	        "akamaidebug" => \$debug, # Akamai
+	        "dll_lib" => \$dll_lib,   # Akamai
 		"shared" => 0,
 		"no-sctp" => 0,
 		"no-srtp" => 0,
