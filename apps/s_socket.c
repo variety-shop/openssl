@@ -8,6 +8,7 @@
  */
 
 /* socket-related functions used by s_client and s_server */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
