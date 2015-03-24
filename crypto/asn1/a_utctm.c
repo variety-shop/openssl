@@ -252,3 +252,22 @@ int ASN1_UTCTIME_print(BIO *bp, const ASN1_UTCTIME *tm)
     BIO_write(bp, "Bad time value", 14);
     return (0);
 }
+
+#ifndef OPENSSL_NO_AKAMAI
+time_t ASN1_UTCTIME_get(const ASN1_UTCTIME *s)
+{
+    struct tm tm;
+
+    memset(&tm, '\0', sizeof tm);
+
+    if (!asn1_utctime_to_tm(&tm, s))
+        return -1;
+# if defined(__GLIBC__) && defined(_DEFAULT_SOURCE)
+    return timegm(&tm);
+# else
+    /* This works, assuming timezone is set to UTC */
+    /* Otherwise, we'd have to temporarily reset the TZ... ugh */
+    return mktime(&tm);
+# endif
+}
+#endif
