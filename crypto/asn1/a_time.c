@@ -450,3 +450,43 @@ int ASN1_TIME_print(BIO *bp, const ASN1_TIME *tm)
     BIO_write(bp, "Bad time value", 14);
     return (0);
 }
+
+#ifndef OPENSSL_NO_AKAMAI
+int ASN1_TIME_akamai_cmp_time_t(const ASN1_TIME *s, time_t t)
+{
+    struct tm stm, ttm;
+    int day, sec;
+
+    if (!ASN1_TIME_to_tm(s, &stm))
+        return -2;
+
+    if (!OPENSSL_gmtime(&t, &ttm))
+        return -2;
+
+    if (!OPENSSL_gmtime_diff(&day, &sec, &ttm, &stm))
+        return -2;
+
+    if (day > 0)
+        return 1;
+    if (day < 0)
+        return -1;
+    if (sec > 0)
+        return 1;
+    if (sec < 0)
+        return -1;
+    return 0;
+}
+
+int ASN1_TIME_akamai_get(const ASN1_TIME *s, time_t *t, struct tm *tm)
+{
+    struct tm atm;
+    if (tm == NULL)
+        tm = &atm;
+    memset(tm, 0, sizeof(*tm));
+    if (ASN1_TIME_to_tm(s, tm) == 0)
+        return 0;
+    if (t == NULL)
+        return 1;
+    return OPENSSL_akamai_timegm(tm, t);
+}
+#endif /* OPENSSL_NO_AKAMAI */
