@@ -107,12 +107,19 @@ static int print_ocsp_summary(BIO *out, OCSP_BASICRESP *bs, OCSP_REQUEST *req,
                               STACK_OF(OPENSSL_STRING) *names,
                               STACK_OF(OCSP_CERTID) *ids, long nsec,
                               long maxage);
-
+# ifdef OPENSSL_NO_AKAMAI
 static int make_ocsp_response(OCSP_RESPONSE **resp, OCSP_REQUEST *req,
                               CA_DB *db, X509 *ca, X509 *rcert,
                               EVP_PKEY *rkey, const EVP_MD *md,
                               STACK_OF(X509) *rother, unsigned long flags,
                               int nmin, int ndays, int badsig);
+# else
+static int make_ocsp_response(OCSP_RESPONSE **resp, OCSP_REQUEST *req,
+                              CA_DB *db, STACK_OF(X509) *ca, X509 *rcert,
+                              EVP_PKEY *rkey, const EVP_MD *md,
+                              STACK_OF(X509) *rother, unsigned long flags,
+                              int nmin, int ndays, int badsig);
+# endif
 
 static char **lookup_serial(CA_DB *db, ASN1_INTEGER *ser);
 static BIO *init_responder(const char *port);
@@ -168,7 +175,11 @@ int MAIN(int argc, char **argv)
     STACK_OF(OPENSSL_STRING) *reqnames = NULL;
     STACK_OF(OCSP_CERTID) *ids = NULL;
 
+# ifdef OPENSSL_NO_AKAMAI
     X509 *rca_cert = NULL;
+# else
+    STACK_OF(X509) *rca_cert = NULL;
+# endif
     char *ridx_filename = NULL;
     char *rca_filename = NULL;
     CA_DB *rdb = NULL;
@@ -633,8 +644,13 @@ int MAIN(int argc, char **argv)
             BIO_printf(bio_err, "Error loading responder certificate\n");
             goto end;
         }
+# ifdef OPENSSL_NO_AKAMAI
         rca_cert = load_cert(bio_err, rca_filename, FORMAT_PEM,
                              NULL, e, "CA certificate");
+# else
+        rca_cert = load_certs(bio_err, rca_filename, FORMAT_PEM,
+                              NULL, e, "CA certificate");
+# endif
         if (rcertfile) {
             rother = load_certs(bio_err, rcertfile, FORMAT_PEM,
                                 NULL, e, "responder other certificates");
@@ -871,7 +887,11 @@ int MAIN(int argc, char **argv)
     X509_free(issuer);
     X509_free(cert);
     X509_free(rsigner);
+# ifdef OPENSSL_NO_AKAMAI
     X509_free(rca_cert);
+# else
+    sk_X509_pop_free(rca_cert, X509_free);
+# endif
     free_index(rdb);
     BIO_free_all(cbio);
     BIO_free_all(acbio);
@@ -1018,14 +1038,26 @@ static int print_ocsp_summary(BIO *out, OCSP_BASICRESP *bs, OCSP_REQUEST *req,
     return 1;
 }
 
+# ifdef OPENSSL_NO_AKAMAI
 static int make_ocsp_response(OCSP_RESPONSE **resp, OCSP_REQUEST *req,
                               CA_DB *db, X509 *ca, X509 *rcert,
                               EVP_PKEY *rkey, const EVP_MD *rmd,
                               STACK_OF(X509) *rother, unsigned long flags,
                               int nmin, int ndays, int badsig)
+# else
+static int make_ocsp_response(OCSP_RESPONSE **resp, OCSP_REQUEST *req,
+                              CA_DB *db, STACK_OF(X509) *ca, X509 *rcert,
+                              EVP_PKEY *rkey, const EVP_MD *rmd,
+                              STACK_OF(X509) *rother, unsigned long flags,
+                              int nmin, int ndays, int badsig)
+# endif
 {
     ASN1_TIME *thisupd = NULL, *nextupd = NULL;
+# ifdef OPENSSL_NO_AKAMAI
     OCSP_CERTID *cid, *ca_id = NULL;
+# else
+    OCSP_CERTID *cid;
+# endif
     OCSP_BASICRESP *bs = NULL;
     int i, id_count, ret = 1;
 
@@ -1047,6 +1079,10 @@ static int make_ocsp_response(OCSP_RESPONSE **resp, OCSP_REQUEST *req,
         OCSP_ONEREQ *one;
         ASN1_INTEGER *serial;
         char **inf;
+# ifndef OPENSSL_NO_AKAMAI
+        int jj;
+        int found = 0;
+# endif
         ASN1_OBJECT *cert_id_md_oid;
         const EVP_MD *cert_id_md;
         one = OCSP_request_onereq_get0(req, i);
@@ -1060,6 +1096,7 @@ static int make_ocsp_response(OCSP_RESPONSE **resp, OCSP_REQUEST *req,
                                          NULL);
             goto end;
         }
+# ifdef OPENSSL_NO_AKAMAI
         if (ca_id)
             OCSP_CERTID_free(ca_id);
         ca_id = OCSP_cert_to_id(cert_id_md, NULL, ca);
@@ -1071,6 +1108,24 @@ static int make_ocsp_response(OCSP_RESPONSE **resp, OCSP_REQUEST *req,
                                    0, NULL, thisupd, nextupd);
             continue;
         }
+# else
+        for (jj = 0; jj < sk_X509_num(ca) && !found; jj++) {
+            X509 *ca_cert = sk_X509_value(ca, jj);
+            OCSP_CERTID *ca_id = OCSP_cert_to_id(cert_id_md, NULL, ca_cert);
+
+            if (OCSP_id_issuer_cmp(ca_id, cid) == 0)
+                found = 1;
+
+            OCSP_CERTID_free(ca_id);
+        }
+
+        if (!found) {
+            OCSP_basic_add1_status(bs, cid,
+                                   V_OCSP_CERTSTATUS_UNKNOWN,
+                                   0, NULL, thisupd, nextupd);
+            continue;
+        }
+# endif
         OCSP_id_get0_info(NULL, NULL, NULL, &serial, cid);
         inf = lookup_serial(db, serial);
         if (!inf)
@@ -1116,7 +1171,9 @@ static int make_ocsp_response(OCSP_RESPONSE **resp, OCSP_REQUEST *req,
  end:
     ASN1_TIME_free(thisupd);
     ASN1_TIME_free(nextupd);
+# ifdef OPENSSL_NO_AKAMAI
     OCSP_CERTID_free(ca_id);
+# endif
     OCSP_BASICRESP_free(bs);
     return ret;
 
