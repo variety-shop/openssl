@@ -198,6 +198,8 @@ SKIP: {
     ok(TLSProxy::Message->fail, "No matching TLSv1.2 sigalgs");
     $proxy->filter(\&sigalgs_filter);
 
+    skip "Akamai changed default ciphers", 1 if !disabled("akamai");
+
     #Test 17: No sig algs extension, ECDSA cert, TLSv1.2 should succeed
     $proxy->clear();
     $testtype = NO_SIG_ALGS_EXT;

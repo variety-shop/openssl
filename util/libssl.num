@@ -510,3 +510,4 @@ SSL_set_cert_verify_callback            10011	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_SESSION_set_verify_result           10012	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_set_buffer_mem_functions            10014	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_CTX_akamai_session_stats_bio        10085	1_1_0e	EXIST::FUNCTION:AKAMAI
+SSL_default_akamai_cipher_list          10086	1_1_1	EXIST::FUNCTION:AKAMAI
