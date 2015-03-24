@@ -311,7 +311,7 @@ int ASN1_UTCTIME_cmp_time_t(const ASN1_UTCTIME *s, time_t t)
     return 0;
 }
 
-#if 0
+#ifndef OPENSSL_NO_AKAMAI
 time_t ASN1_UTCTIME_get(const ASN1_UTCTIME *s)
 {
     struct tm tm;
