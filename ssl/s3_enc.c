@@ -136,6 +136,9 @@
  */
 
 #include <stdio.h>
+#ifndef OPENSSL_NO_AKAMAI
+#define USE_SOCKETS
+#endif
 #include "ssl_locl.h"
 #include <openssl/evp.h>
 #include <openssl/md5.h>
