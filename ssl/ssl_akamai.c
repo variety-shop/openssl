@@ -487,6 +487,47 @@ void* SSL_get_cert_verify_arg(SSL *s)
     return SSL_get_ex_data_akamai(s)->app_verify_arg;
 }
 
+static void ssl_akamai_fixup_cipher_strength(uint32_t on, uint32_t off, const char* ciphers)
+{
+    CERT *cert = NULL;
+    STACK_OF(SSL_CIPHER)* sk = NULL;
+    STACK_OF(SSL_CIPHER)* cipher_list = NULL;
+    STACK_OF(SSL_CIPHER)* cipher_list_by_id = NULL;
+    int i;
+
+    if ((cert = ssl_cert_new()) == NULL)
+        goto end;
+
+    sk = ssl_create_cipher_list(TLS_method(),
+                                NULL, /* TLSv1.3 - does not modify TLSv1.3 ciphers */
+                                &cipher_list, &cipher_list_by_id,
+                                ciphers, cert);
+    if (sk == NULL)
+        goto end;
+    for (i = 0; i < sk_SSL_CIPHER_num(sk); i++) {
+        SSL_CIPHER *c = (SSL_CIPHER*)sk_SSL_CIPHER_value(sk, i);
+        c->algo_strength &= ~off;
+        c->algo_strength |= on;
+    }
+ end:
+    sk_SSL_CIPHER_free(cipher_list);
+    sk_SSL_CIPHER_free(cipher_list_by_id);
+    ssl_cert_free(cert);
+}
+
+void ssl_akamai_fixup_ciphers(void)
+{
+    /*
+     * Get ALL ciphers and mark as NOT_DEFAULT
+     */
+    ssl_akamai_fixup_cipher_strength(SSL_NOT_DEFAULT, 0, "ALL:COMPLEMENTOFALL");
+
+    /*
+     * Get the DEFAULT ciphers we want, and remove NOT_DEFAULT
+     */
+    ssl_akamai_fixup_cipher_strength(0, SSL_NOT_DEFAULT, SSL_DEFAULT_CIPHER_LIST);
+}
+
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b)
 {
     SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(ctx);
@@ -496,6 +537,32 @@ void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b)
     OPENSSL_LH_stats_bio((const OPENSSL_LHASH *)ex_data->session_list->sessions, b);
     CRYPTO_THREAD_unlock(ex_data->session_list->lock);
     CRYPTO_THREAD_unlock(ctx->lock);
+}
+
+const char *SSL_default_akamai_cipher_list(void)
+{
+    /* explicily define the ciphers */
+    static const char cipher_list[] =
+        "ECDHE-ECDSA-AES256-GCM-SHA384:"
+        "ECDHE-ECDSA-CHACHA20-POLY1305:"
+        "ECDHE-ECDSA-AES128-GCM-SHA256:"
+        "ECDHE-RSA-AES256-GCM-SHA384:"
+        "ECDHE-RSA-CHACHA20-POLY1305:"
+        "ECDHE-RSA-AES128-GCM-SHA256:"
+        "ECDHE-ECDSA-AES256-SHA384:"
+        "ECDHE-ECDSA-AES128-SHA256:"
+        "ECDHE-RSA-AES256-SHA384:"
+        "ECDHE-RSA-AES128-SHA256:"
+        "ECDHE-RSA-AES256-SHA:"
+        "ECDHE-RSA-AES128-SHA:"
+        "AES256-GCM-SHA384:"
+        "AES128-GCM-SHA256:"
+        "AES256-SHA256:"
+        "AES128-SHA256:"
+        "AES256-SHA:"
+        "AES128-SHA";
+
+    return cipher_list;
 }
 
 #endif /* OPENSSL_NO_AKAMAI */
