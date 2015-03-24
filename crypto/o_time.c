@@ -198,3 +198,62 @@ static void julian_to_date(long jd, int *y, int *m, int *d)
     *m = j + 2 - (12 * L);
     *y = 100 * (n - 49) + i + L;
 }
+
+#ifndef OPENSSL_NO_AKAMAI
+int OPENSSL_akamai_timegm(struct tm *tm, time_t *t)
+{
+    /* Figures it out without mucking the environment */
+    time_t basetime, currtime;
+
+    /* Check for 32-bit time limit */
+    if (sizeof(time_t) == 4) {
+        /* Check for 2038-01-19 03:14:08 */
+        if (tm->tm_year >= 138
+            && tm->tm_mon >= 0
+            && tm->tm_mday >= 19
+            && tm->tm_hour >= 3
+            && tm->tm_min >= 14
+            && tm->tm_sec > 8)
+            return 0;
+        /* Check for 1901-12-13 20:45:52 */
+        if (tm->tm_year <= 1
+            && tm->tm_mon <= 11
+            && tm->tm_mday <= 13
+            && tm->tm_hour <= 20
+            && tm->tm_min <= 45
+            && tm->tm_sec < 52)
+            return 0;
+    }
+    /*
+     * No need to check for 64-bit time_t limit. By the time
+     * 282,277,926,596-12-04 15:30:08 occurs, Terra will have
+     * been incinerated by Sol. According to the Doctor, this
+     * will occur in the year 5.5/apple/26 (year 5 billion, or
+     * 5,000,000,000, in the Gregorian calendar, assuming, of
+     * course, the Doctor is referring to 'billion' in the
+     * short scale, which was adopted by official UK statistics
+     * in 1974, and not the long scale, which would be
+     * 5,000,000,000,000, and subsequently break 64-bit time_t.
+     * Hopefully, by then, 128-bit time_t and IPv6 addresses
+     * would have been adopted.
+     * Going the other way, the universe is considered to be only
+     * 1.37 x 10^10 (13.7 billion) years old, so any value before
+     * ~ -13,700,000,000 would be invalid, unless you subscribe to
+     * the Big Bounce Theory. However, one could presume that the
+     * Epoch would have been reset.
+     * Besides, a 32-bit int tm_year value is limited to range of
+     * -2,147,483,648..2,147,483,648, which means that Terran
+     * computer scientists will need to update struct tm before then.
+     */
+
+    if (t != NULL) {
+        basetime = date_to_julian(1970, 1, 1);
+        currtime = date_to_julian(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
+
+        *t = (((currtime - basetime) * 24 + tm->tm_hour) * 60 + tm->tm_min) * 60 + tm->tm_sec;
+    }
+
+    /* Can't really fail, but if it could... */
+    return 1;
+}
+#endif
