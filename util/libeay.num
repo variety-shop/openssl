@@ -1803,7 +1803,7 @@ i2d_ASN1_SET_OF_PKCS7                   2328	NOEXIST::FUNCTION:
 BIO_vfree                               2334	EXIST::FUNCTION:
 d2i_ASN1_SET_OF_ASN1_INTEGER            2339	NOEXIST::FUNCTION:
 d2i_ASN1_SET_OF_PKCS12_SAFEBAG          2341	NOEXIST::FUNCTION:
-ASN1_UTCTIME_get                        2350	NOEXIST::FUNCTION:
+ASN1_UTCTIME_get                        2350	EXIST::FUNCTION:AKAMAI
 X509_REQ_digest                         2362	EXIST::FUNCTION:EVP
 X509_CRL_digest                         2391	EXIST::FUNCTION:EVP
 ASN1_STRING_clear_free                  2392	EXIST::FUNCTION:
