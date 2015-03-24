@@ -452,4 +452,44 @@ void SSL_CTX_tlsext_ticket_appdata_cbs(SSL_CTX *ctx,
     ex_data->tlsext_ticket_appdata_parse_cb  = parse_cb;
     ex_data->tlsext_ticket_appdata_arg = arg;
 }
+
+static void ssl_akamai_fixup_cipher_strength(uint32_t on, uint32_t off, const char* ciphers)
+{
+    CERT *cert = NULL;
+    STACK_OF(SSL_CIPHER)* sk = NULL;
+    STACK_OF(SSL_CIPHER)* cipher_list = NULL;
+    STACK_OF(SSL_CIPHER)* cipher_list_by_id = NULL;
+    int i;
+
+    if ((cert = ssl_cert_new()) == NULL)
+        goto end;
+
+    sk = ssl_create_cipher_list(TLS_method(),
+                                &cipher_list, &cipher_list_by_id,
+                                ciphers, cert);
+    if (sk == NULL)
+        goto end;
+    for (i = 0; i < sk_SSL_CIPHER_num(sk); i++) {
+        SSL_CIPHER *c = (SSL_CIPHER*)sk_SSL_CIPHER_value(sk, i);
+        c->algo_strength &= ~off;
+        c->algo_strength |= on;
+    }
+ end:
+    sk_SSL_CIPHER_free(cipher_list);
+    sk_SSL_CIPHER_free(cipher_list_by_id);
+    ssl_cert_free(cert);
+}
+
+void ssl_akamai_fixup_ciphers(void)
+{
+    /*
+     * Get ALL ciphers and mark as NOT_DEFAULT
+     */
+    ssl_akamai_fixup_cipher_strength(SSL_NOT_DEFAULT, 0, "ALL:COMPLEMENTOFALL");
+
+    /*
+     * Get the DEFAULT ciphers we want, and remove NOT_DEFAULT
+     */
+    ssl_akamai_fixup_cipher_strength(0, SSL_NOT_DEFAULT, SSL_DEFAULT_CIPHER_LIST);
+}
 #endif /* OPENSSL_NO_AKAMAI */
