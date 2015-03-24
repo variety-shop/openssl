@@ -32,6 +32,13 @@
 extern "C" {
 #  endif
 
+/* AKAMAI DEFAULT CIPHERS */
+# ifdef SSL_DEFAULT_CIPHER_LIST
+#  undef SSL_DEFAULT_CIPHER_LIST
+# endif
+# define SSL_DEFAULT_CIPHER_LIST SSL_default_akamai_cipher_list()
+const char *SSL_default_akamai_cipher_list(void);
+
 /* AKAMAI OPTIONS */
 typedef enum SSL_AKAMAI_OPT {
     /* insert here... */
