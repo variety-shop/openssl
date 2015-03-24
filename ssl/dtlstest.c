@@ -59,6 +59,12 @@ static int test_dtls_unprocessed(int testidx)
         printf("Failed configuring auto ECDH\n");
     }
 
+#ifndef OPENSSL_NO_AKAMAI
+    if (!SSL_CTX_set_cipher_list(sctx, "AES128-SHA")) {
+        printf("Failed setting cipher list\n");
+    }
+#endif
+
     if (!SSL_CTX_set_cipher_list(cctx, "AES128-SHA")) {
         printf("Failed setting cipher list\n");
     }
