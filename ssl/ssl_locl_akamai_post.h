@@ -80,4 +80,6 @@ SSL_SESSION *SSL_CTX_SESSION_LIST_get1_session(SSL_CTX *ctx, SSL_SESSION *key);
 unsigned long SSL_SESSION_hash(const SSL_SESSION *a);
 int SSL_SESSION_cmp(const SSL_SESSION *a, const SSL_SESSION *b);
 
+void ssl_akamai_fixup_ciphers(void);
+
 #endif /* HEADER_SSL_LOCL_AKAMAI_POST_H */

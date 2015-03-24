@@ -110,6 +110,9 @@ DEFINE_RUN_ONCE_STATIC(ossl_init_ssl_base)
      */
     OPENSSL_atexit(ssl_library_stop);
     ssl_base_inited = 1;
+#ifndef OPENSSL_NO_AKAMAI
+    ssl_akamai_fixup_ciphers();
+#endif
     return 1;
 }
 
