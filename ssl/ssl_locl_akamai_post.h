@@ -82,4 +82,6 @@ int SSL_CTX_SESSION_LIST_up_ref(SSL_CTX_SESSION_LIST *l);
 # define APPDATA_LENGTH_BYTES           2
 # define APPDATA_MAG_LEN_BYTES          (APPDATA_MAG_BYTES + APPDATA_LENGTH_BYTES)
 
+void ssl_akamai_fixup_ciphers(void);
+
 #endif /* HEADER_SSL_LOCL_AKAMAI_POST_H */
