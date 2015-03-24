@@ -551,3 +551,18 @@ int ASN1_TIME_compare(const ASN1_TIME *a, const ASN1_TIME *b)
         return -1;
     return 0;
 }
+
+#ifndef OPENSSL_NO_AKAMAI
+int ASN1_TIME_akamai_get(const ASN1_TIME *s, time_t *t, struct tm *tm)
+{
+    struct tm atm;
+    if (tm == NULL)
+        tm = &atm;
+    memset(tm, 0, sizeof(*tm));
+    if (ASN1_TIME_to_tm(s, tm) == 0)
+        return 0;
+    if (t == NULL)
+        return 1;
+    return OPENSSL_akamai_timegm(tm, t);
+}
+#endif /* OPENSSL_NO_AKAMAI */
