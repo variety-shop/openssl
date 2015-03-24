@@ -47,7 +47,9 @@ top:
 all:	lib
 
 bn_prime.h: bn_prime.pl
+	-chmod 644 bn_prime.h
 	$(PERL) bn_prime.pl >bn_prime.h
+	-chmod 444 bn_prime.h
 
 divtest: divtest.c ../../libcrypto.a
 	cc -I../../include divtest.c -o divtest ../../libcrypto.a

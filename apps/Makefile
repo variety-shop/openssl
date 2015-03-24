@@ -111,7 +111,8 @@ install:
 	(echo installing $$i; \
 	 cp $$i $(INSTALL_PREFIX)$(OPENSSLDIR)/misc/$$i.new; \
 	 chmod 755 $(INSTALL_PREFIX)$(OPENSSLDIR)/misc/$$i.new; \
-	 mv -f $(INSTALL_PREFIX)$(OPENSSLDIR)/misc/$$i.new $(INSTALL_PREFIX)$(OPENSSLDIR)/misc/$$i ); \
+	 mv -f $(INSTALL_PREFIX)$(OPENSSLDIR)/misc/$$i.new $(INSTALL_PREFIX)$(OPENSSLDIR)/misc/$$i; \
+	 -chmod 555 $(INSTALL_PREFIX)$(OPENSSLDIR)/misc/$$i ); \
 	 done
 	@cp openssl.cnf $(INSTALL_PREFIX)$(OPENSSLDIR)/openssl.cnf.new; \
 	chmod 644 $(INSTALL_PREFIX)$(OPENSSLDIR)/openssl.cnf.new; \
@@ -164,6 +165,7 @@ $(EXE): progs.h $(E_OBJ) $(PROGRAM).o $(DLIBCRYPTO) $(DLIBSSL)
 	@(cd ..; $(MAKE) rehash)
 
 progs.h: progs.pl
+	-chmod +w $@
 	$(PERL) progs.pl $(E_EXE) >progs.h
 	$(RM) $(PROGRAM).o
 
