@@ -67,7 +67,9 @@ files:
 links:
 	@$(PERL) $(TOP)/util/mklink.pl ../../include/openssl $(EXHEADER)
 	@$(PERL) $(TOP)/util/mklink.pl ../../test $(TEST)
+	-chmod 644 ../../test/$(TESTDATA)
 	@[ -f $(TESTDATA) ] && cp $(TESTDATA) ../../test && echo "$(TESTDATA) -> ../../test/$(TESTDATA)"
+	-chmod 444 ../../test/$(TESTDATA)
 	@$(PERL) $(TOP)/util/mklink.pl ../../apps $(APPS)
 
 install:
