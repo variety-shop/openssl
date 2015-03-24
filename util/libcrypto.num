@@ -4587,3 +4587,5 @@ AKAMAI_prf                              10007	1_1_0c	EXIST::FUNCTION:AKAMAI
 AKAMAI_algorithm2_to_md                 10008	1_1_0c	EXIST::FUNCTION:AKAMAI
 AKAMAI_rsalg_hash                       10009	1_1_0c	EXIST::FUNCTION:AKAMAI
 X509_STORE_CTX_akamai_set0_store        10010	1_1_0c	EXIST::FUNCTION:
+ASN1_TIME_akamai_get                    10012	1_1_0e	EXIST::FUNCTION:AKAMAI
+OPENSSL_akamai_timegm                   10013	1_1_0e	EXIST::FUNCTION:AKAMAI
