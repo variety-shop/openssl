@@ -447,6 +447,16 @@ int AKAMAI_prf(int alg_nid,
                const void *seed5, int seed5_len,
                const unsigned char *sec, int slen,
                unsigned char *out, int olen);
+
+/* in crypto/asn1/a_time.c due to static function dependencies */
+/* returns -2 on error, -1/0/1  s<=>t comparison */
+int ASN1_TIME_akamai_cmp_time_t(const ASN1_TIME *s, time_t t);
+/* converts s to either t or tm, either of which can be NULL */
+/* returns 0 on error, 1 on success */
+int ASN1_TIME_akamai_get(const ASN1_TIME *s, time_t *t, struct tm *tm);
+/* in crypto/o_time.c due to static function dependencies */
+/* returns 0 on error, 1 on success */
+int OPENSSL_akamai_timegm(struct tm *tm, time_t *t);
 #endif /* OPENSSL_NO_AKAMAI */
 
 /* BEGIN ERROR CODES */
