@@ -212,6 +212,10 @@ o_str.o: ../e_os.h ../include/openssl/e_os2.h ../include/openssl/opensslconf.h
 o_str.o: o_str.c o_str.h
 o_time.o: ../include/openssl/e_os2.h ../include/openssl/opensslconf.h o_time.c
 o_time.o: o_time.h
+sec_mem.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
+sec_mem.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
+sec_mem.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
+sec_mem.o: ../include/openssl/stack.h ../include/openssl/symhacks.h sec_mem.c
 uid.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
 uid.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
 uid.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
