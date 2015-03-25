@@ -2,18 +2,20 @@
 
 =head1 NAME
 
-SSL_get_peer_certificate - get the X509 certificate of the peer
+SSL_get_peer_certificate, SSL_get0_peer_certificate - get the X509 certificate of the peer
 
 =head1 SYNOPSIS
 
  #include <openssl/ssl.h>
 
  X509 *SSL_get_peer_certificate(const SSL *ssl);
+ X509 *SSL_get0_peer_certificate(const SSL *ssl);
 
 =head1 DESCRIPTION
 
-SSL_get_peer_certificate() returns a pointer to the X509 certificate the
-peer presented. If the peer did not present a certificate, NULL is returned.
+SSL_get_peer_certificate() and SSL_get0_peer_certificate() return a pointer
+to the X509 certificate the peer presented. If the peer did not present a
+certificate, NULL is returned.
 
 =head1 NOTES
 
@@ -27,9 +29,13 @@ That a certificate is returned does not indicate information about the
 verification state, use L<SSL_get_verify_result(3)>
 to check the verification state.
 
-The reference count of the X509 object is incremented by one, so that it
-will not be destroyed when the session containing the peer certificate is
-freed. The X509 object must be explicitly freed using X509_free().
+The reference count of the X509 object returned by SSL_get_peer_certificate()
+is incremented by one, so that it will not be destroyed when the session
+containing the peer certificate is freed. The X509 object must be explicitly
+freed using X509_free().
+
+The reference count of the X509 object returned by SSL_get0_peer_certificate()
+is not incremented, and must not be freed.
 
 =head1 RETURN VALUES
 
