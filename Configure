@@ -214,6 +214,7 @@ foreach ( glob($pattern) ) {
 }
 
 my @MK1MF_Builds=qw(VC-WIN64I VC-WIN64A
+		    akamai-VC-WIN32 akamai-VC-WIN64A
 		    debug-VC-WIN64I debug-VC-WIN64A
 		    VC-NT VC-CE VC-WIN32 debug-VC-WIN32
 		    BC-32 
@@ -305,19 +306,26 @@ if (exists $ENV{FIPSDIR})
 # All of the following is disabled by default (RC5 was enabled before 0.9.8):
 
 my %disabled = ( # "what"         => "comment" [or special keyword "experimental"]
+		 "buf_freelists"  => "akamai-default", #Akamai
+		 "camellia"	  => "akamai-default", #Akamai
 		 "ec_nistp_64_gcc_128" => "default",
 		 "gmp"		  => "default",
-		 "iovec"          => "default",
+		 "heartbeats"	  => "akamai-default", #Akamai
+#Akamai		 "iovec"          => "default",
 		 "jpake"          => "experimental",
 		 "libunbound"     => "experimental",
-		 "md2"            => "default",
-		 "rc5"            => "default",
+#Akamai		 "md2"            => "default",
+		 "psk"		  => "akamai-default", #Akamai
+#Akamai		 "rc5"            => "default",
 		 "rfc3779"	  => "default",
 		 "sctp"           => "default",
+		 "seed"	          => "akamai-default", #Akamai
 		 "shared"         => "default",
+		 "srp"		  => "akamai-default", #Akamai
+		 "srtp"		  => "akamai-default", #Akamai
 		 "ssl-trace"	  => "default",
 		 "ssl2"           => "default",
-		 "store"	  => "experimental",
+#Akamai		 "store"	  => "experimental",
 		 "unit-test"	  => "default",
 		 "weak-ssl-ciphers" => "default",
 		 "zlib"           => "default",
@@ -327,7 +335,8 @@ my @experimental = ();
 
 # This is what $depflags will look like with the above defaults
 # (we need this to see if we should advise the user to run "make depend"):
-my $default_depflags = " -DOPENSSL_NO_EC_NISTP_64_GCC_128 -DOPENSSL_NO_GMP -DOPENSSL_NO_IOVEC -DOPENSSL_NO_JPAKE -DOPENSSL_NO_LIBUNBOUND -DOPENSSL_NO_MD2 -DOPENSSL_NO_RC5 -DOPENSSL_NO_RFC3779 -DOPENSSL_NO_SCTP -DOPENSSL_NO_SSL_TRACE -DOPENSSL_NO_SSL2 -DOPENSSL_NO_STORE -DOPENSSL_NO_UNIT_TEST -DOPENSSL_NO_WEAK_SSL_CIPHERS";
+#Akamai my $default_depflags = " -DOPENSSL_NO_EC_NISTP_64_GCC_128 -DOPENSSL_NO_GMP -DOPENSSL_NO_IOVEC -DOPENSSL_NO_JPAKE -DOPENSSL_NO_LIBUNBOUND -DOPENSSL_NO_MD2 -DOPENSSL_NO_RC5 -DOPENSSL_NO_RFC3779 -DOPENSSL_NO_SCTP -DOPENSSL_NO_SSL_TRACE -DOPENSSL_NO_SSL2 -DOPENSSL_NO_STORE -DOPENSSL_NO_UNIT_TEST -DOPENSSL_NO_WEAK_SSL_CIPHERS";
+my $default_depflags = " -DOPENSSL_NO_BUF_FREELISTS -DOPENSSL_NO_CAMELLIA -DOPENSSL_NO_EC_NISTP_64_GCC_128 -DOPENSSL_NO_GMP -DOPENSSL_NO_HEARTBEATS -DOPENSSL_NO_JPAKE -DOPENSSL_NO_LIBUNBOUND -DOPENSSL_NO_PSK -DOPENSSL_NO_RFC3779 -DOPENSSL_NO_SCTP -DOPENSSL_NO_SEED -DOPENSSL_NO_SRP -DOPENSSL_NO_SRTP -DOPENSSL_NO_SSL_TRACE -DOPENSSL_NO_SSL2 -DOPENSSL_NO_UNIT_TEST -DOPENSSL_NO_WEAK_SSL_CIPHERS";
 
 # Explicit "no-..." options will be collected in %disabled along with the defaults.
 # To remove something from %disabled, use "enable-foo" (unless it's experimental).
@@ -537,7 +546,7 @@ PROCESS_ARGS:
 			}
 		else
 			{
-			die "target already defined - $target (offending arg: $_)\n" if ($target ne "");
+#Akamai			die "target already defined - $target (offending arg: $_)\n" if ($target ne "");
 			$target=$_;
 			}
 

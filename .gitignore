@@ -118,3 +118,15 @@ ms/nt.mak
 ms/ntdll.mak
 ms/ssleay32.def
 ms/version32.rc
+
+# Akamake generated files
+akamake.imp-trees-all.ts
+build.ts
+buildenv.FIPS
+buildenv.NO_FOMIT_FRAME_POINTER.no
+component-configure
+configure.ts
+export_install.ts
+third-party
+akamake-dynamic-build-deps.mak
+akamake-headers.mak
