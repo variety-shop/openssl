@@ -1077,7 +1077,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_eNULL,
      SSL_SHA256,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_STRONG_NONE | SSL_FIPS,
+#else
+     SSL_NOT_EXP | SSL_STRONG_NONE,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      0,
      0,
@@ -1093,7 +1097,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128,
      SSL_SHA256,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      128,
      128,
@@ -1109,7 +1117,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256,
      SSL_SHA256,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      256,
      256,
@@ -1125,7 +1137,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128,
      SSL_SHA256,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      128,
      128,
@@ -1141,7 +1157,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128,
      SSL_SHA256,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      128,
      128,
@@ -1157,7 +1177,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128,
      SSL_SHA256,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      128,
      128,
@@ -1391,7 +1415,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128,
      SSL_SHA256,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      128,
      128,
@@ -1407,7 +1435,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256,
      SSL_SHA256,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      256,
      256,
@@ -1423,7 +1455,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256,
      SSL_SHA256,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      256,
      256,
@@ -1439,7 +1475,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256,
      SSL_SHA256,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      256,
      256,
@@ -1455,7 +1495,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256,
      SSL_SHA256,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      256,
      256,
@@ -1471,7 +1515,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128,
      SSL_SHA256,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      128,
      128,
@@ -1487,7 +1535,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256,
      SSL_SHA256,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      256,
      256,
@@ -1826,7 +1878,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA256 | TLS1_PRF_SHA256,
      128,
      128,
@@ -1842,7 +1898,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
      256,
      256,
@@ -1858,7 +1918,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA256 | TLS1_PRF_SHA256,
      128,
      128,
@@ -1874,7 +1938,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
      256,
      256,
@@ -1890,7 +1958,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA256 | TLS1_PRF_SHA256,
      128,
      128,
@@ -1906,7 +1978,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
      256,
      256,
@@ -1922,7 +1998,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA256 | TLS1_PRF_SHA256,
      128,
      128,
@@ -1938,7 +2018,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
      256,
      256,
@@ -1954,7 +2038,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA256 | TLS1_PRF_SHA256,
      128,
      128,
@@ -1970,7 +2058,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
      256,
      256,
@@ -1986,7 +2078,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA256 | TLS1_PRF_SHA256,
      128,
      128,
@@ -2002,7 +2098,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
      256,
      256,
@@ -2034,7 +2134,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_eNULL,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_STRONG_NONE | SSL_FIPS,
+#else
+     SSL_NOT_EXP | SSL_STRONG_NONE,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      0,
      0,
@@ -2066,7 +2170,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_3DES,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      112,
      168,
@@ -2082,7 +2190,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      128,
      128,
@@ -2098,7 +2210,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      256,
      256,
@@ -2114,7 +2230,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_eNULL,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_STRONG_NONE | SSL_FIPS,
+#else
+     SSL_NOT_EXP | SSL_STRONG_NONE,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      0,
      0,
@@ -2146,7 +2266,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_3DES,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      112,
      168,
@@ -2162,7 +2286,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      128,
      128,
@@ -2178,7 +2306,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      256,
      256,
@@ -2194,7 +2326,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_eNULL,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_STRONG_NONE | SSL_FIPS,
+#else
+     SSL_NOT_EXP | SSL_STRONG_NONE,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      0,
      0,
@@ -2226,7 +2362,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_3DES,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      112,
      168,
@@ -2242,7 +2382,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      128,
      128,
@@ -2258,7 +2402,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      256,
      256,
@@ -2274,7 +2422,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_eNULL,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_STRONG_NONE | SSL_FIPS,
+#else
+     SSL_NOT_EXP | SSL_STRONG_NONE,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      0,
      0,
@@ -2306,7 +2458,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_3DES,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      112,
      168,
@@ -2322,7 +2478,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      128,
      128,
@@ -2338,7 +2498,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      256,
      256,
@@ -2354,7 +2518,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_eNULL,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_STRONG_NONE | SSL_FIPS,
+#else
+     SSL_NOT_EXP | SSL_STRONG_NONE,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      0,
      0,
@@ -2386,7 +2554,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_3DES,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      112,
      168,
@@ -2402,7 +2574,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      128,
      128,
@@ -2418,7 +2594,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256,
      SSL_SHA1,
      SSL_TLSV1,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
      256,
      256,
@@ -2584,7 +2764,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128,
      SSL_SHA256,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA256 | TLS1_PRF_SHA256,
      128,
      128,
@@ -2600,7 +2784,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256,
      SSL_SHA384,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
      256,
      256,
@@ -2616,7 +2804,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128,
      SSL_SHA256,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA256 | TLS1_PRF_SHA256,
      128,
      128,
@@ -2632,7 +2824,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256,
      SSL_SHA384,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
      256,
      256,
@@ -2648,7 +2844,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128,
      SSL_SHA256,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA256 | TLS1_PRF_SHA256,
      128,
      128,
@@ -2664,7 +2864,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256,
      SSL_SHA384,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
      256,
      256,
@@ -2680,7 +2884,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128,
      SSL_SHA256,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA256 | TLS1_PRF_SHA256,
      128,
      128,
@@ -2696,7 +2904,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256,
      SSL_SHA384,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
      256,
      256,
@@ -2714,7 +2926,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA256 | TLS1_PRF_SHA256,
      128,
      128,
@@ -2730,7 +2946,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
      256,
      256,
@@ -2746,7 +2966,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA256 | TLS1_PRF_SHA256,
      128,
      128,
@@ -2762,7 +2986,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
      256,
      256,
@@ -2778,7 +3006,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA256 | TLS1_PRF_SHA256,
      128,
      128,
@@ -2794,7 +3026,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
      256,
      256,
@@ -2810,7 +3046,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES128GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA256 | TLS1_PRF_SHA256,
      128,
      128,
@@ -2826,7 +3066,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      SSL_AES256GCM,
      SSL_AEAD,
      SSL_TLSV1_2,
+#ifdef OPENSSL_NO_AKAMAI
      SSL_NOT_EXP | SSL_HIGH | SSL_FIPS,
+#else
+     SSL_NOT_EXP,
+#endif
      SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
      256,
      256,
