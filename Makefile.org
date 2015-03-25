@@ -314,7 +314,7 @@ libcrypto$(SHLIB_EXT): libcrypto.a fips_premain_dso$(EXE_EXT)
 		$(MAKE) -e SHLIBDIRS=crypto  CC="$${CC:-$(CC)}" build-shared && \
 		(touch -c fips_premain_dso$(EXE_EXT) || :); \
 	else \
-		echo "There's no support for shared libraries on this platform" >&2; \
+		echo "There's no support for shared libraries on this platform" >&2 ; \
 		exit 1; \
 	fi
 
@@ -322,7 +322,7 @@ libssl$(SHLIB_EXT): libcrypto$(SHLIB_EXT) libssl.a
 	@if [ "$(SHLIB_TARGET)" != "" ]; then \
 		$(MAKE) SHLIBDIRS=ssl SHLIBDEPS='-lcrypto' build-shared; \
 	else \
-		echo "There's no support for shared libraries on this platform" >&2; \
+		echo "There's no support for shared libraries on this platform" >&2 ; \
 		exit 1; \
 	fi
 
