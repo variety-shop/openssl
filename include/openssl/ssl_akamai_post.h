@@ -57,6 +57,10 @@ int SSL_akamai_opt_clear(SSL*, enum SSL_AKAMAI_OPT);
 /* returns if set (0 or 1) or -1 if not supported */
 int SSL_akamai_opt_get(SSL*, enum SSL_AKAMAI_OPT);
 
+# ifdef HEADER_X509_H
+__owur X509 *SSL_get0_peer_certificate(const SSL *s);
+# endif
+
 #  ifdef  __cplusplus
 }
 #  endif
