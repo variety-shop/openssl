@@ -74,8 +74,10 @@ $infile="MINFO";
 
 %ops=(
 	"VC-WIN32",   "Microsoft Visual C++ [4-6] - Windows NT or 9X",
+	"akamai-VC-WIN32",   "Microsoft Visual C++ [4-6] - Windows NT or 9X",
 	"VC-WIN64I",  "Microsoft C/C++ - Win64/IA-64",
 	"VC-WIN64A",  "Microsoft C/C++ - Win64/x64",
+	"akamai-VC-WIN64A",  "Microsoft C/C++ - Win64/x64",
 	"VC-CE",   "Microsoft eMbedded Visual C++ 3.0 - Windows CE ONLY",
 	"VC-NT",   "Microsoft Visual C++ [4-6] - Windows NT ONLY",
 	"VC-NT-VC7",  "Microsoft Visual C++ [4-6] - Windows NT ONLY",
@@ -765,6 +767,7 @@ foreach (values %lib_nam)
 #Akamai if (($platform eq "VC-WIN32") || ($platform eq "VC-WIN64A")
 #Akamai	|| ($platform eq "VC-WIN64I") || ($platform eq "VC-NT")) {
 if (($platform eq "VC-WIN32") || ($platform eq "VC-WIN64A")
+	|| ($platform eq "akamai-VC-WIN32") || ($platform eq "akamai-VC-WIN64A")
 	|| ($platform eq "VC-WIN64I") || ($platform =~ /VC-NT/)) {
     $rules.= <<"EOF";
 \$(OBJ_D)\\\$(CRYPTO).res: ms\\version32.rc
@@ -994,7 +997,7 @@ sub do_defs
 		}
 	# hack to add version info on MSVC
 #Akamai	if ($shlib && (($platform eq "VC-WIN32") || ($platfrom eq "VC-WIN64I") || ($platform eq "VC-WIN64A") || ($platform eq "VC-NT")))
-	if ($shlib && (($platform eq "VC-WIN32") || ($platfrom eq "VC-WIN64I") || ($platform eq "VC-WIN64A") || ($platform =~ /VC-NT/)))
+	if ($shlib && (($platform eq "VC-WIN32") || ($platfrom eq "VC-WIN64I") || ($platform eq "VC-WIN64A") || ($platform eq "akamai-VC-WIN32") || ($platform eq "akamai-VC-WIN64") || ($platform =~ /VC-NT/)))
 		{
 		if ($var eq "CRYPTOOBJ")
 			{ $ret.="\$(OBJ_D)\\\$(CRYPTO).res "; }
