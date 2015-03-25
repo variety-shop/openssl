@@ -141,7 +141,11 @@ static void x509_verify_param_zero(X509_VERIFY_PARAM *param)
     /*
      * param->inh_flags = X509_VP_FLAG_DEFAULT;
      */
+#ifdef OPENSSL_NO_AKAMAI
     param->inh_flags = 0;
+#else
+    param->inh_flags = X509_VP_FLAG_DEFAULT;
+#endif
     param->flags = 0;
     param->depth = -1;
     if (param->policies) {
