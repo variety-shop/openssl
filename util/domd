@@ -20,6 +20,7 @@ cp Makefile.save Makefile
 # fake the presence of Kerberos
 touch $TOP/krb5.h
 if expr "$MAKEDEPEND" : ".*makedepend" > /dev/null; then
+    export PATH="${PATH}:/usr/X11/bin"
     ${MAKEDEPEND} -D OPENSSL_DOING_MAKEDEPEND $@ && \
     ${PERL} $TOP/util/clean-depend.pl < Makefile > Makefile.new
     RC=$?
@@ -31,7 +32,10 @@ else
     done
     sed -e '/^# DO NOT DELETE.*/,$d' < Makefile > Makefile.tmp
     echo '# DO NOT DELETE THIS LINE -- make depend depends on it.' >> Makefile.tmp
-    ${MAKEDEPEND} -Werror -D OPENSSL_DOING_MAKEDEPEND -M $args >> Makefile.tmp || exit 1
+    if ! ${MAKEDEPEND} -Werror -D OPENSSL_DOING_MAKEDEPEND -M $args >> Makefile.tmp; then
+        rm -f $TOP/krb5.h
+        exit 1
+    fi
     ${PERL} $TOP/util/clean-depend.pl < Makefile.tmp > Makefile.new
     RC=$?
     rm -f Makefile.tmp
@@ -43,6 +47,6 @@ else
     mv Makefile.new Makefile
 fi
 # unfake the presence of Kerberos
-rm $TOP/krb5.h
+rm -f $TOP/krb5.h
 
 exit $RC
