@@ -185,7 +185,15 @@ WTARFILE=       $(NAME)-win.tar
 EXHEADER=       e_os.h e_os2.h
 HEADER=
 
-all: Makefile build_all
+all: Makefile build_all libopenssl.a
+
+libopenssl.a: build_libs
+	rm -f libopenssl.a
+	rm -rf libmake-tmp
+	mkdir libmake-tmp
+	(cd libmake-tmp && ar x ../libcrypto.a && ar x ../libssl.a && ar q ../libopenssl.a *)
+	rm -rf libmake-tmp
+	ranlib libopenssl.a
 
 # as we stick to -e, CLEARENV ensures that local variables in lower
 # Makefiles remain local and variable. $${VAR+VAR} is tribute to Korn
@@ -310,7 +318,7 @@ libcrypto$(SHLIB_EXT): libcrypto.a fips_premain_dso$(EXE_EXT)
 		$(MAKE) -e SHLIBDIRS=crypto  CC="$${CC:-$(CC)}" build-shared && \
 		(touch -c fips_premain_dso$(EXE_EXT) || :); \
 	else \
-		echo "There's no support for shared libraries on this platform" >&2; \
+		echo "There's no support for shared libraries on this platform" >&2 ; \
 		exit 1; \
 	fi
 
@@ -318,7 +326,7 @@ libssl$(SHLIB_EXT): libcrypto$(SHLIB_EXT) libssl.a
 	@if [ "$(SHLIB_TARGET)" != "" ]; then \
 		$(MAKE) SHLIBDIRS=ssl SHLIBDEPS='-lcrypto' build-shared; \
 	else \
-		echo "There's no support for shared libraries on this platform" >&2; \
+		echo "There's no support for shared libraries on this platform" >&2 ; \
 		exit 1; \
 	fi
 
