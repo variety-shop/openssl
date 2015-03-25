@@ -1,0 +1,59 @@
+# Akamai-specific configurations
+# Copyright (C) 2015 Akamai, All Rights Reserved
+
+# Filler used for when there are no asm files.
+my $no_asm_filler="::::::::::::::::void";
+
+%targets = (
+"akamai-ccmalloc",     "gcc:-ggdb -O0 -Wall -DPURIFY::-D_REENTRANT::::${no_asm_filler}::::::::",
+"akamai-debug",        "gcc:-ggdb -O0 -Wall::-D_REENTRANT::::${no_asm_filler}::::::::",
+"akamai-debug-darwin-i386",        "cc:-arch i386 -ggdb3 -O0 -Wall::-D_REENTRANT:MACOSX:::${no_asm_filler}::::::::",
+"akamai-debug-darwin-x86_64",        "cc:-arch x86_64 -ggdb3 -O0 -Wall::-D_REENTRANT:MACOSX::DES_INT:${no_asm_filler}::::::::",
+"akamai-linux-ppro-gcc33",     "gcc:-DL_ENDIAN -O3 -fomit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+"akamai-linux-ppro-gcc33-no-fomit-frame-pointer",     "gcc:-DL_ENDIAN -O3 -ggdb -fno-omit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+"akamai-linux-ppro-gcc34",     "gcc:-DL_ENDIAN -O3-fomit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+"akamai-linux-ppro-gcc34-no-fomit-frame-pointer",     "gcc:-DL_ENDIAN -O3 -ggdb -fno-omit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+"akamai-linux-ppro-gcc40",     "gcc:-DL_ENDIAN -O3 -fomit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+"akamai-linux-ppro-gcc40-no-fomit-frame-pointer",     "gcc:-DL_ENDIAN -O3 -ggdb -fno-omit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+"akamai-linux-ppro-gcc41",     "gcc:-DL_ENDIAN -O3 -fomit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+"akamai-linux-ppro-gcc41-no-fomit-frame-pointer",     "gcc:-DL_ENDIAN -O3 -ggdb -fno-omit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+
+#alsi6
+"akamai-linux-ppro-alsi6",     "gcc:-DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -fomit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+"akamai-linux-ppro-alsi6-no-fomit-frame-pointer",     "gcc:-DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -fno-omit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+
+#alsi6-64
+"akamai-linux-x86_64-alsi6",	"gcc:-m64 -DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -fomit-frame-pointer -Wall -DMD32_REG_T=int::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHUNK BF_PTR2 DES_INT DES_UNROLL:${x86_64_asm}:elf:dlfcn:linux-shared:-fPIC:-m64:.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+"akamai-linux-x86_64-alsi6-no-fomit-frame-pointer",	"gcc:-m64 -DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -fno-omit-frame-pointer -Wall -DMD32_REG_T=int::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHUNK BF_PTR2 DES_INT DES_UNROLL:${x86_64_asm}:elf:dlfcn:linux-shared:-fPIC:-m64:.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+
+#alsi7
+"akamai-linux-i686-alsi7",     "gcc:-m32 -DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -fomit-frame-pointer -march=opteron -mno-3dnow -Wall::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+"akamai-linux-i686-alsi7-no-fomit-frame-pointer",     "gcc:-m32 -DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -fno-omit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+
+#alsi7-64
+"akamai-linux-x86_64-alsi7",	"gcc:-m64 -DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -fomit-frame-pointer -Wall -march=opteron -mno-3dnow -DMD32_REG_T=int::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHUNK BF_PTR2 DES_INT DES_UNROLL:${x86_64_asm}:elf:dlfcn:linux-shared:-fPIC:-m64:.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+"akamai-linux-x86_64-alsi7-no-fomit-frame-pointer",	"gcc:-m64 -DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -fno-omit-frame-pointer -Wall -DMD32_REG_T=int::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHUNK BF_PTR2 DES_INT DES_UNROLL:${x86_64_asm}:elf:dlfcn:linux-shared:-fPIC:-m64:.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+
+#alsi8
+"akamai-linux-i686-alsi8",     "gcc:-m32 -DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -fomit-frame-pointer -march=opteron -mno-3dnow -Wall::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+"akamai-linux-i686-alsi8-no-fomit-frame-pointer",     "gcc:-m32 -DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -fno-omit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+
+#alsi8-64
+"akamai-linux-x86_64-alsi8",	"gcc:-m64 -DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -fomit-frame-pointer -Wall -march=opteron -mno-3dnow -DMD32_REG_T=int::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHUNK BF_PTR2 DES_INT DES_UNROLL:${x86_64_asm}:elf:dlfcn:linux-shared:-fPIC:-m64:.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+"akamai-linux-x86_64-alsi8-no-fomit-frame-pointer",	"gcc:-m64 -DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -fno-omit-frame-pointer -Wall -DMD32_REG_T=int::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHUNK BF_PTR2 DES_INT DES_UNROLL:${x86_64_asm}:elf:dlfcn:linux-shared:-fPIC:-m64:.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+
+#alsi9
+"akamai-linux-i686-alsi9",     "gcc:-m32 -DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -fomit-frame-pointer -march=opteron -mno-3dnow -Wall::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+"akamai-linux-i686-alsi9-no-fomit-frame-pointer",     "gcc:-m32 -DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -fno-omit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+
+#alsi9-64
+"akamai-linux-x86_64-alsi9",	"gcc:-m64 -DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -fomit-frame-pointer -Wall -march=opteron -mno-3dnow -DMD32_REG_T=int::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHUNK BF_PTR2 DES_INT DES_UNROLL:${x86_64_asm}:elf:dlfcn:linux-shared:-fPIC:-m64:.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+"akamai-linux-x86_64-alsi9-no-fomit-frame-pointer",	"gcc:-m64 -DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -fno-omit-frame-pointer -Wall -DMD32_REG_T=int::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHUNK BF_PTR2 DES_INT DES_UNROLL:${x86_64_asm}:elf:dlfcn:linux-shared:-fPIC:-m64:.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+
+#Windows - overrides values in Configurations
+
+#Upstream VC-WIN64A modified to use ${no_asm_filler}
+"akamai-VC-WIN64A","cl:-W3 -Gs0 -Gy -nologo -DOPENSSL_SYS_WIN32 -DWIN32_LEAN_AND_MEAN -DL_ENDIAN -DUNICODE -D_UNICODE -D_CRT_SECURE_NO_DEPRECATE:::WIN64A::SIXTY_FOUR_BIT RC4_CHUNK_LL DES_INT EXPORT_VAR_AS_FN ${x86_gcc_opts}:${no_asm_filler}::win32",
+#Akamai Upstream VC-WIN32 modified to use ${no_asm_filler}
+"akamai-VC-WIN32","cl:-W3 -Gs0 -GF -Gy -nologo -DOPENSSL_SYS_WIN32 -DWIN32_LEAN_AND_MEAN -DL_ENDIAN -D_CRT_SECURE_NO_DEPRECATE:::WIN32::BN_LLONG RC4_INDEX EXPORT_VAR_AS_FN ${x86_gcc_opts}:${no_asm_filler}::win32",
+);
