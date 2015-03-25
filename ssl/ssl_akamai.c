@@ -302,4 +302,18 @@ int SSL_akamai_opt_get(SSL* s, enum SSL_AKAMAI_OPT opt)
     return ret;
 }
 
+# ifdef HEADER_X509_H
+/*
+ * Same as SSL_get_peer_certificate() except it doesn't
+ * increment the ref count of the returned X509*
+ */
+X509 *SSL_get0_peer_certificate(const SSL *s)
+{
+    if ((s == NULL) || (s->session == NULL))
+        return NULL;
+    else
+        return s->session->peer;
+}
+# endif
+
 #endif /* OPENSSL_NO_AKAMAI */
