@@ -1,0 +1,39 @@
+#! /bin/sh
+# -*- Makefile -*-
+magic_startup_code=a; cd `echo "$0" | sed 's@^[^/]*$@.@; s@/[^/]*$@@;'` && exec make -f `basename $0` ${1+"$@"}
+
+C := openssl/enable/ghost-high
+
+all: build
+BASE_PATH := $(firstword $(BASE_PATH) $(subst /$C-xx,,$(CURDIR)-xx))
+REF_PATH := $(firstword $(REF_PATH) NoValidPath)
+AKAMAKE := $(firstword $(wildcard $(BASE_PATH)/Akamake) $(REF_PATH)/Akamake)
+P := $(BASE_PATH)/$C
+$P/O := $(BASE_PATH)/openssl
+$P/A := akamai-ghost-high
+
+$P/MODULES := NO-OP
+
+M := NO-OP
+
+$P/$M-DEP-COMP := openssl
+
+$P/$M-3RD-PARTY := $P/no-op
+
+$P/no-op:
+
+$P/BUILDENV.linux.CC-supported := ALL
+$P/BUILDENV.linux.FILE_OFFSET_BITS-supported := ALL
+$P/BUILDENV.windows.CC-supported := ALL
+$P/BUILDENV.windows.FILE_OFFSET_BITS-supported := ALL
+
+$($P/O)/configure.ts : CONFIGFLAGS := $(filter-out no-$($P/A),$(CONFIGFLAGS)) enable-$($P/A)
+
+include $(AKAMAKE)/akamake.m.master
+
+ifndef ATTR_ONLY
+# This call doesn't actually do anything because everything prior to
+# 1.31 lacks this call.  Oh, well.  It's a good demo, at any rate.
+$(call assert_min_version,Akamake,1.30)
+endif
+
