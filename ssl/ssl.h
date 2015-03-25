@@ -2403,6 +2403,9 @@ SSL_SESSION *d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
 
 # ifdef HEADER_X509_H
 X509 *SSL_get_peer_certificate(const SSL *s);
+#  ifndef OPENSSL_NO_AKAMAI
+X509 *SSL_get0_peer_certificate(const SSL *s);
+#  endif
 # endif
 
 STACK_OF(X509) *SSL_get_peer_cert_chain(const SSL *s);
