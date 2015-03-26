@@ -1307,6 +1307,9 @@ int dtls1_client_hello(SSL *s);
 
 /* some server-only functions */
 int ssl3_get_client_hello(SSL *s);
+#  ifndef OPENSSL_NO_AKAMAI
+int ssl3_get_client_hello_post_app(SSL *s, int retry_cert);
+#  endif
 int ssl3_send_server_hello(SSL *s);
 int ssl3_send_hello_request(SSL *s);
 int ssl3_send_server_key_exchange(SSL *s);
@@ -1396,6 +1399,9 @@ unsigned char *ssl_add_serverhello_tlsext(SSL *s, unsigned char *buf,
 int ssl_parse_clienthello_tlsext(SSL *s, unsigned char **data,
                                  unsigned char *limit);
 int tls1_set_server_sigalgs(SSL *s);
+#   ifndef OPENSSL_NO_AKAMAI
+int ssl_check_clienthello_tlsext_async(SSL *s);
+#   endif
 int ssl_check_clienthello_tlsext_late(SSL *s, int *al);
 int ssl_parse_serverhello_tlsext(SSL *s, unsigned char **data,
                                  unsigned char *d, int n);

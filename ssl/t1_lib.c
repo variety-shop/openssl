@@ -3043,7 +3043,7 @@ static int ssl_check_clienthello_tlsext_early(SSL *s)
      * in ssl3_choose_cipher in s3_lib.c.
      */
 # endif
-
+# ifdef OPENSSL_NO_AKAMAI
     if (s->ctx != NULL && s->ctx->tlsext_servername_callback != 0)
         ret =
             s->ctx->tlsext_servername_callback(s, &al,
@@ -3054,7 +3054,7 @@ static int ssl_check_clienthello_tlsext_early(SSL *s)
             s->initial_ctx->tlsext_servername_callback(s, &al,
                                                        s->
                                                        initial_ctx->tlsext_servername_arg);
-
+# endif
 # ifdef TLSEXT_TYPE_opaque_prf_input
     {
         /*
@@ -3137,6 +3137,45 @@ static int ssl_check_clienthello_tlsext_early(SSL *s)
         return 1;
     }
 }
+
+#ifndef OPENSSL_NO_AKAMAI
+int ssl_check_clienthello_tlsext_async(SSL *s)
+{
+    int ret = SSL_TLSEXT_ERR_NOACK;
+    int al = SSL_AD_UNRECOGNIZED_NAME;
+
+    s->rwstate = SSL_EVENT_TLSEXT_SERVERNAME_READY;
+    if (s->ctx != NULL && s->ctx->tlsext_servername_callback != 0)
+        ret =
+            s->ctx->tlsext_servername_callback(s, &al,
+                                               s->ctx->tlsext_servername_arg);
+    else if (s->initial_ctx != NULL
+             && s->initial_ctx->tlsext_servername_callback != 0)
+        ret =
+            s->initial_ctx->tlsext_servername_callback(s, &al,
+                                                       s->
+                                                       initial_ctx->tlsext_servername_arg);
+    if (ret == SSL_TLSEXT_ERR_WAIT_FOR_EVENT)
+        /* we shall wait for event SSL_EVENT_TLSEXT_SERVERNAME_READY */
+        return -1;
+    SSL_signal_event(s, SSL_EVENT_TLSEXT_SERVERNAME_READY, 1);
+
+    switch (ret) {
+    case SSL_TLSEXT_ERR_ALERT_FATAL:
+        ssl3_send_alert(s, SSL3_AL_FATAL, al);
+        return 0;
+
+    case SSL_TLSEXT_ERR_ALERT_WARNING:
+        ssl3_send_alert(s, SSL3_AL_WARNING, al);
+        return 1;
+
+    case SSL_TLSEXT_ERR_NOACK:
+        s->servername_done = 0;
+    default:
+        return 1;
+    }
+}
+#endif /* OPENSSL_NO_AKAMAI */
 
 int tls1_set_server_sigalgs(SSL *s)
 {
