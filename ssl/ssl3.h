@@ -590,6 +590,20 @@ typedef struct ssl3_state_st {
 #  endif
         int cert_request;
         int skip_client_verify;
+#  ifndef OPENSSL_NO_AKAMAI
+        /* managing micro state inside SSL3_ST_xxx states */
+        int sub_state;
+        /*
+         * Next three variables are temporary variables that store various information
+         * between call to ssl3_get_client_hello and ssl3_get_client_hello_post_app.
+         * I couldn't figure out a better way to break ssl3_get_client_hello into
+         * two parts without having to store this information.
+         */
+        STACK_OF(SSL_CIPHER) *ciphers;
+        unsigned char *q;
+        int i;
+        int cookie_valid;
+#  endif /* OPENSSL_NO_AKAMAI */
     } tmp;
 
     /* Connection binding to prevent renegotiation attacks */
@@ -769,6 +783,17 @@ typedef struct ssl3_state_st {
 # define SSL3_CHANGE_CIPHER_SERVER_READ  (SSL3_CC_SERVER|SSL3_CC_READ)
 # define SSL3_CHANGE_CIPHER_CLIENT_READ  (SSL3_CC_CLIENT|SSL3_CC_READ)
 # define SSL3_CHANGE_CIPHER_SERVER_WRITE (SSL3_CC_SERVER|SSL3_CC_WRITE)
+
+# ifndef OPENSSL_NO_AKAMAI
+#  define SSL3_ST_SUB_0		(0x00)
+#  define SSL3_ST_SUB_1		(0x01)
+#  define SSL3_ST_SUB_2		(0x02)
+#  define SSL3_ST_SUB_3		(0x03)
+#  define SSL3_ST_SUB_4		(0x04)
+#  define SSL3_ST_SUB_5		(0x05)
+#  define SSL3_ST_SUB_6		(0x06)
+#  define SSL3_ST_SUB_7		(0x07)
+# endif	
 
 #ifdef  __cplusplus
 }
