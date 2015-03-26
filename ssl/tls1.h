@@ -367,6 +367,9 @@ SSL_CTX_callback_ctrl(ctx,SSL_CTRL_SET_TLSEXT_SERVERNAME_CB,(void (*)(void))cb)
 #  define SSL_TLSEXT_ERR_ALERT_WARNING 1
 #  define SSL_TLSEXT_ERR_ALERT_FATAL 2
 #  define SSL_TLSEXT_ERR_NOACK 3
+#  ifndef OPENSSL_NO_AKAMAI
+#   define SSL_TLSEXT_ERR_WAIT_FOR_EVENT 4
+#  endif
 
 #  define SSL_CTX_set_tlsext_servername_arg(ctx, arg) \
 SSL_CTX_ctrl(ctx,SSL_CTRL_SET_TLSEXT_SERVERNAME_ARG,0, (void *)arg)

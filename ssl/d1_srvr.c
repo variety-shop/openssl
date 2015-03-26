@@ -339,13 +339,41 @@ int dtls1_accept(SSL *s)
             break;
 
         case SSL3_ST_SR_CLNT_HELLO_A:
+#ifndef OPENSSL_NO_AKAMAI
+            s->s3->tmp.sub_state = SSL3_ST_SUB_0;
+#endif
         case SSL3_ST_SR_CLNT_HELLO_B:
         case SSL3_ST_SR_CLNT_HELLO_C:
 
+#ifdef OPENSSL_NO_AKAMAI
             s->shutdown = 0;
             ret = ssl3_get_client_hello(s);
             if (ret <= 0)
                 goto end;
+#else /* OPENSSL_NO_AKAMAI */
+            if (s->s3->tmp.sub_state == SSL3_ST_SUB_0) {
+                s->shutdown = 0;
+                ret = ssl3_get_client_hello(s);
+                if (ret <= 0)
+                    goto end;
+                s->s3->tmp.sub_state = SSL3_ST_SUB_1;
+            }
+            if (s->s3->tmp.sub_state == SSL3_ST_SUB_1) {
+                s->s3->tmp.sub_state = SSL3_ST_SUB_2;
+#ifndef OPENSSL_NO_TLSEXT
+                ret = ssl_check_clienthello_tlsext_async(s);
+                if (ret <= 0)
+                    goto end;
+#endif
+            }
+            if (s->s3->tmp.sub_state == SSL3_ST_SUB_2) {
+                if (!ssl_event_did_succeed(s, SSL_EVENT_TLSEXT_SERVERNAME_READY, &ret))
+                    goto end;
+                ret = ssl3_get_client_hello_post_app(s, 0);
+                if (ret <= 0)
+                    goto end;
+            }
+#endif /* OPENSSL_NO_AKAMAI */
             dtls1_stop_timer(s);
 
             if (ret == 1 && (SSL_get_options(s) & SSL_OP_COOKIE_EXCHANGE))
