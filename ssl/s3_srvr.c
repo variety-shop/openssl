@@ -364,6 +364,7 @@ int ssl3_accept(SSL *s)
             s->state = SSL_ST_OK;
             break;
 
+#ifdef OPENSSL_NO_AKAMAI
         case SSL3_ST_SR_CLNT_HELLO_A:
         case SSL3_ST_SR_CLNT_HELLO_B:
         case SSL3_ST_SR_CLNT_HELLO_C:
@@ -403,6 +404,69 @@ int ssl3_accept(SSL *s)
             s->state = SSL3_ST_SW_SRVR_HELLO_A;
             s->init_num = 0;
             break;
+#else /* OPENSSL_NO_AKAMAI */
+        case SSL3_ST_SR_CLNT_HELLO_A:
+            s->s3->tmp.sub_state = SSL3_ST_SUB_0;
+        case SSL3_ST_SR_CLNT_HELLO_B:
+        case SSL3_ST_SR_CLNT_HELLO_C:
+
+            if (s->s3->tmp.sub_state == SSL3_ST_SUB_0) {
+                s->shutdown = 0;
+                ret = ssl3_get_client_hello(s);
+                if (ret <= 0)
+                    goto end;
+                s->s3->tmp.sub_state = SSL3_ST_SUB_1;
+            }
+            if (s->s3->tmp.sub_state == SSL3_ST_SUB_1) {
+                s->s3->tmp.sub_state = SSL3_ST_SUB_2;
+#ifndef OPENSSL_NO_TLSEXT
+                ret = ssl_check_clienthello_tlsext_async(s);
+                if (ret <= 0)
+                    goto end;
+#endif
+            }
+            if (s->s3->tmp.sub_state == SSL3_ST_SUB_2) {
+                if (!ssl_event_did_succeed(s, SSL_EVENT_TLSEXT_SERVERNAME_READY, &ret)) {
+                    goto end;
+                }
+                ret = ssl3_get_client_hello_post_app(s, 0);
+                if (ret <= 0)
+                    goto end;
+                s->s3->tmp.sub_state = SSL3_ST_SUB_3;
+            }
+#ifndef OPENSSL_NO_SRP
+            if (s->s3->tmp.sub_state == SSL3_ST_SUB_3)
+                s->state = SSL3_ST_SR_CLNT_HELLO_D;
+        case SSL3_ST_SR_CLNT_HELLO_D:
+            {
+                int al;
+                if ((ret = ssl_check_srp_ext_ClientHello(s, &al)) < 0) {
+                    /*
+                     * callback indicates firther work to be done
+                     */
+                    s->rwstate = SSL_EVENT_SRP_CLIENTHELLO;
+                    goto end;
+                }
+                if (ret != SSL_ERROR_NONE) {
+                    ssl3_send_alert(s, SSL3_AL_FATAL, al);
+                    /*
+                     * This is not really an error but the only means to for
+                     * a client to detect whether srp is supported.
+                     */
+                    if (al != TLS1_AD_UNKNOWN_PSK_IDENTITY)
+                        SSLerr(SSL_F_SSL3_ACCEPT, SSL_R_CLIENTHELLO_TLSEXT);
+                    ret = SSL_TLSEXT_ERR_ALERT_FATAL;
+                    ret = -1;
+                    goto end;
+                }
+            }
+#endif
+
+            s->renegotiate = 2;
+            s->state = SSL3_ST_SW_SRVR_HELLO_A;
+            s->init_num = 0;
+            break;
+#endif /* OPENSSL_NO_AKAMAI */
 
         case SSL3_ST_SW_SRVR_HELLO_A:
         case SSL3_ST_SW_SRVR_HELLO_B:
@@ -921,7 +985,11 @@ int ssl3_send_hello_request(SSL *s)
 
 int ssl3_get_client_hello(SSL *s)
 {
+#ifdef OPENSSL_NO_AKAMAI
     int i, j, ok, al = SSL_AD_INTERNAL_ERROR, ret = -1, cookie_valid = 0;
+#else
+    int i, j, ok, al = SSL_AD_INTERNAL_ERROR, ret = -1;
+#endif
     unsigned int cookie_len;
     long n;
     unsigned long id;
@@ -929,12 +997,22 @@ int ssl3_get_client_hello(SSL *s)
     SSL_CIPHER *c;
 #ifndef OPENSSL_NO_COMP
     unsigned char *q;
+# ifdef OPENSSL_NO_AKAMAI
     SSL_COMP *comp = NULL;
+# endif
 #endif
     STACK_OF(SSL_CIPHER) *ciphers = NULL;
 
+#ifdef OPENSSL_NO_AKAMAI
     if (s->state == SSL3_ST_SR_CLNT_HELLO_C && !s->first_packet)
         goto retry_cert;
+#else
+    s->s3->tmp.cookie_valid = 0;
+    if (s->state == SSL3_ST_SR_CLNT_HELLO_C && !s->first_packet) {
+        /* head over to post_app and goto retry_cert there */
+        return ssl3_get_client_hello_post_app(s, 1);
+    }
+#endif
 
     /*
      * We do this so that we will respond with our native type. If we are
@@ -1121,7 +1199,11 @@ int ssl3_get_client_hello(SSL *s)
                 SSLerr(SSL_F_SSL3_GET_CLIENT_HELLO, SSL_R_COOKIE_MISMATCH);
                 goto f_err;
             }
+#ifdef OPENSSL_NO_AKAMAI
             cookie_valid = 1;
+#else
+            s->s3->tmp.cookie_valid = 1;
+#endif
         }
 
         p += cookie_len;
@@ -1253,6 +1335,13 @@ int ssl3_get_client_hello(SSL *s)
         SSLerr(SSL_F_SSL3_GET_CLIENT_HELLO, SSL_R_NO_COMPRESSION_SPECIFIED);
         goto f_err;
     }
+#ifndef OPENSSL_NO_AKAMAI
+    /* ssl3_get_client_hello_post_app will need these when called. */
+    if (ciphers != NULL)
+        s->s3->tmp.ciphers = sk_SSL_CIPHER_dup(ciphers);
+    s->s3->tmp.q = q;
+    s->s3->tmp.i = i;
+#endif
 #ifndef OPENSSL_NO_TLSEXT
     /* TLS extensions */
     if (s->version >= SSL3_VERSION) {
@@ -1261,7 +1350,39 @@ int ssl3_get_client_hello(SSL *s)
             goto err;
         }
     }
+#endif
+#ifndef OPENSSL_NO_AKAMAI
+    if (ret < 0)
+        ret = 1;
+    if (0) {
+ f_err:
+        ssl3_send_alert(s, SSL3_AL_FATAL, al);
+    }
+ err:
+    if (ciphers != NULL)
+        sk_SSL_CIPHER_free(ciphers);
+    return ret < 0 ? -1 : ret;
+}
 
+int ssl3_get_client_hello_post_app(SSL *s, int retry_cert)
+{
+    int i = s->s3->tmp.i, al = SSL_AD_INTERNAL_ERROR, ret= -1;
+    unsigned char *q = s->s3->tmp.q;
+    SSL_CIPHER *c;
+    STACK_OF(SSL_CIPHER) *ciphers = s->s3->tmp.ciphers;
+
+#ifndef OPENSSL_NO_COMP
+    SSL_COMP *comp = NULL;
+#endif
+
+    /* we have already copied tmp_ciphers into ciphers. */
+    s->s3->tmp.ciphers = NULL;
+    if (retry_cert) {
+        /* we likely came through the regular function in this state */
+        goto retry_cert;
+    }
+#endif /* OPENSSL_NO_AKAMAI */
+#ifndef OPENSSL_NO_TLSEXT
     /*
      * Check if we want to use external pre-shared secret for this handshake
      * for not reused session only. We need to generate server_random before
@@ -1289,6 +1410,9 @@ int ssl3_get_client_hello(SSL *s)
             s->session->verify_result = X509_V_OK;
 
             ciphers = NULL;
+#ifndef OPENSSL_NO_AKAMAI
+            s->s3->tmp.ciphers = NULL;
+#endif
 
             /* check if some cipher was preferred by call back */
             pref_cipher =
@@ -1491,7 +1615,12 @@ int ssl3_get_client_hello(SSL *s)
         }
     }
 
+#ifdef OPENSSL_NO_AKAMAI
     ret = cookie_valid ? 2 : 1;
+#else
+    ret = s->s3->tmp.cookie_valid ? 2 : 1;
+    s->s3->tmp.cookie_valid = 0;
+#endif
     if (0) {
  f_err:
         ssl3_send_alert(s, SSL3_AL_FATAL, al);
