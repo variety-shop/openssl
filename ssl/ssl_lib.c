@@ -931,7 +931,13 @@ int SSL_has_matching_session_id(const SSL *ssl, const unsigned char *id,
     memcpy(r.session_id, id, id_len);
 
     CRYPTO_THREAD_read_lock(ssl->session_ctx->lock);
+#ifdef OPENSSL_NO_AKAMAI
     p = lh_SSL_SESSION_retrieve(ssl->session_ctx->sessions, &r);
+#else
+    p = SSL_CTX_SESSION_LIST_get1_session(ssl->session_ctx, &r);
+    /* Drop the newly acquired reference. */
+    SSL_SESSION_free(p);
+#endif
     CRYPTO_THREAD_unlock(ssl->session_ctx->lock);
     return (p != NULL);
 }
@@ -2266,7 +2272,17 @@ long SSL_callback_ctrl(SSL *s, int cmd, void (*fp) (void))
 
 LHASH_OF(SSL_SESSION) *SSL_CTX_sessions(SSL_CTX *ctx)
 {
+#ifdef OPENSSL_NO_AKAMAI
     return ctx->sessions;
+#else
+    /*
+     * There is no safe locking model with which to access the shared session
+     * list, so we must return failure instead.
+     * ctx->sessions would actually be NULL here anyway (since it's never set),
+     * but we choose to be explicit about it.
+     */
+    return NULL;
+#endif
 }
 
 long SSL_CTX_ctrl(SSL_CTX *ctx, int cmd, long larg, void *parg)
@@ -2324,7 +2340,18 @@ long SSL_CTX_ctrl(SSL_CTX *ctx, int cmd, long larg, void *parg)
         return ctx->session_cache_mode;
 
     case SSL_CTRL_SESS_NUMBER:
+#ifdef OPENSSL_NO_AKAMAI
         return lh_SSL_SESSION_num_items(ctx->sessions);
+#else
+        {
+            SSL_CTX_SESSION_LIST *session_list = SSL_CTX_get_ex_data_akamai(ctx)->session_list;
+
+            CRYPTO_THREAD_read_lock(session_list->lock);
+            l = lh_SSL_SESSION_num_items(session_list->sessions);
+            CRYPTO_THREAD_unlock(session_list->lock);
+            return l;
+        }
+#endif
     case SSL_CTRL_SESS_CONNECT:
         return tsan_load(&ctx->stats.sess_connect);
     case SSL_CTRL_SESS_CONNECT_GOOD:
@@ -2859,6 +2886,13 @@ static unsigned long ssl_session_hash(const SSL_SESSION *a)
     return l;
 }
 
+#ifndef OPENSSL_NO_AKAMAI
+unsigned long SSL_SESSION_hash(const SSL_SESSION *a)
+{
+    return ssl_session_hash(a);
+}
+#endif
+
 /*
  * NB: If this function (or indeed the hash function which uses a sort of
  * coarser function than this one) is changed, ensure
@@ -2874,6 +2908,13 @@ static int ssl_session_cmp(const SSL_SESSION *a, const SSL_SESSION *b)
         return 1;
     return memcmp(a->session_id, b->session_id, a->session_id_length);
 }
+
+#ifndef OPENSSL_NO_AKAMAI
+int SSL_SESSION_cmp(const SSL_SESSION *a, const SSL_SESSION *b)
+{
+    return ssl_session_cmp(a, b);
+}
+#endif
 
 /*
  * These wrapper functions should remain rather than redeclaring
@@ -2931,9 +2972,13 @@ SSL_CTX *SSL_CTX_new(const SSL_METHOD *meth)
     if ((ret->cert = ssl_cert_new()) == NULL)
         goto err;
 
+#ifdef OPENSSL_NO_AKAMAI
     ret->sessions = lh_SSL_SESSION_new(ssl_session_hash, ssl_session_cmp);
     if (ret->sessions == NULL)
         goto err;
+#else
+    /* The shared session list in Akamai's ex_data->session_list is used instead. */
+#endif
     ret->cert_store = X509_STORE_new();
     if (ret->cert_store == NULL)
         goto err;
@@ -3114,11 +3159,26 @@ void SSL_CTX_free(SSL_CTX *a)
      * free ex_data, then finally free the cache.
      * (See ticket [openssl.org #212].)
      */
+#ifndef OPENSSL_NO_AKAMAI
+    {
+        SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(a);
+        SSL_CTX_SESSION_LIST_free(ex_data->session_list, a);
+        ex_data->session_list = NULL;
+    }
+    /*
+     * The following is actually a no-op, since with the shared session cache,
+     * (SSL_CTX)->sessions is always NULL, and the actual data is in the
+     * session_list.
+     */
+#else
     if (a->sessions != NULL)
         SSL_CTX_flush_sessions(a, 0);
+#endif
 
     CRYPTO_free_ex_data(CRYPTO_EX_INDEX_SSL_CTX, a, &a->ex_data);
+#ifdef OPENSSL_NO_AKAMAI
     lh_SSL_SESSION_free(a->sessions);
+#endif
     X509_STORE_free(a->cert_store);
 #ifndef OPENSSL_NO_CT
     CTLOG_STORE_free(a->ctlog_store);
