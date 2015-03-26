@@ -751,14 +751,18 @@ struct ssl_ctx_st {
     /* TLSv1.3 specific ciphersuites */
     STACK_OF(SSL_CIPHER) *tls13_ciphersuites;
     struct x509_store_st /* X509_STORE */ *cert_store;
+#ifdef OPENSSL_NO_AKAMAI
     LHASH_OF(SSL_SESSION) *sessions;
+#endif
     /*
      * Most session-ids that will be cached, default is
      * SSL_SESSION_CACHE_MAX_SIZE_DEFAULT. 0 is unlimited.
      */
     size_t session_cache_size;
+#ifdef OPENSSL_NO_AKAMAI
     struct ssl_session_st *session_cache_head;
     struct ssl_session_st *session_cache_tail;
+#endif
     /*
      * This can have one of 2 values, ored together, SSL_SESS_CACHE_CLIENT,
      * SSL_SESS_CACHE_SERVER, Default is SSL_SESSION_CACHE_SERVER, which
