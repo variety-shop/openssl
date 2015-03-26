@@ -23,12 +23,23 @@
 #ifndef HEADER_SSL_LOCL_AKAMAI_POST_H
 # define HEADER_SSL_LOCL_AKAMAI_POST_H
 
+struct ssl_ctx_session_list_st
+{
+    struct ssl_session_st *session_cache_head;
+    struct ssl_session_st *session_cache_tail;
+    int references; /* number of SSL_CTX's holding a reference */
+    CRYPTO_RWLOCK *lock;
+};
+
 typedef struct ssl_ctx_ex_data_akamai_st SSL_CTX_EX_DATA_AKAMAI;
 
 struct ssl_ctx_ex_data_akamai_st
 {
     /* Akamai proprietary options */
     unsigned int options;
+
+    /* session list sharing */
+    struct ssl_ctx_session_list_st *session_list;
 };
 
 typedef struct ssl_ex_data_akamai_st SSL_EX_DATA_AKAMAI;
@@ -44,5 +55,11 @@ int SSL_CTX_get_ex_data_akamai_idx(void);
 SSL_CTX_EX_DATA_AKAMAI *SSL_CTX_get_ex_data_akamai(SSL_CTX* ctx);
 int SSL_get_ex_data_akamai_idx(void);
 SSL_EX_DATA_AKAMAI *SSL_get_ex_data_akamai(SSL* s);
+
+SSL_CTX_SESSION_LIST *SSL_CTX_get0_session_list(SSL_CTX* ctx);
+SSL_CTX_SESSION_LIST *SSL_CTX_SESSION_LIST_new(void);
+/* returns number of references, so 0 = freed */
+int SSL_CTX_SESSION_LIST_free(SSL_CTX_SESSION_LIST *l);
+int SSL_CTX_SESSION_LIST_up_ref(SSL_CTX_SESSION_LIST *l);
 
 #endif /* HEADER_SSL_LOCL_AKAMAI_POST_H */
