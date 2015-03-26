@@ -461,11 +461,15 @@ SSL_SESSION *lookup_sess_in_cache(SSL *s, const unsigned char *sess_id,
         data.session_id_length = sess_id_len;
 
         CRYPTO_THREAD_read_lock(s->session_ctx->lock);
+#ifdef OPENSSL_NO_AKAMAI
         ret = lh_SSL_SESSION_retrieve(s->session_ctx->sessions, &data);
         if (ret != NULL) {
             /* don't allow other threads to steal it: */
             SSL_SESSION_up_ref(ret);
         }
+#else
+        ret = SSL_CTX_SESSION_LIST_get1_session(s->session_ctx, &data);
+#endif
         CRYPTO_THREAD_unlock(s->session_ctx->lock);
         if (ret == NULL)
             tsan_counter(&s->session_ctx->stats.sess_miss);
@@ -666,6 +670,9 @@ int SSL_CTX_add_session(SSL_CTX *ctx, SSL_SESSION *c)
 {
     int ret = 0;
     SSL_SESSION *s;
+#ifndef OPENSSL_NO_AKAMAI
+    SSL_CTX_SESSION_LIST *session_list = SSL_CTX_get_ex_data_akamai(ctx)->session_list;
+#endif
 
     /*
      * add just 1 reference count for the SSL_CTX's session cache even though
@@ -678,7 +685,12 @@ int SSL_CTX_add_session(SSL_CTX *ctx, SSL_SESSION *c)
      */
 
     CRYPTO_THREAD_write_lock(ctx->lock);
+#ifdef OPENSSL_NO_AKAMAI
     s = lh_SSL_SESSION_insert(ctx->sessions, c);
+#else
+    CRYPTO_THREAD_write_lock(session_list->lock);
+    s = lh_SSL_SESSION_insert(session_list->sessions, c);
+#endif
 
     /*
      * s != NULL iff we already had a session with the given PID. In this
@@ -696,8 +708,13 @@ int SSL_CTX_add_session(SSL_CTX *ctx, SSL_SESSION *c)
          * obtain the same session from an external cache)
          */
         s = NULL;
+#ifdef OPENSSL_NO_AKAMAI
     } else if (s == NULL &&
                lh_SSL_SESSION_retrieve(ctx->sessions, c) == NULL) {
+#else
+    } else if (s == NULL &&
+               lh_SSL_SESSION_retrieve(session_list->sessions, c) == NULL) {
+#endif
         /* s == NULL can also mean OOM error in lh_SSL_SESSION_insert ... */
 
         /*
@@ -727,14 +744,27 @@ int SSL_CTX_add_session(SSL_CTX *ctx, SSL_SESSION *c)
         ret = 1;
 
         if (SSL_CTX_sess_get_cache_size(ctx) > 0) {
+#ifdef OPENSSL_NO_AKAMAI
             while (SSL_CTX_sess_number(ctx) > SSL_CTX_sess_get_cache_size(ctx)) {
                 if (!remove_session_lock(ctx, ctx->session_cache_tail, 0))
                     break;
                 else
                     tsan_counter(&ctx->stats.sess_cache_full);
             }
+#else
+            while ((long)lh_SSL_SESSION_num_items(session_list->sessions)
+                    > SSL_CTX_sess_get_cache_size(ctx)) {
+                if (!remove_session_lock(ctx, session_list->session_cache_tail, 0))
+                    break;
+                else
+                    tsan_counter(&ctx->stats.sess_cache_full);
+            }
+#endif
         }
     }
+#ifndef OPENSSL_NO_AKAMAI
+    CRYPTO_THREAD_unlock(session_list->lock);
+#endif
     CRYPTO_THREAD_unlock(ctx->lock);
     return ret;
 }
@@ -744,6 +774,7 @@ int SSL_CTX_remove_session(SSL_CTX *ctx, SSL_SESSION *c)
     return remove_session_lock(ctx, c, 1);
 }
 
+#ifdef OPENSSL_NO_AKAMAI
 static int remove_session_lock(SSL_CTX *ctx, SSL_SESSION *c, int lck)
 {
     SSL_SESSION *r;
@@ -771,6 +802,41 @@ static int remove_session_lock(SSL_CTX *ctx, SSL_SESSION *c, int lck)
         ret = 0;
     return ret;
 }
+#else   /* OPENSSL_NO_AKAMAI */
+static int remove_session_lock(SSL_CTX *ctx, SSL_SESSION *c, int lck)
+{
+    SSL_SESSION *r;
+    int ret = 0;
+    SSL_CTX_EX_DATA_AKAMAI *sess_ex_data = SSL_CTX_get_ex_data_akamai(ctx);
+    SSL_CTX_SESSION_LIST *session_list = sess_ex_data->session_list;
+
+    if ((c != NULL) && (c->session_id_length != 0)) {
+        if (lck) {
+            CRYPTO_THREAD_write_lock(ctx->lock);
+            CRYPTO_THREAD_write_lock(session_list->lock);
+        }
+        if ((r = lh_SSL_SESSION_retrieve(session_list->sessions, c)) != NULL) {
+            ret = 1;
+            r = lh_SSL_SESSION_delete(session_list->sessions, r);
+            SSL_SESSION_list_remove(ctx, r);
+        }
+        c->not_resumable = 1;
+
+        if (lck) {
+            CRYPTO_THREAD_unlock(session_list->lock);
+            CRYPTO_THREAD_unlock(ctx->lock);
+        }
+
+        if (ret)
+            SSL_SESSION_free(r);
+
+        if (ctx->remove_session_cb != NULL)
+            ctx->remove_session_cb(ctx, c);
+    } else
+        ret = 0;
+    return ret;
+}
+#endif  /* OPENSSL_NO_AKAMAI */
 
 void SSL_SESSION_free(SSL_SESSION *ss)
 {
@@ -1103,6 +1169,7 @@ static void timeout_cb(SSL_SESSION *s, TIMEOUT_PARAM *p)
 
 IMPLEMENT_LHASH_DOALL_ARG(SSL_SESSION, TIMEOUT_PARAM);
 
+#ifdef OPENSSL_NO_AKAMAI
 void SSL_CTX_flush_sessions(SSL_CTX *s, long t)
 {
     unsigned long i;
@@ -1120,6 +1187,29 @@ void SSL_CTX_flush_sessions(SSL_CTX *s, long t)
     lh_SSL_SESSION_set_down_load(s->sessions, i);
     CRYPTO_THREAD_unlock(s->lock);
 }
+#else
+void SSL_CTX_flush_sessions(SSL_CTX *s, long t)
+{
+    unsigned long i;
+    TIMEOUT_PARAM tp;
+    SSL_CTX_EX_DATA_AKAMAI *sess_ex_data = SSL_CTX_get_ex_data_akamai(s);
+    SSL_CTX_SESSION_LIST *session_list = sess_ex_data->session_list;
+
+    CRYPTO_THREAD_write_lock(s->lock);
+    CRYPTO_THREAD_write_lock(session_list->lock);
+    tp.ctx = s;
+    tp.cache = session_list->sessions;
+    if (tp.cache != NULL) {
+        tp.time = t;
+        i = lh_SSL_SESSION_get_down_load(tp.cache);
+        lh_SSL_SESSION_set_down_load(tp.cache, 0);
+        lh_SSL_SESSION_doall_TIMEOUT_PARAM(tp.cache, timeout_cb, &tp);
+        lh_SSL_SESSION_set_down_load(tp.cache, i);
+    }
+    CRYPTO_THREAD_unlock(session_list->lock);
+    CRYPTO_THREAD_unlock(s->lock);
+}
+#endif
 
 int ssl_clear_bad_session(SSL *s)
 {
@@ -1135,9 +1225,14 @@ int ssl_clear_bad_session(SSL *s)
 /* locked by SSL_CTX in the calling function */
 static void SSL_SESSION_list_remove(SSL_CTX *ctx, SSL_SESSION *s)
 {
+#ifndef OPENSSL_NO_AKAMAI
+    SSL_CTX_SESSION_LIST *session_list = SSL_CTX_get0_session_list(ctx);
+#endif
+
     if ((s->next == NULL) || (s->prev == NULL))
         return;
 
+#ifdef OPENSSL_NO_AKAMAI
     if (s->next == (SSL_SESSION *)&(ctx->session_cache_tail)) {
         /* last element in list */
         if (s->prev == (SSL_SESSION *)&(ctx->session_cache_head)) {
@@ -1159,11 +1254,40 @@ static void SSL_SESSION_list_remove(SSL_CTX *ctx, SSL_SESSION *s)
             s->prev->next = s->next;
         }
     }
+#else
+    if (session_list == NULL) {
+        s->prev = s->next = NULL;
+        return;
+    }
+
+    if (s->next == (SSL_SESSION *)&(session_list->session_cache_tail)) {
+        /* last element in list */
+        if (s->prev == (SSL_SESSION *)&(session_list->session_cache_head)) {
+            /* only one element in list */
+            session_list->session_cache_head = NULL;
+            session_list->session_cache_tail = NULL;
+        } else {
+            session_list->session_cache_tail = s->prev;
+            s->prev->next = (SSL_SESSION *)&(session_list->session_cache_tail);
+        }
+    } else {
+        if (s->prev == (SSL_SESSION *)&(session_list->session_cache_head)) {
+            /* first element in list */
+            session_list->session_cache_head = s->next;
+            s->next->prev = (SSL_SESSION *)&(session_list->session_cache_head);
+        } else {
+            /* middle of list */
+            s->next->prev = s->prev;
+            s->prev->next = s->next;
+        }
+    }
+#endif
     s->prev = s->next = NULL;
 }
 
 static void SSL_SESSION_list_add(SSL_CTX *ctx, SSL_SESSION *s)
 {
+#ifdef OPENSSL_NO_AKAMAI
     if ((s->next != NULL) && (s->prev != NULL))
         SSL_SESSION_list_remove(ctx, s);
 
@@ -1178,6 +1302,25 @@ static void SSL_SESSION_list_add(SSL_CTX *ctx, SSL_SESSION *s)
         s->prev = (SSL_SESSION *)&(ctx->session_cache_head);
         ctx->session_cache_head = s;
     }
+#else
+    SSL_CTX_SESSION_LIST *session_list = SSL_CTX_get0_session_list(ctx);
+    if (session_list == NULL)
+        return;
+
+    SSL_SESSION_list_remove(ctx, s);
+
+    if (session_list->session_cache_head == NULL) {
+        session_list->session_cache_head = s;
+        session_list->session_cache_tail = s;
+        s->prev = (SSL_SESSION *)&(session_list->session_cache_head);
+        s->next = (SSL_SESSION *)&(session_list->session_cache_tail);
+    } else {
+        s->next = session_list->session_cache_head;
+        s->next->prev = s;
+        s->prev = (SSL_SESSION *)&(session_list->session_cache_head);
+        session_list->session_cache_head = s;
+    }
+#endif
 }
 
 void SSL_CTX_sess_set_new_cb(SSL_CTX *ctx,

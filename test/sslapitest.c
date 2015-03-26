@@ -3636,6 +3636,32 @@ static int test_stateless(void)
 }
 #endif /* OPENSSL_NO_TLS1_3 */
 
+#ifndef OPENSSL_NO_AKAMAI
+static int test_share_session_cache(void)
+{
+    SSL_CTX *a, *b, *c;
+    BIO *bio;
+
+    a = SSL_CTX_new(TLS_method());
+    b = SSL_CTX_new(TLS_method());
+    c = SSL_CTX_new(TLS_method());
+    bio = BIO_new(BIO_s_mem());
+    if (a == NULL || b == NULL || c == NULL || bio == NULL)
+        return 0;
+
+    SSL_CTX_share_session_cache(a, b);
+    SSL_CTX_share_session_cache(a, c);
+
+    SSL_CTX_akamai_session_stats_bio(a, bio);
+
+    BIO_free(bio);
+    SSL_CTX_free(c);
+    SSL_CTX_free(b);
+    SSL_CTX_free(a);
+    return 1;
+}
+#endif
+
 static int clntaddoldcb = 0;
 static int clntparseoldcb = 0;
 static int srvaddoldcb = 0;
@@ -5875,6 +5901,9 @@ int setup_tests(void)
 #endif
 #ifndef OPENSSL_NO_TLS1_2
     ADD_TEST(test_client_hello_cb);
+#endif
+#ifndef OPENSSL_NO_AKAMAI
+    ADD_TEST(test_share_session_cache);
 #endif
 #ifndef OPENSSL_NO_TLS1_3
     ADD_ALL_TESTS(test_early_data_read_write, 3);
