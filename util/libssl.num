@@ -412,3 +412,5 @@ SSL_akamai_opt_clear                    10003	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_akamai_opt_get                      10004	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_CTX_akamai_opt_clear                10005	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_get0_peer_certificate               10006	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_CTX_share_session_cache             10007	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_CTX_flush_sessions_lock             10008	1_1_0	EXIST::FUNCTION:AKAMAI
