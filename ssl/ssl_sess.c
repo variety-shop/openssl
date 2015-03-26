@@ -804,10 +804,17 @@ int SSL_CTX_add_session(SSL_CTX *ctx, SSL_SESSION *c)
         if (SSL_CTX_sess_get_cache_size(ctx) > 0) {
             while (SSL_CTX_sess_number(ctx) >
                    SSL_CTX_sess_get_cache_size(ctx)) {
+#ifdef OPENSSL_NO_AKAMAI
                 if (!remove_session_lock(ctx, ctx->session_cache_tail, 0))
                     break;
                 else
                     ctx->stats.sess_cache_full++;
+#else
+                if (!remove_session_lock(ctx, ctx->session_list->session_cache_tail, 0))
+                    break;
+                else
+                    ctx->stats.sess_cache_full++;
+#endif
             }
         }
     }
@@ -1104,12 +1111,23 @@ static void timeout_doall_arg(SSL_SESSION *s, TIMEOUT_PARAM *p)
          * The reason we don't call SSL_CTX_remove_session() is to save on
          * locking overhead
          */
+#ifdef OPENSSL_NO_AKAMAI
         (void)lh_SSL_SESSION_delete(p->cache, s);
         SSL_SESSION_list_remove(p->ctx, s);
         s->not_resumable = 1;
         if (p->ctx->remove_session_cb != NULL)
             p->ctx->remove_session_cb(p->ctx, s);
         SSL_SESSION_free(s);
+#else
+        if (lh_SSL_SESSION_retrieve(p->cache,s) == s) {
+            (void)lh_SSL_SESSION_delete(p->cache, s);
+            SSL_SESSION_list_remove(p->ctx, s);
+            s->not_resumable = 1;
+            if (p->ctx->remove_session_cb != NULL)
+                p->ctx->remove_session_cb(p->ctx, s);
+            SSL_SESSION_free(s);
+        }
+#endif
     }
 }
 
@@ -1151,6 +1169,7 @@ static void SSL_SESSION_list_remove(SSL_CTX *ctx, SSL_SESSION *s)
     if ((s->next == NULL) || (s->prev == NULL))
         return;
 
+#ifdef OPENSSL_NO_AKAMAI
     if (s->next == (SSL_SESSION *)&(ctx->session_cache_tail)) {
         /* last element in list */
         if (s->prev == (SSL_SESSION *)&(ctx->session_cache_head)) {
@@ -1172,6 +1191,29 @@ static void SSL_SESSION_list_remove(SSL_CTX *ctx, SSL_SESSION *s)
             s->prev->next = s->next;
         }
     }
+#else
+    if (s->next == (SSL_SESSION *)&(ctx->session_list->session_cache_tail)) {
+        /* last element in list */
+        if (s->prev == (SSL_SESSION *)&(ctx->session_list->session_cache_head)) {
+            /* only one element in list */
+            ctx->session_list->session_cache_head = NULL;
+            ctx->session_list->session_cache_tail = NULL;
+        } else {
+            ctx->session_list->session_cache_tail = s->prev;
+            s->prev->next = (SSL_SESSION *)&(ctx->session_list->session_cache_tail);
+        }
+    } else {
+        if (s->prev == (SSL_SESSION *)&(ctx->session_list->session_cache_head)) {
+            /* first element in list */
+            ctx->session_list->session_cache_head = s->next;
+            s->next->prev = (SSL_SESSION *)&(ctx->session_list->session_cache_head);
+        } else {
+            /* middle of list */
+            s->next->prev = s->prev;
+            s->prev->next = s->next;
+        }
+    }
+#endif
     s->prev = s->next = NULL;
 }
 
@@ -1180,6 +1222,7 @@ static void SSL_SESSION_list_add(SSL_CTX *ctx, SSL_SESSION *s)
     if ((s->next != NULL) && (s->prev != NULL))
         SSL_SESSION_list_remove(ctx, s);
 
+#ifdef OPENSSL_NO_AKAMAI
     if (ctx->session_cache_head == NULL) {
         ctx->session_cache_head = s;
         ctx->session_cache_tail = s;
@@ -1191,6 +1234,19 @@ static void SSL_SESSION_list_add(SSL_CTX *ctx, SSL_SESSION *s)
         s->prev = (SSL_SESSION *)&(ctx->session_cache_head);
         ctx->session_cache_head = s;
     }
+#else
+    if (ctx->session_list->session_cache_head == NULL) {
+        ctx->session_list->session_cache_head = s;
+        ctx->session_list->session_cache_tail = s;
+        s->prev = (SSL_SESSION *)&(ctx->session_list->session_cache_head);
+        s->next = (SSL_SESSION *)&(ctx->session_list->session_cache_tail);
+    } else {
+        s->next = ctx->session_list->session_cache_head;
+        s->next->prev = s;
+        s->prev = (SSL_SESSION *)&(ctx->session_list->session_cache_head);
+        ctx->session_list->session_cache_head = s;
+    }
+#endif
 }
 
 void SSL_CTX_sess_set_new_cb(SSL_CTX *ctx,
