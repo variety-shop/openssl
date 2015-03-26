@@ -376,6 +376,10 @@ typedef struct ssl_cipher_st SSL_CIPHER;
 typedef struct ssl_session_st SSL_SESSION;
 typedef struct tls_sigalgs_st TLS_SIGALGS;
 typedef struct ssl_conf_ctx_st SSL_CONF_CTX;
+#ifndef OPENSSL_NO_AKAMAI
+typedef struct ssl_ctx_session_list_st SSL_CTX_SESSION_LIST;
+#endif
+
 
 DECLARE_STACK_OF(SSL_CIPHER)
 
@@ -950,6 +954,15 @@ struct ssl_comp_st {
 DECLARE_STACK_OF(SSL_COMP)
 DECLARE_LHASH_OF(SSL_SESSION);
 
+#ifndef OPENSSL_NO_AKAMAI
+struct ssl_ctx_session_list_st
+{
+  struct ssl_session_st *session_cache_head;
+  struct ssl_session_st *session_cache_tail;
+  int session_ref_count; /* number of SSL_CTX's holding a reference to this structure */
+};
+#endif
+
 struct ssl_ctx_st {
     const SSL_METHOD *method;
     STACK_OF(SSL_CIPHER) *cipher_list;
@@ -962,8 +975,12 @@ struct ssl_ctx_st {
      * SSL_SESSION_CACHE_MAX_SIZE_DEFAULT. 0 is unlimited.
      */
     unsigned long session_cache_size;
+#ifdef OPENSSL_NO_AKAMAI
     struct ssl_session_st *session_cache_head;
     struct ssl_session_st *session_cache_tail;
+#else
+    SSL_CTX_SESSION_LIST *session_list;
+#endif
     /*
      * This can have one of 2 values, ored together, SSL_SESS_CACHE_CLIENT,
      * SSL_SESS_CACHE_SERVER, Default is SSL_SESSION_CACHE_SERVER, which
@@ -2740,6 +2757,10 @@ const char *SSL_CIPHER_standard_name(const SSL_CIPHER *c);
 # ifndef OPENSSL_NO_UNIT_TEST
 const struct openssl_ssl_test_functions *SSL_test_functions(void);
 # endif
+
+# ifndef OPENSSL_NO_AKAMAI
+void SSL_CTX_share_session_cache(SSL_CTX *a, SSL_CTX *b);
+# endif 
 
 /* BEGIN ERROR CODES */
 /*
