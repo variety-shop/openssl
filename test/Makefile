@@ -69,6 +69,7 @@ ASN1TEST=	asn1test
 HEARTBEATTEST=  heartbeat_test
 CONSTTIMETEST=  constant_time_test
 TASKTEST=       tasktest
+TLSEXTTEST=     tlsexttest
 
 TESTS=		alltests
 
@@ -82,7 +83,7 @@ EXE=	$(BNTEST)$(EXE_EXT) $(ECTEST)$(EXE_EXT)  $(ECDSATEST)$(EXE_EXT) $(ECDHTEST)
 	$(EVPTEST)$(EXE_EXT) $(EVPEXTRATEST)$(EXE_EXT) $(IGETEST)$(EXE_EXT) $(JPAKETEST)$(EXE_EXT) $(SRPTEST)$(EXE_EXT) \
 	$(ASN1TEST)$(EXE_EXT) $(V3NAMETEST)$(EXE_EXT) $(HEARTBEATTEST)$(EXE_EXT) \
 	$(CONSTTIMETEST)$(EXE_EXT) \
-	$(TASKTEST)$(EXE_EXT)
+	$(TASKTEST)$(EXE_EXT) $(TLSEXTTEST)$(EXE_EXT)
 
 # $(METHTEST)$(EXE_EXT)
 
@@ -96,7 +97,7 @@ OBJ=	$(BNTEST).o $(ECTEST).o  $(ECDSATEST).o $(ECDHTEST).o $(IDEATEST).o \
 	$(BFTEST).o  $(SSLTEST).o  $(DSATEST).o  $(EXPTEST).o $(RSATEST).o \
 	$(EVPTEST).o $(EVPEXTRATEST).o $(IGETEST).o $(JPAKETEST).o $(ASN1TEST).o $(V3NAMETEST).o \
 	$(HEARTBEATTEST).o $(CONSTTIMETEST).o \
-	$(TASKTEST).o
+	$(TASKTEST).o $(TLSEXTTEST).o
 
 SRC=	$(BNTEST).c $(ECTEST).c  $(ECDSATEST).c $(ECDHTEST).c $(IDEATEST).c \
 	$(MD2TEST).c  $(MD4TEST).c $(MD5TEST).c \
@@ -107,7 +108,7 @@ SRC=	$(BNTEST).c $(ECTEST).c  $(ECDSATEST).c $(ECDHTEST).c $(IDEATEST).c \
 	$(BFTEST).c  $(SSLTEST).c $(DSATEST).c   $(EXPTEST).c $(RSATEST).c \
 	$(EVPTEST).c $(EVPEXTRATEST).c $(IGETEST).c $(JPAKETEST).c $(SRPTEST).c $(ASN1TEST).c \
 	$(V3NAMETEST).c $(HEARTBEATTEST).c $(CONSTTIMETEST).c \
-	$(TASKTEST).c
+	$(TASKTEST).c $(TLSEXTTEST).c
 
 EXHEADER= 
 HEADER=	testutil.h $(EXHEADER)
@@ -151,7 +152,7 @@ alltests: \
 	test_gen test_req test_pkcs7 test_verify test_dh test_dsa \
 	test_ss test_ca test_engine test_evp test_evp_extra test_ssl test_tsa test_ige \
 	test_jpake test_srp test_cms test_ocsp test_v3name test_heartbeat \
-	test_constant_time test_task
+	test_constant_time test_task test_tlsext
 
 test_evp: $(EVPTEST)$(EXE_EXT) evptests.txt
 	../util/shlib_wrap.sh ./$(EVPTEST) evptests.txt
@@ -355,6 +356,9 @@ test_constant_time: $(CONSTTIMETEST)$(EXE_EXT)
 test_task: $(TASKTEST)$(EXE_EXT) testtask
 	@sh ./testtask
 
+test_tlsext: $(TLSEXTTEST)$(EXE_EXT) testtlsext
+	@sh ./testtlsext
+
 lint:
 	lint -DLINT $(INCLUDES) $(SRC)>fluff
 
@@ -529,6 +533,9 @@ $(CONSTTIMETEST)$(EXE_EXT): $(CONSTTIMETEST).o
 
 $(TASKTEST)$(EXE_EXT): $(TASKTEST).o
 	@target=$(TASKTEST) $(BUILD_CMD)
+
+$(TLSEXTTEST)$(EXE_EXT): $(TLSEXTTEST).o
+	@target=$(TLSEXTTEST) $(BUILD_CMD)
 
 #$(AESTEST).o: $(AESTEST).c
 #	$(CC) -c $(CFLAGS) -DINTERMEDIATE_VALUE_KAT -DTRACE_KAT_MCT $(AESTEST).c
