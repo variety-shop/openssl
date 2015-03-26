@@ -62,6 +62,9 @@ int SSL_akamai_opt_get(SSL*, enum SSL_AKAMAI_OPT);
 __owur X509 *SSL_get0_peer_certificate(const SSL *s);
 # endif
 
+int SSL_CTX_share_session_cache(SSL_CTX *a, SSL_CTX *b);
+void SSL_CTX_flush_sessions_lock(SSL_CTX *ctx, long tm, int lock);
+
 #  ifdef  __cplusplus
 }
 #  endif

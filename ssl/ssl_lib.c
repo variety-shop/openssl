@@ -2534,6 +2534,20 @@ void SSL_CTX_free(SSL_CTX *a)
      * free ex_data, then finally free the cache.
      * (See ticket [openssl.org #212].)
      */
+#ifndef OPENSSL_NO_AKAMAI
+    {
+        SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(a);
+        i = SSL_CTX_SESSION_LIST_free(ex_data->session_list);
+        ex_data->session_list = NULL;
+        if (i != 0)
+            a->sessions = NULL;
+    }
+    /*
+     * The following removes all sessions, but only if the session_list
+     * was freed. Not having the session list around is OK if we're
+     * deleting them all
+     */
+#endif
     if (a->sessions != NULL)
         SSL_CTX_flush_sessions(a, 0);
 
