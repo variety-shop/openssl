@@ -1441,6 +1441,10 @@ int SSL_extension_supported(unsigned int ext_type);
 # define SSL_EVENT_SETUP_CERT_VRFY_DONE   1002
 /* server is siging the message for key exchange */
 # define SSL_EVENT_KEY_EXCH_MSG_SIGNED    1003
+# ifndef OPENSSL_NO_AKAMAI
+/* tlsext servername has been processed */
+#  define SSL_EVENT_TLSEXT_SERVERNAME_READY 1004
+# endif
 
 /*
  * These will only be used when doing non-blocking IO or asynchronous

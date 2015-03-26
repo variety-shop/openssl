@@ -77,6 +77,7 @@ DTLSTEST =	dtlstest
 FATALERRTEST =	fatalerrtest
 X509TIMETEST = x509_time_test
 TASKTEST=       tasktest
+TLSEXTTEST=     tlsexttest
 
 TESTS=		alltests
 
@@ -92,7 +93,7 @@ EXE=	$(BNTEST)$(EXE_EXT) $(ECTEST)$(EXE_EXT)  $(ECDSATEST)$(EXE_EXT) $(ECDHTEST)
 	$(CONSTTIMETEST)$(EXE_EXT) $(VERIFYEXTRATEST)$(EXE_EXT) \
 	$(CLIENTHELLOTEST)$(EXE_EXT) $(SSLV2CONFTEST)$(EXE_EXT) $(DTLSTEST)$(EXE_EXT) \
 	$(BADDTLSTEST)$(EXE_EXT) $(FATALERRTEST)$(EXE_EXT) $(X509TIMETEST)$(EXE_EXT) \
-	$(TASKTEST)$(EXE_EXT)
+	$(TASKTEST)$(EXE_EXT) $(TLSEXTTEST)$(EXE_EXT)
 
 # $(METHTEST)$(EXE_EXT)
 
@@ -108,7 +109,7 @@ OBJ=	$(BNTEST).o $(ECTEST).o  $(ECDSATEST).o $(ECDHTEST).o $(IDEATEST).o \
 	$(HEARTBEATTEST).o $(CONSTTIMETEST).o $(VERIFYEXTRATEST).o \
 	$(CLIENTHELLOTEST).o  $(SSLV2CONFTEST).o $(DTLSTEST).o ssltestlib.o \
 	$(BADDTLSTEST).o $(FATALERRTEST).o $(X509TIMETEST).o \
-	$(TASKTEST).o
+	$(TASKTEST).o $(TLSEXTTEST).o
 
 SRC=	$(BNTEST).c $(ECTEST).c  $(ECDSATEST).c $(ECDHTEST).c $(IDEATEST).c \
 	$(MD2TEST).c  $(MD4TEST).c $(MD5TEST).c \
@@ -121,7 +122,7 @@ SRC=	$(BNTEST).c $(ECTEST).c  $(ECDSATEST).c $(ECDHTEST).c $(IDEATEST).c \
 	$(V3NAMETEST).c $(HEARTBEATTEST).c $(CONSTTIMETEST).c $(VERIFYEXTRATEST).c \
 	$(CLIENTHELLOTEST).c  $(SSLV2CONFTEST).c $(DTLSTEST).c ssltestlib.c \
 	$(BADDTLSTEST).c $(FATALERRTEST).c $(X509TIMETEST).c \
-	$(TASKTEST).c
+	$(TASKTEST).c $(TLSEXTTEST).c
 
 EXHEADER= 
 HEADER=	testutil.h ssltestlib.h $(EXHEADER)
@@ -167,7 +168,7 @@ alltests: \
 	test_jpake test_srp test_cms test_ocsp test_v3name test_heartbeat \
 	test_constant_time test_verify_extra test_clienthello test_sslv2conftest \
 	test_dtls test_bad_dtls test_fatalerr test_x509_time \
-	test_task 
+	test_task test_tlsext
 
 test_evp: $(EVPTEST)$(EXE_EXT) evptests.txt
 	../util/shlib_wrap.sh ./$(EVPTEST) evptests.txt
@@ -400,6 +401,9 @@ test_dtls: $(DTLSTEST)$(EXE_EXT)
 test_task: $(TASKTEST)$(EXE_EXT) testtask
 	@sh ./testtask
 
+test_tlsext: $(TLSEXTTEST)$(EXE_EXT) testtlsext
+	@sh ./testtlsext
+
 lint:
 	lint -DLINT $(INCLUDES) $(SRC)>fluff
 
@@ -595,6 +599,9 @@ $(DTLSTEST)$(EXE_EXT): $(DTLSTEST).o ssltestlib.o $(DLIBSSL) $(DLIBCRYPTO)
 
 $(TASKTEST)$(EXE_EXT): $(TASKTEST).o
 	@target=$(TASKTEST) $(BUILD_CMD)
+
+$(TLSEXTTEST)$(EXE_EXT): $(TLSEXTTEST).o
+	@target=$(TLSEXTTEST) $(BUILD_CMD)
 
 #$(AESTEST).o: $(AESTEST).c
 #	$(CC) -c $(CFLAGS) -DINTERMEDIATE_VALUE_KAT -DTRACE_KAT_MCT $(AESTEST).c
@@ -1019,6 +1026,25 @@ tasktest.o: ../include/openssl/ssl3.h ../include/openssl/stack.h
 tasktest.o: ../include/openssl/symhacks.h ../include/openssl/tls1.h
 tasktest.o: ../include/openssl/x509.h ../include/openssl/x509_vfy.h tasktest.c
 tasktest.o: testharness.c
+tlsexttest.o: ../include/openssl/asn1.h ../include/openssl/bio.h
+tlsexttest.o: ../include/openssl/buffer.h ../include/openssl/comp.h
+tlsexttest.o: ../include/openssl/crypto.h ../include/openssl/dtls1.h
+tlsexttest.o: ../include/openssl/e_os2.h ../include/openssl/ec.h
+tlsexttest.o: ../include/openssl/ecdh.h ../include/openssl/ecdsa.h
+tlsexttest.o: ../include/openssl/err.h ../include/openssl/evp.h
+tlsexttest.o: ../include/openssl/hmac.h ../include/openssl/kssl.h
+tlsexttest.o: ../include/openssl/lhash.h ../include/openssl/obj_mac.h
+tlsexttest.o: ../include/openssl/objects.h ../include/openssl/opensslconf.h
+tlsexttest.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
+tlsexttest.o: ../include/openssl/pem.h ../include/openssl/pem2.h
+tlsexttest.o: ../include/openssl/pkcs7.h ../include/openssl/pqueue.h
+tlsexttest.o: ../include/openssl/safestack.h ../include/openssl/sha.h
+tlsexttest.o: ../include/openssl/srtp.h ../include/openssl/ssl.h
+tlsexttest.o: ../include/openssl/ssl2.h ../include/openssl/ssl23.h
+tlsexttest.o: ../include/openssl/ssl3.h ../include/openssl/stack.h
+tlsexttest.o: ../include/openssl/symhacks.h ../include/openssl/tls1.h
+tlsexttest.o: ../include/openssl/x509.h ../include/openssl/x509_vfy.h
+tlsexttest.o: testharness.c tlsexttest.c
 v3nametest.o: ../e_os.h ../include/openssl/asn1.h ../include/openssl/bio.h
 v3nametest.o: ../include/openssl/buffer.h ../include/openssl/conf.h
 v3nametest.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
