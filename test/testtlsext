@@ -1,0 +1,17 @@
+#!/bin/sh
+
+tlsexttest="../util/shlib_wrap.sh ./tlsexttest"
+
+#############################################################################
+
+echo Test TLSEXT Callbacks
+if [ ! -d gen ]; then
+    ./gen_cert.sh server
+fi
+
+# test openssl tlsext callback extension
+$tlsexttest --tlsv1_2 || echo 1
+$tlsexttest --tlsv1_1 || echo 1
+$tlsexttest --sslv3   || echo 1
+
+exit 0
