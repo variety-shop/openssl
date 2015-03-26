@@ -29,6 +29,8 @@
 extern "C" {
 #  endif
 
+typedef struct ssl_ctx_session_list_st SSL_CTX_SESSION_LIST;
+
 #  ifdef  __cplusplus
 }
 #  endif
