@@ -166,8 +166,15 @@ static const char *const lock_names[CRYPTO_NUM_LOCKS] = {
     "comp",
     "fips",
     "fips2",
+#ifdef OPENSSL_NO_AKAMAI
 #if CRYPTO_NUM_LOCKS != 41
 # error "Inconsistency between crypto.h and cryptlib.c"
+#endif
+#else
+    "thread_hash_refernces",
+#if CRYPTO_NUM_LOCKS != 42
+# error "Inconsistency between crypto.h and cryptlib.c"
+#endif
 #endif
 };
 
