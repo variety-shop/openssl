@@ -76,6 +76,7 @@ TASKTEST=       tasktest
 TLSEXTTEST=     tlsexttest
 CLIENTCACHETEST= client_cache_test
 CLIENTCACHE2TEST= clientcache2test
+CIPHPREFTEST=   ciphpreftest
 
 TESTS=		alltests
 
@@ -90,7 +91,7 @@ EXE=	$(BNTEST)$(EXE_EXT) $(ECTEST)$(EXE_EXT)  $(ECDSATEST)$(EXE_EXT) $(ECDHTEST)
 	$(ASN1TEST)$(EXE_EXT) $(V3NAMETEST)$(EXE_EXT) $(HEARTBEATTEST)$(EXE_EXT) \
 	$(CONSTTIMETEST)$(EXE_EXT) $(VERIFYEXTRATEST)$(EXE_EXT) \
 	$(CLIENTHELLOTEST)$(EXE_EXT) $(SSLV2CONFTEST)$(EXE_EXT) \
-	$(TASKTEST)$(EXE_EXT) $(TLSEXTTEST)$(EXE_EXT) \
+	$(TASKTEST)$(EXE_EXT) $(TLSEXTTEST)$(EXE_EXT)  $(CIPHPREFTEST)$(EXE_EXT) \
 	$(CLIENTCACHETEST)$(EXE_EXT) $(CLIENTCACHE2TEST)$(EXE_EXT)
 
 # $(METHTEST)$(EXE_EXT)
@@ -106,7 +107,7 @@ OBJ=	$(BNTEST).o $(ECTEST).o  $(ECDSATEST).o $(ECDHTEST).o $(IDEATEST).o \
 	$(EVPTEST).o $(EVPEXTRATEST).o $(IGETEST).o $(JPAKETEST).o $(ASN1TEST).o $(V3NAMETEST).o \
 	$(HEARTBEATTEST).o $(CONSTTIMETEST).o $(VERIFYEXTRATEST).o \
 	$(CLIENTHELLOTEST).o  $(SSLV2CONFTEST).o \
-	$(TASKTEST).o $(TLSEXTTEST).o \
+	$(TASKTEST).o $(TLSEXTTEST).o $(CIPHPREFTEST).o \
 	$(CLIENTCACHETEST).o $(CLIENTCACH2TEST).o
 
 SRC=	$(BNTEST).c $(ECTEST).c  $(ECDSATEST).c $(ECDHTEST).c $(IDEATEST).c \
@@ -119,7 +120,7 @@ SRC=	$(BNTEST).c $(ECTEST).c  $(ECDSATEST).c $(ECDHTEST).c $(IDEATEST).c \
 	$(EVPTEST).c $(EVPEXTRATEST).c $(IGETEST).c $(JPAKETEST).c $(SRPTEST).c $(ASN1TEST).c \
 	$(V3NAMETEST).c $(HEARTBEATTEST).c $(CONSTTIMETEST).c $(VERIFYEXTRATEST).c \
 	$(CLIENTHELLOTEST).c  $(SSLV2CONFTEST).c \
-	$(TASKTEST).c $(TLSEXTTEST).c \
+	$(TASKTEST).c $(TLSEXTTEST).c $(CIPHPREFTEST).c \
 	$(CLIENTCACHETEST).c $(CLIENTCACHE2TEST).c
 
 EXHEADER= 
@@ -165,7 +166,7 @@ alltests: \
 	test_ss test_ca test_engine test_evp test_evp_extra test_ssl test_tsa test_ige \
 	test_jpake test_srp test_cms test_ocsp test_v3name test_heartbeat \
 	test_constant_time test_verify_extra test_clienthello test_sslv2conftest \
-	test_task test_tlsext \
+	test_task test_tlsext test_ciphpref \
 	test_client_cache test_clientcache2
 
 test_evp: $(EVPTEST)$(EXE_EXT) evptests.txt
@@ -392,6 +393,9 @@ test_client_cache: $(CLIENTCACHETEST)$(EXE_EXT)
 test_clientcache2: $(CLIENTCACHE2TEST)$(EXE_EXT) testclientcache2
 	@sh ./testclientcache2
 
+test_ciphpref: $(TLSEXTTEST)$(EXE_EXT) testciphpref
+	@sh ./testciphpref
+
 lint:
 	lint -DLINT $(INCLUDES) $(SRC)>fluff
 
@@ -585,6 +589,9 @@ $(CLIENTCACHETEST)$(EXE_EXT): $(CLIENTCACHETEST).o
 $(CLIENTCACHE2TEST)$(EXE_EXT): $(CLIENTCACHE2TEST).o
 	@target=$(CLIENTCACHE2TEST) $(BUILD_CMD)
 
+$(CIPHPREFTEST)$(EXE_EXT): $(CIPHPREFTEST).o
+	@target=$(CIPHPREFTEST) $(BUILD_CMD)
+
 #$(AESTEST).o: $(AESTEST).c
 #	$(CC) -c $(CFLAGS) -DINTERMEDIATE_VALUE_KAT -DTRACE_KAT_MCT $(AESTEST).c
 
@@ -636,6 +643,25 @@ casttest.o: ../include/openssl/e_os2.h ../include/openssl/opensslconf.h
 casttest.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
 casttest.o: ../include/openssl/safestack.h ../include/openssl/stack.h
 casttest.o: ../include/openssl/symhacks.h casttest.c
+ciphpreftest.o: ../include/openssl/asn1.h ../include/openssl/bio.h
+ciphpreftest.o: ../include/openssl/buffer.h ../include/openssl/comp.h
+ciphpreftest.o: ../include/openssl/crypto.h ../include/openssl/dtls1.h
+ciphpreftest.o: ../include/openssl/e_os2.h ../include/openssl/ec.h
+ciphpreftest.o: ../include/openssl/ecdh.h ../include/openssl/ecdsa.h
+ciphpreftest.o: ../include/openssl/err.h ../include/openssl/evp.h
+ciphpreftest.o: ../include/openssl/hmac.h ../include/openssl/kssl.h
+ciphpreftest.o: ../include/openssl/lhash.h ../include/openssl/obj_mac.h
+ciphpreftest.o: ../include/openssl/objects.h ../include/openssl/opensslconf.h
+ciphpreftest.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
+ciphpreftest.o: ../include/openssl/pem.h ../include/openssl/pem2.h
+ciphpreftest.o: ../include/openssl/pkcs7.h ../include/openssl/pqueue.h
+ciphpreftest.o: ../include/openssl/safestack.h ../include/openssl/sha.h
+ciphpreftest.o: ../include/openssl/srtp.h ../include/openssl/ssl.h
+ciphpreftest.o: ../include/openssl/ssl2.h ../include/openssl/ssl23.h
+ciphpreftest.o: ../include/openssl/ssl3.h ../include/openssl/stack.h
+ciphpreftest.o: ../include/openssl/symhacks.h ../include/openssl/tls1.h
+ciphpreftest.o: ../include/openssl/x509.h ../include/openssl/x509_vfy.h
+ciphpreftest.o: ciphpreftest.c testharness.c
 client_cache_test.o: ../e_os.h ../include/openssl/asn1.h
 client_cache_test.o: ../include/openssl/bio.h ../include/openssl/bn.h
 client_cache_test.o: ../include/openssl/buffer.h ../include/openssl/comp.h
