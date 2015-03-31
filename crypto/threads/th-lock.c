@@ -60,8 +60,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#ifdef OPENSSL_NO_AKAMAI
 #ifdef LINUX
 # include <typedefs.h>
+#endif
 #endif
 #ifdef OPENSSL_SYS_WIN32
 # include <windows.h>
@@ -88,6 +90,7 @@
 void CRYPTO_thread_setup(void);
 void CRYPTO_thread_cleanup(void);
 
+#ifdef OPENSSL_NO_AKAMAI
 static void irix_locking_callback(int mode, int type, char *file, int line);
 static void solaris_locking_callback(int mode, int type, char *file,
                                      int line);
@@ -98,6 +101,7 @@ static void pthreads_locking_callback(int mode, int type, char *file,
 static unsigned long irix_thread_id(void);
 static unsigned long solaris_thread_id(void);
 static unsigned long pthreads_thread_id(void);
+#endif /* OPENSSL_NO_AKAMAI */
 
 /*-
  * usage:
@@ -106,9 +110,15 @@ static unsigned long pthreads_thread_id(void);
  * CRYPTO_thread_cleanup();
  */
 
+#ifdef OPENSSL_NO_AKAMAI
 #define THREAD_STACK_SIZE (16*1024)
+#endif
 
 #ifdef OPENSSL_SYS_WIN32
+
+#ifndef OPENSSL_NO_AKAMAI
+static void win32_locking_callback(int mode,int type,char *file,int line);
+#endif
 
 static HANDLE *lock_cs;
 
@@ -128,7 +138,9 @@ void CRYPTO_thread_setup(void)
     CRYPTO_set_locking_callback((void (*)(int, int, char *, int))
                                 win32_locking_callback);
     /* id callback defined */
+#ifdef OPENSSL_NO_AKAMAI
     return (1);
+#endif
 }
 
 static void CRYPTO_thread_cleanup(void)
@@ -319,6 +331,7 @@ unsigned long irix_thread_id(void)
 /* Linux and a few others */
 #ifdef PTHREADS
 
+# ifdef OPENSSL_NO_AKAMAI
 static pthread_mutex_t *lock_cs;
 static long *lock_count;
 
@@ -386,4 +399,144 @@ unsigned long pthreads_thread_id(void)
     return (ret);
 }
 
+# else /* OPENSSL_NO_AKAMAI */
+/* AKAMAI's version of the PTHREADS code */
+
+static void pthreads_locking_callback(int mode,int type,char *file,int line);
+static unsigned long pthreads_thread_id(void );
+
+/* This is currently how pthread.h enables RW Locks. It is probably not very portable,
+ * but at least it will fall back to regular mutex case in trouble.
+ */
+#  if defined __USE_UNIX98 || defined __USE_XOPEN2K
+#   define USE_NPTL_RWLOCKS
+#   define lock_t pthread_rwlock_t
+static long *lock_count_rd;
+#  else
+#   define lock_t pthread_mutex_t
+#  endif
+
+static lock_t *lock_cs;
+static long *lock_count;
+
+void lock_init(lock_t *lock)
+{
+#  ifdef USE_NPTL_RWLOCKS
+    pthread_rwlockattr_t attr;
+    pthread_rwlockattr_init(&attr);
+    pthread_rwlockattr_setkind_np (&attr, PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP);
+    pthread_rwlock_init(lock, &attr);
+#  else
+    pthread_mutex_init(lock, NULL);
+#  endif
+}
+
+#  ifdef _GNU_SOURCE
+int gnu_builtin_sync(int *pointer, int amount, int type, const char *file,
+                     int line)
+{
+    int ret;
+
+    if (amount > 0) {
+        ret = __sync_add_and_fetch(pointer, amount);
+    } else if (amount < 0) {
+        int diff = abs(amount);
+        ret = __sync_sub_and_fetch(pointer, diff);
+    } else {
+        ret = *pointer;
+    }
+
+    return ret;
+}
+#  endif
+
+void CRYPTO_thread_setup(void)
+{
+    int i;
+
+    lock_cs = OPENSSL_malloc(CRYPTO_num_locks() * sizeof(lock_t));
+    lock_count = OPENSSL_malloc(CRYPTO_num_locks() * sizeof(long));
+#  ifdef USE_NPTL_RWLOCKS
+    lock_count_rd = OPENSSL_malloc(CRYPTO_num_locks() * sizeof(long));
+#  endif
+    for (i=0; i<CRYPTO_num_locks(); i++) {
+        lock_count[i] = 0;
+
+#  ifdef USE_NPTL_RWLOCKS
+        lock_count_rd[i] = 0;
+#  endif
+
+        lock_init(&(lock_cs[i]));
+    }
+
+    CRYPTO_set_id_callback((unsigned long (*)())pthreads_thread_id);
+    CRYPTO_set_locking_callback((void (*)())pthreads_locking_callback);
+
+#  ifdef _GNU_SOURCE
+    CRYPTO_set_add_lock_callback(gnu_builtin_sync);
+#  endif
+}
+
+void CRYPTO_thread_cleanup(void)
+{
+    int i;
+
+    CRYPTO_set_locking_callback(NULL);
+    for (i=0; i < CRYPTO_num_locks(); i++) {
+#  ifdef USE_NPTL_RWLOCKS
+        pthread_rwlock_destroy(&(lock_cs[i]));
+#  else
+        pthread_mutex_destroy(&(lock_cs[i]));
+#  endif
+    }
+    OPENSSL_free(lock_cs);
+    OPENSSL_free(lock_count);
+#  ifdef USE_NPTL_RWLOCKS
+    OPENSSL_free(lock_count_rd);
+#  endif
+}
+
+#  ifndef likely
+#   define likely(x)      __builtin_expect(!!(x), 1)
+#  endif
+#  ifndef unlikely
+#   define unlikely(x)    __builtin_expect(!!(x), 0)
+#  endif
+
+void pthreads_locking_callback(int mode, int type, char *file,
+                               int line)
+{
+    lock_t *pLock_cs = &(lock_cs[type]);
+
+    if ((mode & CRYPTO_LOCK)) {
+#  ifdef USE_NPTL_RWLOCKS
+        if (likely(mode & CRYPTO_READ)) {
+	    pthread_rwlock_rdlock(pLock_cs);
+
+	    (void)__sync_add_and_fetch(&lock_count_rd[type], 1);
+        } else {
+	    pthread_rwlock_wrlock(pLock_cs);
+
+	    lock_count[type]++;
+        }
+#  else
+        pthread_mutex_lock(pLock_cs);
+        lock_count[type]++;
+#  endif
+    } else {
+#  ifdef USE_NPTL_RWLOCKS
+        pthread_rwlock_unlock(pLock_cs);
+#  else
+        pthread_mutex_unlock(pLock_cs);
+#  endif
+    }
+}
+
+unsigned long pthreads_thread_id(void)
+{
+    return (unsigned long)pthread_self();
+}
+
+
+# endif /* OPENSSL_NO_AKAMAI */
 #endif                          /* PTHREADS */
