@@ -343,6 +343,9 @@ static int ssl3_get_record(SSL *s)
         n = ssl3_read_n(s, SSL3_RT_HEADER_LENGTH, s->s3->rbuf.len, 0);
         if (n <= 0)
             return (n);         /* error or non-blocking */
+#ifndef OPENSSL_NO_AKAMAI
+        s->bytes_read += n;
+#endif
         s->rstate = SSL_ST_READ_BODY;
 
         p = s->packet;
@@ -408,6 +411,9 @@ static int ssl3_get_record(SSL *s)
         n = ssl3_read_n(s, i, i, 1);
         if (n <= 0)
             return (n);         /* error or non-blocking io */
+#ifndef OPENSSL_NO_AKAMAI
+        s->bytes_read += n;
+#endif
         /*
          * now n == rr->length, and s->packet_length == SSL3_RT_HEADER_LENGTH
          * + rr->length
@@ -871,6 +877,9 @@ int ssl3_writev_bytes(SSL *s, int type, const ssl_bucket *buckets,
             s->s3->wnum = tot;
             return i;
         }
+#ifndef OPENSSL_NO_AKAMAI
+        s->bytes_written += i;
+#endif
 
         if ((i == (int)n) ||
             (type == SSL3_RT_APPLICATION_DATA &&

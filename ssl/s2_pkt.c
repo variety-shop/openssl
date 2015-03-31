@@ -165,6 +165,9 @@ static int ssl2_read_internal(SSL *s, const ssl_bucket *buckets, size_t count, i
             s->s2->ract_data += n;
             if (s->s2->ract_data_length == 0)
                 s->rstate = SSL_ST_READ_HEADER;
+#ifndef OPENSSL_NO_AKAMAI
+            s->bytes_read += n;
+#endif
         }
 
         return (n);
@@ -192,6 +195,9 @@ static int ssl2_read_internal(SSL *s, const ssl_bucket *buckets, size_t count, i
             n = read_n(s, 2, SSL2_MAX_RECORD_LENGTH_2_BYTE_HEADER + 2, 0);
             if (n <= 0)
                 return (n);     /* error or non-blocking */
+#ifndef OPENSSL_NO_AKAMAI
+            s->bytes_read += n;
+#endif
         }
         /* part read stuff */
 
@@ -222,6 +228,9 @@ static int ssl2_read_internal(SSL *s, const ssl_bucket *buckets, size_t count, i
             i = read_n(s, (unsigned int)n, (unsigned int)n, 1);
             if (i <= 0)
                 return (i);     /* ERROR */
+#ifndef OPENSSL_NO_AKAMAI
+            s->bytes_read += n;
+#endif
         }
 
         p = &(s->packet[2]);
@@ -450,6 +459,9 @@ int ssl2_write(SSL *s, const void *_buf, int len)
             s->s2->wnum = tot;
             return (i);
         }
+#ifndef OPENSSL_NO_AKAMAI
+        s->bytes_written += i;
+#endif
         if ((i == (int)n) || (s->mode & SSL_MODE_ENABLE_PARTIAL_WRITE)) {
             return (tot + i);
         }
