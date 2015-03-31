@@ -493,6 +493,12 @@ void* SSL_get_cert_verify_arg(SSL *s)
     return SSL_get_ex_data_akamai(s)->app_verify_arg;
 }
 
+void SSL_CTX_set1_cert_store(SSL_CTX *ctx, X509_STORE *store)
+{
+    X509_STORE_up_ref(store);
+    SSL_CTX_set_cert_store(ctx, store);
+}
+
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b)
 {
     SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(ctx);
