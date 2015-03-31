@@ -394,6 +394,12 @@ void X509_STORE_CTX_set_depth(X509_STORE_CTX *ctx, int depth);
 
 # define         X509_V_ERR_PROXY_SUBJECT_NAME_VIOLATION         67
 
+# ifndef OPENSSL_NO_AKAMAI
+#  define         X509_V_ERR_OCSP_VERIFY_NEEDED                  101  /* Need OCSP verification */
+#  define         X509_V_ERR_OCSP_VERIFY_FAILED                  102  /* Couldn't verify cert through OCSP */
+#  define         X509_V_ERR_OCSP_CERT_UNKNOWN                   103  /* Certificate wasn't recognized by the OCSP responder */
+# endif
+
 /* Certificate verify flags */
 
 /* Send issuer+subject checks to verify_cb */
