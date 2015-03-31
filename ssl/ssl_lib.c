@@ -829,6 +829,8 @@ SSL *SSL_new(SSL_CTX *ctx)
         SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
         SSL_CTX_EX_DATA_AKAMAI *ctx_data = SSL_CTX_get_ex_data_akamai(ctx);
         ex_data->options = ctx_data->options;
+        ex_data->app_verify_callback = ctx->app_verify_callback;
+        ex_data->app_verify_arg = ctx->app_verify_arg;
     }
 #endif
 
