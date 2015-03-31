@@ -1810,6 +1810,11 @@ struct ssl_st {
         } ctx;                 /* context/closure handed out to task */
     } task;
 
+#ifndef OPENSSL_NO_AKAMAI
+    /* Keep track of bytes passed through SSL */
+    size_t bytes_written;
+    size_t bytes_read;
+#endif
 };
 
 # endif
