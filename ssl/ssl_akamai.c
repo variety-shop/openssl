@@ -458,6 +458,25 @@ SSL_CTX_SESSION_LIST *SSL_CTX_get0_session_list(SSL_CTX* ctx)
     return ex_data->session_list;
 }
 
+void SSL_SESSION_set_verify_result(SSL_SESSION *ss, long arg)
+{
+    ss->verify_result = arg;
+}
+
+void SSL_set_cert_verify_callback(SSL *s,
+                                  int (*cb) (X509_STORE_CTX *, void *),
+                                  void *arg)
+{
+    SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
+    ex_data->app_verify_callback = cb;
+    ex_data->app_verify_arg = arg;
+}
+
+void* SSL_get_cert_verify_arg(SSL *s)
+{
+    return SSL_get_ex_data_akamai(s)->app_verify_arg;
+}
+
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b)
 {
     SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(ctx);
