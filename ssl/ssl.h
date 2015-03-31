@@ -1074,6 +1074,19 @@ struct ssl_ctx_st {
     STACK_OF(X509) *extra_certs;
     STACK_OF(SSL_COMP) *comp_methods; /* stack of SSL_COMP, SSLv3/TLSv1 */
 
+#ifndef OPENSSL_NO_AKAMAI
+    /*
+     * Bugzilla 38059.
+     * By default, OpenSSL selects ciphers based on the client's preferences.
+     * These allow us an override with a fallback to the original cipher_list
+     * defined on the top of this struct.
+     */
+    STACK_OF(SSL_CIPHER) *ssl2_cipher_list;
+    STACK_OF(SSL_CIPHER) *ssl2_cipher_list_by_id; /* sorted for lookup */
+    STACK_OF(SSL_CIPHER) *preferred_cipher_list;
+    STACK_OF(SSL_CIPHER) *preferred_cipher_list_by_id; /* sorted for lookup */
+#endif
+
     /* Default values used when no per-SSL value is defined follow */
 
     /* used if SSL's info_callback is NULL */
@@ -1618,6 +1631,10 @@ struct ssl_st {
     int trust;                  /* Trust setting */
 #  endif
     /* crypto */
+#  ifndef OPENSSL_NO_AKAMAI
+    STACK_OF(SSL_CIPHER) *preferred_cipher_list;
+    STACK_OF(SSL_CIPHER) *preferred_cipher_list_by_id;
+#  endif
     STACK_OF(SSL_CIPHER) *cipher_list;
     STACK_OF(SSL_CIPHER) *cipher_list_by_id;
     /*
@@ -2317,6 +2334,10 @@ long SSL_CTX_get_timeout(const SSL_CTX *ctx);
 X509_STORE *SSL_CTX_get_cert_store(const SSL_CTX *);
 void SSL_CTX_set_cert_store(SSL_CTX *, X509_STORE *);
 #ifndef OPENSSL_NO_AKAMAI
+int SSL_CTX_set_ssl2_cipher_list(SSL_CTX *ctx, const char *str);
+int SSL_CTX_set_preferred_cipher_list(SSL_CTX *ctx, const char *str);
+STACK_OF(SSL_CIPHER) *SSL_get_ssl2_ciphers(SSL *s);
+STACK_OF(SSL_CIPHER) *SSL_get_preferred_ciphers(SSL *s);
 void SSL_CTX_set_cert_store_ref(SSL_CTX *, X509_STORE *);
 #endif
 int SSL_want(const SSL *s);
@@ -2358,6 +2379,9 @@ void SSL_set_bio(SSL *s, BIO *rbio, BIO *wbio);
 BIO *SSL_get_rbio(const SSL *s);
 BIO *SSL_get_wbio(const SSL *s);
 # endif
+#ifndef OPENSSL_NO_AKAMAI
+int SSL_set_preferred_cipher_list(SSL *s, const char *str);
+#endif
 int SSL_set_cipher_list(SSL *s, const char *str);
 void SSL_set_read_ahead(SSL *s, int yes);
 int SSL_get_verify_mode(const SSL *s);
