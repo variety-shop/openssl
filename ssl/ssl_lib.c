@@ -3837,6 +3837,14 @@ int SSL_CTX_set_preferred_cipher_list(SSL_CTX *ctx, const char *str)
     return ((sk == NULL) ? 0 : 1);
 }
 
+void SSL_CTX_set_cert_store_ref(SSL_CTX *ctx, X509_STORE *store)
+{
+    if (ctx->cert_store != NULL)
+        X509_STORE_free(ctx->cert_store);
+    CRYPTO_add(&store->references, 1, CRYPTO_LOCK_X509_STORE);
+    ctx->cert_store = store;
+}
+
 #endif /* OPENSSL_NO_AKAMAI */
 
 #if defined(_WINDLL) && defined(OPENSSL_SYS_WIN16)
