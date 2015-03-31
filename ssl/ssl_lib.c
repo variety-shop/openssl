@@ -452,6 +452,17 @@ int SSL_clear(SSL *s)
         s->session = NULL;
     }
 
+#ifndef OPENSSL_NO_AKAMAI
+    {
+        /* ex_data may be NULL if this is called from SSL_new */
+        SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
+        if (ex_data != NULL) {
+            ex_data->bytes_written = 0;
+            ex_data->bytes_read = 0;
+        }
+    }
+#endif
+
     s->error = 0;
     s->hit = 0;
     s->shutdown = 0;
