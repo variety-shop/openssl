@@ -23,6 +23,9 @@ $rm='del /Q';
 
 $zlib_lib="zlib1.lib";
 
+if ($ENV{DLLBUILD} eq '/MD') { $crt = '/MD'; } # Akamai
+else { $crt = '/MT'; }                         # Akamai
+
 # Santize -L options for ms link
 $l_flags =~ s/-L("\[^"]+")/\/libpath:$1/g;
 $l_flags =~ s/-L(\S+)/\/libpath:$1/g;
