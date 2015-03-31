@@ -2,6 +2,8 @@
 
 =head1 NAME
 
+SSL_set_cert_verify_callback,
+SSL_get_cert_verify_arg,
 SSL_CTX_set_cert_verify_callback - set peer certificate verification procedure
 
 =head1 SYNOPSIS
@@ -9,6 +11,8 @@ SSL_CTX_set_cert_verify_callback - set peer certificate verification procedure
  #include <openssl/ssl.h>
 
  void SSL_CTX_set_cert_verify_callback(SSL_CTX *ctx, int (*callback)(X509_STORE_CTX *, void *), void *arg);
+ void SSL_set_cert_verify_callback(SSL *ssl, int (*callback)(X509_STORE_CTX *,void *), void *arg);
+ void *SSL_get_cert_verify_arg(SSL *s);
 
 =head1 DESCRIPTION
 
@@ -16,14 +20,40 @@ SSL_CTX_set_cert_verify_callback() sets the verification callback function for
 I<ctx>. SSL objects that are created from I<ctx> inherit the setting valid at
 the time when L<SSL_new(3)> is called.
 
+SSL_set_cert_verify_callback() sets the verification callback function for
+I<ssl>. This overrides any setting in the SSL_CTX set by
+SSL_CTX_set_cert_verify_callback().
+
+SSL_get_cert_verify_arg() returns the B<arg> set in SSL_set_cert_verify_callback();
+
 =head1 NOTES
 
 Whenever a certificate is verified during a SSL/TLS handshake, a verification
 function is called. If the application does not explicitly specify a
 verification callback function, the built-in verification function is used.
 If a verification callback I<callback> is specified via
+SSL_set_cert_verify_callback(), the supplied call back function is called
+instead. Otherwise, if a verification callback I<callback> is specified via
 SSL_CTX_set_cert_verify_callback(), the supplied callback function is called
-instead. By setting I<callback> to NULL, the default behaviour is restored.
+instead. By setting both I<callback>s to NULL, the default behaviour is restored.
+
+The priorty order is:
+
+=over 4
+
+=item 1.
+
+I<callback> set via SSL_set_cert_verify_callback()
+
+=item 2.
+
+I<callback> set via SSL_CTX_set_cert_verify_callback()
+
+=item 3.
+
+Built in verification function
+
+=back
 
 When the verification must be performed, I<callback> will be called with
 the arguments callback(X509_STORE_CTX *x509_store_ctx, void *arg). The
