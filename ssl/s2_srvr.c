@@ -737,6 +737,29 @@ static int get_client_hello(SSL *s)
         if (cs == NULL)
             goto mem_err;
 
+#ifndef OPENSSL_NO_AKAMAI
+        /* tshort - not sure how this is different than SSL_OP_CIPHER_SERVER_PREFERENCE */
+        cl=ssl_get_ssl2_ciphers_by_id(s);
+        if (cl) {
+            /*
+             * This is our preferred list. We order the ciphers
+             * based on our preferences rather than the client's.
+             */
+
+            STACK_OF(SSL_CIPHER) *shared_ciphers = sk_SSL_CIPHER_new_null();
+            if (shared_ciphers == NULL)
+                goto mem_err;
+
+            for (z=0; z<sk_SSL_CIPHER_num(cl); z++) {
+                if (sk_SSL_CIPHER_find(cs,sk_SSL_CIPHER_value(cl,z)) >= 0)
+                    sk_SSL_CIPHER_push(shared_ciphers, sk_SSL_CIPHER_value(cl,z));
+            }
+            if (s->session->ciphers)
+                sk_SSL_CIPHER_free(s->session->ciphers);
+            s->session->ciphers = shared_ciphers;
+        } else {
+#endif
+
         cl = SSL_get_ciphers(s);
 
         if (s->options & SSL_OP_CIPHER_SERVER_PREFERENCE) {
@@ -758,6 +781,9 @@ static int get_client_hello(SSL *s)
             sk_SSL_CIPHER_free(s->session->ciphers);
             s->session->ciphers = prio;
         }
+#ifndef OPENSSL_NO_AKAMAI
+        }
+#endif
         /*
          * s->session->ciphers should now have a list of ciphers that are on
          * both the client and server. This list is ordered by the order the
