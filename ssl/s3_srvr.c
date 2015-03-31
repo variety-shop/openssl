@@ -1395,6 +1395,9 @@ int ssl3_get_client_hello_post_app(SSL *s, int retry_cert)
     unsigned char *q = s->s3->tmp.q;
     SSL_CIPHER *c;
     STACK_OF(SSL_CIPHER) *ciphers = s->s3->tmp.ciphers;
+#ifndef OPENSSL_NO_AKAMAI
+    STACK_OF(SSL_CIPHER) *preferred_ciphers;
+#endif
 
 #ifndef OPENSSL_NO_COMP
     SSL_COMP *comp = NULL;
@@ -1580,7 +1583,22 @@ int ssl3_get_client_hello_post_app(SSL *s, int retry_cert)
             }
             s->rwstate = SSL_NOTHING;
         }
+#ifdef OPENSSL_NO_AKAMAI
         c = ssl3_choose_cipher(s, s->session->ciphers, SSL_get_ciphers(s));
+#else
+        c = NULL;
+        preferred_ciphers = SSL_get_preferred_ciphers(s);
+        if (preferred_ciphers) {
+            /* Tries to choose a cipher based on our preferences. */
+            /* These ciphers are normally limited to a min. strength of 128 bits. */
+            c = ssl3_choose_cipher(s, preferred_ciphers, s->session->ciphers);
+        }
+        if (!c) {
+            /* Tries to choose a cipher based on the client's preferences. */
+            /* This is normally a broader list than preferred_ciphers. */
+            c = ssl3_choose_cipher(s, s->session->ciphers, SSL_get_ciphers(s));
+        }
+#endif
 
         if (c == NULL) {
             al = SSL_AD_HANDSHAKE_FAILURE;

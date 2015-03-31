@@ -1,0 +1,17 @@
+#!/bin/sh
+
+ciphpreftest="../util/shlib_wrap.sh ./ciphpreftest"
+
+#############################################################################
+
+echo Test server cipher pref
+if [ ! -d gen ]; then
+    ./gen_cert.sh server
+fi
+
+# test effectiveness of server cipher preferences
+$ciphpreftest         || echo 1
+$ciphpreftest --sslv3 || echo 1
+$ciphpreftest --sslv2 || echo 1
+
+exit 0
