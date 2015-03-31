@@ -2325,6 +2325,7 @@ int SSL_CTX_set_ssl2_cipher_list(SSL_CTX *ctx, const char *str);
 int SSL_CTX_set_preferred_cipher_list(SSL_CTX *ctx, const char *str);
 STACK_OF(SSL_CIPHER) *SSL_get_ssl2_ciphers(SSL *s);
 STACK_OF(SSL_CIPHER) *SSL_get_preferred_ciphers(SSL *s);
+void SSL_CTX_set_cert_store_ref(SSL_CTX *, X509_STORE *);
 #endif
 int SSL_want(const SSL *s);
 int SSL_signal_event_result(SSL *s, int event, int result, int errfunc, int errreason, const char *file, int line);
