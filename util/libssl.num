@@ -418,3 +418,4 @@ SSL_get_byte_counters                   10009	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_get_cert_verify_arg                 10010	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_set_cert_verify_callback            10011	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_SESSION_set_verify_result           10012	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_CTX_set1_cert_store                 10013	1_1_0	EXIST::FUNCTION:AKAMAI
