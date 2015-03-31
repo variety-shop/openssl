@@ -73,6 +73,10 @@ void SSL_set_cert_verify_callback(SSL *s,
                                   void *arg);
 void* SSL_get_cert_verify_arg(SSL *s);
 
+/* For compatibility with openssl-6.102.* */
+#define SSL_CTX_set_cert_store_ref SSL_CTX_set1_cert_store
+void SSL_CTX_set1_cert_store(SSL_CTX *, X509_STORE *);
+
 #  ifdef  __cplusplus
 }
 #  endif
