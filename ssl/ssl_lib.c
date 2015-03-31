@@ -353,6 +353,11 @@ SSL *SSL_new(SSL_CTX *ctx)
     s->quiet_shutdown = ctx->quiet_shutdown;
     s->max_send_fragment = ctx->max_send_fragment;
 
+#ifndef OPENSSL_NO_AKAMAI
+    s->app_verify_callback = ctx->app_verify_callback;
+    s->app_verify_arg = ctx->app_verify_arg;
+#endif
+
     CRYPTO_add(&ctx->references, 1, CRYPTO_LOCK_SSL_CTX);
     s->ctx = ctx;
 #ifndef OPENSSL_NO_TLSEXT
