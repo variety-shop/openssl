@@ -388,6 +388,11 @@ void X509_STORE_CTX_set_depth(X509_STORE_CTX *ctx, int depth);
 
 /* The application is not happy */
 # define         X509_V_ERR_APPLICATION_VERIFICATION             50
+# ifndef OPENSSL_NO_AKAMAI
+#  define         X509_V_ERR_OCSP_VERIFY_NEEDED                  101  /* Need OCSP verification */
+#  define         X509_V_ERR_OCSP_VERIFY_FAILED                  102  /* Couldn't verify cert through OCSP */
+#  define         X509_V_ERR_OCSP_CERT_UNKNOWN                   103  /* Certificate wasn't recognized by the OCSP responder */
+# endif
 
 /* Certificate verify flags */
 
