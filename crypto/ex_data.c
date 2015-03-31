@@ -314,7 +314,14 @@ static EX_CLASS_ITEM *def_get_class(int class_index)
 {
     EX_CLASS_ITEM d, *p, *gen;
     EX_DATA_CHECK(return NULL;)
-        d.class_index = class_index;
+    d.class_index = class_index;
+#ifdef OPENSSL_NO_AKAMAI
+    CRYPTO_r_lock(CRYPTO_LOCK_EX_DATA);                                                                               
+    p = lh_EX_CLASS_ITEM_retrieve(ex_data, &d);                                                                       
+    CRYPTO_r_unlock(CRYPTO_LOCK_EX_DATA);                                                                             
+    if (p)                                                                                                           
+        return (p);
+#endif
     CRYPTO_w_lock(CRYPTO_LOCK_EX_DATA);
     p = lh_EX_CLASS_ITEM_retrieve(ex_data, &d);
     if (!p) {
