@@ -413,3 +413,6 @@ SSL_get0_peer_certificate               10006	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_CTX_share_session_cache             10007	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_CTX_flush_sessions_lock             10008	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_get_byte_counters                   10009	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_get_cert_verify_arg                 10010	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_set_cert_verify_callback            10011	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_SESSION_set_verify_result           10012	1_1_0	EXIST::FUNCTION:AKAMAI
