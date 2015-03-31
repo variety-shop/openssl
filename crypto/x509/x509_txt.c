@@ -92,14 +92,6 @@ const char *X509_verify_cert_error_string(long n)
         return ("unable to get CRL issuer certificate");
     case X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION:
         return ("unhandled critical extension");
-#ifndef OPENSSL_NO_AKAMAI
-    case X509_V_ERR_OCSP_VERIFY_NEEDED:
-        return("OCSP verification needed");
-    case X509_V_ERR_OCSP_VERIFY_FAILED:
-        return("OCSP verification failed");
-    case X509_V_ERR_OCSP_CERT_UNKNOWN:
-        return("OCSP unknown cert");
-#endif
     case X509_V_ERR_KEYUSAGE_NO_CRL_SIGN:
         return ("key usage does not include CRL signing");
     case X509_V_ERR_UNHANDLED_CRITICAL_CRL_EXTENSION:
@@ -177,6 +169,14 @@ const char *X509_verify_cert_error_string(long n)
         return ("Certificate Transparency required, but no valid SCTs found");
     case X509_V_ERR_PROXY_SUBJECT_NAME_VIOLATION:
         return ("proxy subject name violation");
+#ifndef OPENSSL_NO_AKAMAI
+    case X509_V_ERR_OCSP_VERIFY_NEEDED:
+        return("OCSP verification needed");
+    case X509_V_ERR_OCSP_VERIFY_FAILED:
+        return("OCSP verification failed");
+    case X509_V_ERR_OCSP_CERT_UNKNOWN:
+        return("OCSP unknown cert");
+#endif
 
     default:
         /* Printing an error number into a static buffer is not thread-safe */
