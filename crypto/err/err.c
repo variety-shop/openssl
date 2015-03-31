@@ -357,6 +357,16 @@ static LHASH_OF(ERR_STRING_DATA) *int_err_get(int create)
 {
     LHASH_OF(ERR_STRING_DATA) *ret = NULL;
 
+#ifndef OPENSSL_NO_AKAMAI
+    CRYPTO_r_lock(CRYPTO_LOCK_ERR);
+    if (int_error_hash || !create) {
+        ret = int_error_hash;
+        CRYPTO_r_unlock(CRYPTO_LOCK_ERR);
+        return ret;
+    }
+    CRYPTO_r_unlock(CRYPTO_LOCK_ERR);
+#endif
+
     CRYPTO_w_lock(CRYPTO_LOCK_ERR);
     if (!int_error_hash && create) {
         CRYPTO_push_info("int_err_get (err.c)");
@@ -448,6 +458,26 @@ static IMPLEMENT_LHASH_COMP_FN(err_state, ERR_STATE)
 static LHASH_OF(ERR_STATE) *int_thread_get(int create)
 {
     LHASH_OF(ERR_STATE) *ret = NULL;
+
+#ifndef OPENSSL_NO_AKAMAI
+    CRYPTO_r_lock(CRYPTO_LOCK_ERR);
+    if (int_thread_hash || !create) {
+        ret = int_thread_hash;
+        if (ret) {
+            /*
+             * Interlock below is to sync between increments
+             * (as there may be several threads simultaneously owning read lock)
+             * Need to unlock before doing add
+             */
+            CRYPTO_r_unlock(CRYPTO_LOCK_ERR);
+            CRYPTO_add(&int_thread_hash_references, 1, CRYPTO_LOCK_ERR);
+            return ret;
+        }
+        CRYPTO_r_unlock(CRYPTO_LOCK_ERR);
+        return ret;
+    }
+    CRYPTO_r_unlock(CRYPTO_LOCK_ERR);
+#endif
 
     CRYPTO_w_lock(CRYPTO_LOCK_ERR);
     if (!int_thread_hash && create) {
@@ -549,13 +579,16 @@ static void int_thread_del_item(const ERR_STATE *d)
 
 static int int_err_get_next_lib(void)
 {
+#ifdef OPENSSL_NO_AKAMAI
     int ret;
 
     CRYPTO_w_lock(CRYPTO_LOCK_ERR);
     ret = int_err_library_number++;
     CRYPTO_w_unlock(CRYPTO_LOCK_ERR);
-
     return ret;
+#else
+    return CRYPTO_add(&int_err_library_number, 1, CRYPTO_LOCK_ERR);
+#endif
 }
 
 #ifndef OPENSSL_NO_ERR
