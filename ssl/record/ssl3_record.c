@@ -156,6 +156,9 @@ int ssl3_get_record(SSL *s)
                             num_recs == 0 ? 1 : 0);
             if (n <= 0)
                 return (n);     /* error or non-blocking */
+#ifndef OPENSSL_NO_AKAMAI
+            SSL_get_ex_data_akamai(s)->bytes_read += n;
+#endif
             RECORD_LAYER_set_rstate(&s->rlayer, SSL_ST_READ_BODY);
 
             p = RECORD_LAYER_get_packet(&s->rlayer);
@@ -287,6 +290,9 @@ int ssl3_get_record(SSL *s)
             n = ssl3_read_n(s, i, i, 1, 0);
             if (n <= 0)
                 return (n);     /* error or non-blocking io */
+#ifndef OPENSSL_NO_AKAMAI
+            SSL_get_ex_data_akamai(s)->bytes_read += n;
+#endif
         }
 
         /* set state for later operations */
@@ -1498,6 +1504,9 @@ int dtls1_get_record(SSL *s)
         /* read timeout is handled by dtls1_read_bytes */
         if (n <= 0)
             return (n);         /* error or non-blocking */
+#ifndef OPENSSL_NO_AKAMAI
+        SSL_get_ex_data_akamai(s)->bytes_read += n;
+#endif
 
         /* this packet contained a partial record, dump it */
         if (RECORD_LAYER_get_packet_length(&s->rlayer) !=
@@ -1568,6 +1577,9 @@ int dtls1_get_record(SSL *s)
             RECORD_LAYER_reset_packet_length(&s->rlayer);
             goto again;
         }
+#ifndef OPENSSL_NO_AKAMAI
+        SSL_get_ex_data_akamai(s)->bytes_read += n;
+#endif
 
         /*
          * now n == rr->length, and s->packet_length ==

@@ -65,6 +65,8 @@ __owur X509 *SSL_get0_peer_certificate(const SSL *s);
 int SSL_CTX_share_session_cache(SSL_CTX *a, SSL_CTX *b);
 void SSL_CTX_flush_sessions_lock(SSL_CTX *ctx, long tm, int lock);
 
+void SSL_get_byte_counters(SSL *s, size_t *w, size_t *r);
+
 #  ifdef  __cplusplus
 }
 #  endif
