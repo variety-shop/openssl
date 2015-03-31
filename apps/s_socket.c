@@ -58,6 +58,12 @@
  * [including the GNU Public Licence.]
  */
 
+#ifndef OPENSSL_NO_AKAMAI
+# ifdef _MSC_VER
+#  define snprintf _snprintf
+# endif
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
