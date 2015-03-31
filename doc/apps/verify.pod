@@ -685,6 +685,19 @@ DANE TLSA authentication is enabled, but no TLSA records matched the
 certificate chain.
 This error is only possible in L<s_client(1)>.
 
+=item B<X509_V_ERR_OCSP_VERIFY_NEEDED>
+
+Returned by the verify callback to indicate an OCSP verification is needed.
+
+=item B<X509_V_ERR_OCSP_VERIFY_FAILED>
+
+Returned by the verify callback to indicate OCSP verification failed.
+
+=item B<X509_V_ERR_OCSP_CERT_UNKNOWN>
+
+Returned by the verify callback to indicate that the certificate is not recognized
+by the OCSP responder.
+
 =back
 
 =head1 BUGS
