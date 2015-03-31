@@ -40,9 +40,9 @@ LIBSRC=	cryptlib.c mem.c mem_clr.c mem_dbg.c cversion.c ex_data.c cpt_err.c \
 	sec_mem.c
 LIBOBJ= cryptlib.o mem.o mem_dbg.o cversion.o ex_data.o cpt_err.o ebcdic.o \
 	uid.o o_time.o o_str.o o_dir.o o_fips.o o_init.o fips_ers.o $(CPUID_OBJ) \
-	sec_mem.o
+	sec_mem.o threads/th-lock.o
 
-SRC= $(LIBSRC)
+SRC= $(LIBSRC) threads/th-lock.c
 
 EXHEADER= crypto.h opensslv.h opensslconf.h ebcdic.h symhacks.h \
 	ossl_typ.h
