@@ -370,6 +370,9 @@ int ssl_verify_cert_chain(SSL *s, STACK_OF(X509) *sk)
     X509_STORE *verify_store;
     X509_STORE_CTX *ctx = NULL;
     X509_VERIFY_PARAM *param;
+#ifndef OPENSSL_NO_AKAMAI
+    SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
+#endif
 
     if ((sk == NULL) || (sk_X509_num(sk) == 0))
         return 0;
@@ -424,10 +427,19 @@ int ssl_verify_cert_chain(SSL *s, STACK_OF(X509) *sk)
     if (s->verify_callback)
         X509_STORE_CTX_set_verify_cb(ctx, s->verify_callback);
 
+#ifdef OPENSSL_NO_AKAMAI
     if (s->ctx->app_verify_callback != NULL)
         i = s->ctx->app_verify_callback(ctx, s->ctx->app_verify_arg);
     else
         i = X509_verify_cert(ctx);
+#else /* OPENSSL_NO_AKAMAI */
+    if (ex_data->app_verify_callback != NULL)
+        i = ex_data->app_verify_callback(ctx, ex_data->app_verify_arg);
+    else if (s->ctx->app_verify_callback != NULL)
+        i = s->ctx->app_verify_callback(ctx, s->ctx->app_verify_arg);
+    else
+        i = X509_verify_cert(ctx);
+#endif /* OPENSSL_NO_AKAMAI */
 
     s->verify_result = X509_STORE_CTX_get_error(ctx);
     sk_X509_pop_free(s->verified_chain, X509_free);

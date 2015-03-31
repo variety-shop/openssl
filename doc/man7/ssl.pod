@@ -449,6 +449,8 @@ sessions defined in the B<SSL_SESSION> structures.
 
 =item long B<SSL_SESSION_set_timeout>(SSL_SESSION *s, long t);
 
+=item void B<SSL_SESSION_set_verify_result>(SSL *ssl, long arg);
+
 =back
 
 =head2 Dealing with Connections
@@ -671,6 +673,8 @@ fresh handle for each connection.
 =item void B<SSL_set_time>(SSL *ssl, long t);
 
 =item void B<SSL_set_timeout>(SSL *ssl, long t);
+
+=item void B<SSL_set_cert_verify_cb>(SSL *ssl, int (*cb)(), char *arg)
 
 =item void B<SSL_set_verify>(SSL *ssl, int mode, int (*callback);(void))
 
