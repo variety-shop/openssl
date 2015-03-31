@@ -67,6 +67,12 @@ void SSL_CTX_flush_sessions_lock(SSL_CTX *ctx, long tm, int lock);
 
 void SSL_get_byte_counters(SSL *s, size_t *w, size_t *r);
 
+void SSL_SESSION_set_verify_result(SSL_SESSION *ss, long arg);
+void SSL_set_cert_verify_callback(SSL *s,
+                                  int (*cb) (X509_STORE_CTX *, void *),
+                                  void *arg);
+void* SSL_get_cert_verify_arg(SSL *s);
+
 #  ifdef  __cplusplus
 }
 #  endif

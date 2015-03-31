@@ -2,13 +2,14 @@
 
 =head1 NAME
 
-SSL_set_verify_result - override result of peer certificate verification
+SSL_set_verify_result, SSL_SESSION_set_verify_result - override result of peer certificate verification
 
 =head1 SYNOPSIS
 
  #include <openssl/ssl.h>
 
  void SSL_set_verify_result(SSL *ssl, long verify_result);
+ void SSL_SESSION_set_verify_result(SSL_SESSION *ss, long verify_result);
 
 =head1 DESCRIPTION
 
@@ -16,18 +17,23 @@ SSL_set_verify_result() sets B<verify_result> of the object B<ssl> to be the
 result of the verification of the X509 certificate presented by the peer,
 if any.
 
+SSL_SESSION_set_verify_result() sets B<verify_result> of the object B<ss> to be
+the result of the verification of the X509 certificate presented by the peer,
+if any.
+
 =head1 NOTES
 
 SSL_set_verify_result() overrides the verification result. It only changes
 the verification result of the B<ssl> object. It does not become part of the
 established session, so if the session is to be reused later, the original
-value will reappear.
+value will reappear. To update the session value use SSL_SESSION_set_verify_result()
+(in addition to SSL_set_verify_result()).
 
 The valid codes for B<verify_result> are documented in L<verify(1)>.
 
 =head1 RETURN VALUES
 
-SSL_set_verify_result() does not provide a return value.
+SSL_set_verify_result() and SSL_SESSION_set_verify_result() do not provide a return value.
 
 =head1 SEE ALSO
 
