@@ -26,7 +26,8 @@ GENERAL=Makefile maketests.com \
 
 DLIBCRYPTO= ../libcrypto.a
 DLIBSSL= ../libssl.a
-LIBCRYPTO= -L.. -lcrypto
+#Akamai LIBCRYPTO= -L.. -lcrypto
+LIBCRYPTO= -L.. -lcrypto -lpthread
 LIBSSL= -L.. -lssl
 
 BNTEST=		bntest
