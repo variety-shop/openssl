@@ -200,6 +200,10 @@ int SSL_clear(SSL *s)
         s->session = NULL;
     }
 
+#ifndef OPENSSL_NO_AKAMAI
+    s->bytes_read = 0;
+    s->bytes_written = 0;
+#endif
     s->error = 0;
     s->hit = 0;
     s->shutdown = 0;
