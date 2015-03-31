@@ -1065,6 +1065,19 @@ struct ssl_ctx_st {
     STACK_OF(X509) *extra_certs;
     STACK_OF(SSL_COMP) *comp_methods; /* stack of SSL_COMP, SSLv3/TLSv1 */
 
+#ifndef OPENSSL_NO_AKAMAI
+    /*
+     * Bugzilla 38059.
+     * By default, OpenSSL selects ciphers based on the client's preferences.
+     * These allow us an override with a fallback to the original cipher_list
+     * defined on the top of this struct.
+     */
+    STACK_OF(SSL_CIPHER) *ssl2_cipher_list;
+    STACK_OF(SSL_CIPHER) *ssl2_cipher_list_by_id; /* sorted for lookup */
+    STACK_OF(SSL_CIPHER) *preferred_cipher_list;
+    STACK_OF(SSL_CIPHER) *preferred_cipher_list_by_id; /* sorted for lookup */
+#endif
+
     /* Default values used when no per-SSL value is defined follow */
 
     /* used if SSL's info_callback is NULL */
@@ -2304,6 +2317,12 @@ long SSL_CTX_set_timeout(SSL_CTX *ctx, long t);
 long SSL_CTX_get_timeout(const SSL_CTX *ctx);
 X509_STORE *SSL_CTX_get_cert_store(const SSL_CTX *);
 void SSL_CTX_set_cert_store(SSL_CTX *, X509_STORE *);
+#ifndef OPENSSL_NO_AKAMAI
+int SSL_CTX_set_ssl2_cipher_list(SSL_CTX *ctx, const char *str);
+int SSL_CTX_set_preferred_cipher_list(SSL_CTX *ctx, const char *str);
+STACK_OF(SSL_CIPHER) *SSL_get_ssl2_ciphers(SSL *s);
+STACK_OF(SSL_CIPHER) *SSL_get_preferred_ciphers(SSL *s);
+#endif
 int SSL_want(const SSL *s);
 int SSL_signal_event_result(SSL *s, int event, int result, int errfunc, int errreason, const char *file, int line);
 # define SSL_signal_event(s, event, retcode) \

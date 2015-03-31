@@ -2034,6 +2034,13 @@ SSL_CTX *SSL_CTX_new(const SSL_METHOD *meth)
     if (!ret->param)
         goto err;
 
+#ifndef OPENSSL_NO_AKAMAI
+    ret->ssl2_cipher_list = NULL;
+    ret->ssl2_cipher_list_by_id = NULL;
+    ret->preferred_cipher_list = NULL;
+    ret->preferred_cipher_list_by_id = NULL;
+#endif
+
     if ((ret->rsa_md5 = EVP_get_digestbyname("ssl2-md5")) == NULL) {
         SSLerr(SSL_F_SSL_CTX_NEW, SSL_R_UNABLE_TO_LOAD_SSL2_MD5_ROUTINES);
         goto err2;
@@ -2217,6 +2224,16 @@ void SSL_CTX_free(SSL_CTX *a)
         sk_SSL_CIPHER_free(a->cipher_list);
     if (a->cipher_list_by_id != NULL)
         sk_SSL_CIPHER_free(a->cipher_list_by_id);
+#ifndef OPENSSL_NO_AKAMAI
+    if (a->ssl2_cipher_list != NULL)
+        sk_SSL_CIPHER_free(a->ssl2_cipher_list);
+    if (a->ssl2_cipher_list_by_id != NULL)
+        sk_SSL_CIPHER_free(a->ssl2_cipher_list_by_id);
+    if (a->preferred_cipher_list != NULL)
+        sk_SSL_CIPHER_free(a->preferred_cipher_list);
+    if (a->preferred_cipher_list_by_id != NULL)
+        sk_SSL_CIPHER_free(a->preferred_cipher_list_by_id);
+#endif
     if (a->cert != NULL)
         ssl_cert_free(a->cert);
     if (a->client_CA != NULL)
@@ -3764,6 +3781,51 @@ void SSL_CTX_share_session_cache(SSL_CTX *a, SSL_CTX *b)
     a->session_list->session_ref_count++;
     CRYPTO_w_unlock(CRYPTO_LOCK_SSL_CTX);
 }
+
+STACK_OF(SSL_CIPHER) *SSL_get_ssl2_ciphers(SSL *s)
+{
+    if (s && s->ctx && s->ctx->ssl2_cipher_list)
+        return (s->ctx->ssl2_cipher_list);
+    return (NULL);
+}
+
+STACK_OF(SSL_CIPHER) *ssl_get_ssl2_ciphers_by_id(SSL *s)
+{
+    if (s && s->ctx && s->ctx->ssl2_cipher_list_by_id)
+        return (s->ctx->ssl2_cipher_list_by_id);
+    return (NULL);
+}
+
+STACK_OF(SSL_CIPHER) *SSL_get_preferred_ciphers(SSL *s)
+{
+    if (s && s->ctx && s->ctx->preferred_cipher_list)
+        return (s->ctx->preferred_cipher_list);
+    return (NULL);
+}
+
+STACK_OF(SSL_CIPHER) *ssl_get_preferred_ciphers_by_id(SSL *s)
+{
+    if (s && s->ctx && s->ctx->preferred_cipher_list_by_id)
+        return (s->ctx->preferred_cipher_list_by_id);
+    return (NULL);
+}
+
+int SSL_CTX_set_ssl2_cipher_list(SSL_CTX *ctx, const char *str)
+{
+    STACK_OF(SSL_CIPHER) *sk;
+    sk = ssl_create_cipher_list(ctx->method, &ctx->ssl2_cipher_list,
+                                &ctx->ssl2_cipher_list_by_id, str, ctx->cert);
+    return ((sk == NULL) ? 0 : 1);
+}
+
+int SSL_CTX_set_preferred_cipher_list(SSL_CTX *ctx, const char *str)
+{
+    STACK_OF(SSL_CIPHER) *sk;
+    sk = ssl_create_cipher_list(ctx->method, &ctx->preferred_cipher_list,
+                                &ctx->preferred_cipher_list_by_id, str, ctx->cert);
+    return ((sk == NULL) ? 0 : 1);
+}
+
 #endif /* OPENSSL_NO_AKAMAI */
 
 #if defined(_WINDLL) && defined(OPENSSL_SYS_WIN16)
