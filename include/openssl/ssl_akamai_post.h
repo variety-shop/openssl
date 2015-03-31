@@ -64,6 +64,12 @@ __owur X509 *SSL_get0_peer_certificate(const SSL *s);
 
 int SSL_CTX_share_session_cache(SSL_CTX *a, SSL_CTX *b);
 
+void SSL_SESSION_set_verify_result(SSL_SESSION *ss, long arg);
+void SSL_set_cert_verify_callback(SSL *s,
+                                  int (*cb) (X509_STORE_CTX *, void *),
+                                  void *arg);
+void* SSL_get_cert_verify_arg(SSL *s);
+
 /* Replaces SSL_CTX_sessions() and OPENSSL_LH_stats_bio() for shared session cache. */
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b);
 

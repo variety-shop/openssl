@@ -56,6 +56,10 @@ struct ssl_ex_data_akamai_st
 {
     /* Akamai proprietary options */
     unsigned int options;
+
+    /* Used in place of SSL_CTX if present */
+    int (*app_verify_callback)(X509_STORE_CTX*, void*);
+    void *app_verify_arg;
 };
 
 /* Used to initialize and get the akamai EX_DATA structures in one fell swoop */
