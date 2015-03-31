@@ -3824,6 +3824,15 @@ void SSL_CTX_share_session_cache(SSL_CTX *a, SSL_CTX *b)
     a->session_list->session_ref_count++;
     CRYPTO_w_unlock(CRYPTO_LOCK_SSL_CTX);
 }
+
+void SSL_CTX_set_cert_store_ref(SSL_CTX *ctx, X509_STORE *store)
+{
+    if (ctx->cert_store != NULL)
+        X509_STORE_free(ctx->cert_store);
+    CRYPTO_add(&store->references, 1, CRYPTO_LOCK_X509_STORE);
+    ctx->cert_store = store;
+}
+
 #endif /* OPENSSL_NO_AKAMAI */
 
 #if defined(_WINDLL) && defined(OPENSSL_SYS_WIN16)
