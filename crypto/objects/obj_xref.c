@@ -61,7 +61,11 @@
 #include "obj_xref.h"
 
 DECLARE_STACK_OF(nid_triple)
+#ifdef OPENSSL_NO_AKAMAI
 STACK_OF(nid_triple) *sig_app, *sigx_app;
+#else
+static STACK_OF(nid_triple) *sig_app, *sigx_app;
+#endif
 
 static int sig_cmp(const nid_triple *a, const nid_triple *b)
 {
