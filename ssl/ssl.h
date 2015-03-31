@@ -2861,6 +2861,7 @@ int    SSL_SESSION_client_cmp(const void *data1, const void *data2);
 #define MUST_HAVE_APP_DATA 0x1
 #define MUST_COPY_SESSION  0x2
 int     SSL_get_prev_client_session(SSL *s, int flags);
+int     SSL_SESSION_set_timeout_update_cache(const SSL *s, long t);
 
 int     SSL_CTX_set_client_session_cache(SSL_CTX *ctx);
 

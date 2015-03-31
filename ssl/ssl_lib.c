@@ -3373,6 +3373,12 @@ void SSL_set_state(SSL *ssl, int state)
     ssl->state = state;
 }
 
+void SSL_SESSION_set_verify_result(SSL *ssl, long arg)
+{
+    if (ssl->session)
+        ssl->session->verify_result = arg;
+}
+
 void SSL_set_verify_result(SSL *ssl, long arg)
 {
     ssl->verify_result = arg;
