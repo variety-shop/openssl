@@ -48,6 +48,10 @@ struct ssl_ex_data_akamai_st
 {
     /* Akamai proprietary options */
     unsigned int options;
+
+    /* Keep track of bytes passed through SSL */
+    size_t bytes_written;
+    size_t bytes_read;
 };
 
 /* Used to initialize and get the akamai EX_DATA structures in one fell swoop */
