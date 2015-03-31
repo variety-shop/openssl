@@ -2302,6 +2302,9 @@ long SSL_CTX_set_timeout(SSL_CTX *ctx, long t);
 long SSL_CTX_get_timeout(const SSL_CTX *ctx);
 X509_STORE *SSL_CTX_get_cert_store(const SSL_CTX *);
 void SSL_CTX_set_cert_store(SSL_CTX *, X509_STORE *);
+#ifndef OPENSSL_NO_AKAMAI
+void SSL_CTX_set_cert_store_ref(SSL_CTX *, X509_STORE *);
+#endif
 int SSL_want(const SSL *s);
 int SSL_signal_event_result(SSL *s, int event, int result, int errfunc, int errreason, const char *file, int line);
 # define SSL_signal_event(s, event, retcode) \
