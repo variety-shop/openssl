@@ -165,6 +165,11 @@
 # include <openssl/ssl.h>
 # include <openssl/symhacks.h>
 
+/* Akamai */
+# ifdef __cplusplus
+extern "C" {
+# endif
+
 # ifdef OPENSSL_BUILD_SHLIBSSL
 #  undef OPENSSL_EXTERN
 #  define OPENSSL_EXTERN OPENSSL_EXPORT
@@ -1530,4 +1535,10 @@ void custom_exts_free(custom_ext_methods *exts);
 #  define dtls1_process_heartbeat SSL_test_functions()->p_dtls1_process_heartbeat
 
 # endif
+
+/* Akamai */
+# ifdef __cplusplus
+}
+# endif
+
 #endif
