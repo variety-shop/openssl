@@ -226,7 +226,12 @@ typedef struct openssl_item_st {
 # define CRYPTO_LOCK_COMP                38
 # define CRYPTO_LOCK_FIPS                39
 # define CRYPTO_LOCK_FIPS2               40
+#ifdef OPENSSL_NO_AKAMAI
 # define CRYPTO_NUM_LOCKS                41
+#else
+# define CRYPTO_LOCK_ERR_TH_HASH_REF     41
+# define CRYPTO_NUM_LOCKS                42
+#endif
 
 # define CRYPTO_LOCK             1
 # define CRYPTO_UNLOCK           2
