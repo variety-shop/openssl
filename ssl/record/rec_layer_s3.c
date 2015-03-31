@@ -599,6 +599,9 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
             s->rlayer.wnum = tot;
             return i;
         }
+#ifndef OPENSSL_NO_AKAMAI
+        SSL_get_ex_data_akamai(s)->bytes_written += i;
+#endif
 
         if ((i == (int)n) ||
             (type == SSL3_RT_APPLICATION_DATA &&
