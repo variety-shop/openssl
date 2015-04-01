@@ -1,0 +1,76 @@
+=pod
+
+=head1 NAME
+
+SSL_set_buffer_mem_functions - specify buffer allocation/free functions
+
+=head1 SYNOPSIS
+
+ #include <openssl/ssl.h>
+
+ void SSL_set_buffer_mem_functions(void *(*m_cb)(int, size_t), void (*f_cb)(int, size_t, void*));
+
+ void *(*m_cb)(int rw, size_t size);
+ void (*f_cb)(int rw, size_t size, void* ptr);
+
+=head1 DESCRIPTION
+
+SSL_set_buffer_mem_functions() sets the B<m_cb> and B<f_cb> callbacks
+that are used to allocate and free the data buffers used in the SSL
+struture.
+
+The B<m_cb> callback is used for allocation of data buffers. Setting
+this value to NULL restores the default allocator.
+
+When the B<m_cb()> callback is invoked, the B<rw> parameter is 1 for
+read buffers, and 0 for write buffers. The B<size> parameter is the
+expected allocation to be returned by the callback.
+
+The B<f_cb> callback is used to free data buffers. Setting this
+value to NULL restores the default freer.
+
+When the B<f_cb()> callback is invoked, the B<rw> parameter is 1 for
+read buffers, and 0 for write buffers. The B<size> parameter is the
+size of the allocation to be freed. The B<ptr> parameter is the
+buffer pointer to be freed.
+
+=head1 NOTES
+
+The B<m_cb> callback is to allocate memory. The B<f_cb> callback is to
+free memory. This memory can be regular heap memory, or from a special
+memory region. These callbacks may also be used to track the amount of
+buffer memory being used by OpenSSL.
+
+These functions should be set once at OpenSSL initialization, before
+L<SSL_new(3)> is called.
+
+=head1 RETURN VALUES
+
+The SSL_set_buffer_mem_functions() function has no return value.
+
+The B<m_cb()> callback function returns a freshly allocated data buffer
+or NULL on failure.
+
+The B<f_cb()> callback function has no return value.
+
+=head1 SEE ALSO
+
+L<ssl(3)>,
+L<SSL_new(3)>
+
+=head1 COPYRIGHT
+
+Copyright 2000-2016 The OpenSSL Project Authors. All Rights Reserved.
+
+Licensed under the OpenSSL license (the "License").  You may not use
+this file except in compliance with the License.  You can obtain a copy
+in the file LICENSE in the source distribution or at
+L<https://www.openssl.org/source/license.html>.
+
+Copyright (C) 2016 Akamai Technologies. ALL RIGHTS RESERVED.
+
+This code was originally developed by Akamai Technologies and
+contributed to the OpenSSL project under the terms of the Corporate
+Contributor License Agreement v1.0
+
+=cut
