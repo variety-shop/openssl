@@ -1,0 +1,4 @@
+D openssl /usr/local/akamai/bin			root	Administrators	0755
+F openssl /usr/local/akamai/bin/openssl.exe	root	Administrators	0755
+D openssl /usr/local/akamai/lib			root	Administrators	0755
+F openssl /usr/local/akamai/lib/libeay32.dll	root	Administrators	0755

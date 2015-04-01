@@ -1,0 +1,3 @@
+# openssl locations
+/usr/local/akamai/lib/openssl/i686-linux-gnu
+/usr/local/akamai/lib/openssl/x86_64-linux-gnu
