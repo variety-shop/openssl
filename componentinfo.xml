@@ -1,0 +1,28 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE componentinfo SYSTEM "componentinfo-1.2.dtd">
+<componentinfo version="1.2">
+  <component name="openssl" version="7.110.6.3">
+
+    <bundle name="openssl.tgz" os="windows" type="software">
+      <file source="dll_lib32/libcrypto.dll_lib" target="/usr/local/akamai/lib/libcrypto.dll"/>
+      <file source="dll_lib32/libssl.dll_lib" target="/usr/local/akamai/lib/libssl.dll"/>
+      <file source="lib32/openssl.exe" target="/usr/local/akamai/bin/openssl.exe"/>
+    </bundle>
+
+    <bundle name="openssl.tgz" os="linux" type="software">
+      <file source="apps/openssl" target="/usr/local/akamai/bin/openssl"/>
+      <file source="hostsetup/ld.so.conf.d.akamai-openssl" target="/etc/ld.so.conf.d/akamai-openssl.conf"/>
+    </bundle>
+
+    <bundle name="openssl-ld.so.conf.tgz" os="alsi-lite" type="software">
+      <file source="hostsetup/ld.so.conf.d.akamai-openssl" target="/etc/ld.so.conf.d/akamai-openssl.conf"/>
+    </bundle>
+
+    <bundle name="openssl-config.tgz" os="common" type="configure">
+      <file source="hostsetup/configure_openssl.pl" target="setup/configure_openssl.pl"/>
+      <file source="hostsetup/build.info.linux" target="setup/build.info/linux/openssl"/>
+      <file source="hostsetup/build.info.NT-5.0" target="setup/build.info/windows/openssl"/>
+    </bundle>
+
+  </component>
+</componentinfo>
