@@ -16,7 +16,7 @@ CFLAGS= $(INCLUDES) $(CFLAG)
 
 GENERAL=Makefile README ssl-lib.com install.com
 TEST=ssltest.c heartbeat_test.c clienthellotest.c sslv2conftest.c dtlstest.c \
-	bad_dtls_test.c fatalerrtest.c
+	bad_dtls_test.c fatalerrtest.c client_cache_test.c
 APPS=
 
 LIB=$(TOP)/libssl.a
@@ -31,7 +31,8 @@ LIBSRC=	\
 	ssl_lib.c ssl_err2.c ssl_cert.c ssl_sess.c \
 	ssl_ciph.c ssl_stat.c ssl_rsa.c \
 	ssl_asn1.c ssl_txt.c ssl_algs.c ssl_conf.c ssl_bucket.c \
-	bio_ssl.c ssl_err.c kssl.c t1_reneg.c tls_srp.c t1_trce.c ssl_utst.c
+	bio_ssl.c ssl_err.c kssl.c t1_reneg.c tls_srp.c t1_trce.c ssl_utst.c \
+	ssl_client_cache.c
 LIBOBJ= \
 	s2_meth.o  s2_srvr.o  s2_clnt.o  s2_lib.o  s2_enc.o s2_pkt.o \
 	s3_meth.o  s3_srvr.o  s3_clnt.o  s3_lib.o  s3_enc.o s3_pkt.o s3_both.o s3_cbc.o \
@@ -42,7 +43,8 @@ LIBOBJ= \
 	ssl_lib.o ssl_err2.o ssl_cert.o ssl_sess.o \
 	ssl_ciph.o ssl_stat.o ssl_rsa.o \
 	ssl_asn1.o ssl_txt.o ssl_algs.o ssl_conf.o ssl_bucket.o \
-	bio_ssl.o ssl_err.o kssl.o t1_reneg.o tls_srp.o t1_trce.o ssl_utst.o
+	bio_ssl.o ssl_err.o kssl.o t1_reneg.o tls_srp.o t1_trce.o ssl_utst.o \
+	ssl_client_cache.o
 
 SRC= $(LIBSRC)
 
@@ -777,6 +779,28 @@ ssl_ciph.o: ../include/openssl/ssl23.h ../include/openssl/ssl3.h
 ssl_ciph.o: ../include/openssl/stack.h ../include/openssl/symhacks.h
 ssl_ciph.o: ../include/openssl/tls1.h ../include/openssl/x509.h
 ssl_ciph.o: ../include/openssl/x509_vfy.h ssl_ciph.c ssl_locl.h
+ssl_client_cache.o: ../e_os.h ../include/openssl/asn1.h
+ssl_client_cache.o: ../include/openssl/bio.h ../include/openssl/buffer.h
+ssl_client_cache.o: ../include/openssl/comp.h ../include/openssl/crypto.h
+ssl_client_cache.o: ../include/openssl/dsa.h ../include/openssl/dtls1.h
+ssl_client_cache.o: ../include/openssl/e_os2.h ../include/openssl/ec.h
+ssl_client_cache.o: ../include/openssl/ecdh.h ../include/openssl/ecdsa.h
+ssl_client_cache.o: ../include/openssl/engine.h ../include/openssl/err.h
+ssl_client_cache.o: ../include/openssl/evp.h ../include/openssl/hmac.h
+ssl_client_cache.o: ../include/openssl/kssl.h ../include/openssl/lhash.h
+ssl_client_cache.o: ../include/openssl/obj_mac.h ../include/openssl/objects.h
+ssl_client_cache.o: ../include/openssl/opensslconf.h
+ssl_client_cache.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
+ssl_client_cache.o: ../include/openssl/pem.h ../include/openssl/pem2.h
+ssl_client_cache.o: ../include/openssl/pkcs7.h ../include/openssl/pqueue.h
+ssl_client_cache.o: ../include/openssl/rand.h ../include/openssl/rsa.h
+ssl_client_cache.o: ../include/openssl/safestack.h ../include/openssl/sha.h
+ssl_client_cache.o: ../include/openssl/srtp.h ../include/openssl/ssl.h
+ssl_client_cache.o: ../include/openssl/ssl2.h ../include/openssl/ssl23.h
+ssl_client_cache.o: ../include/openssl/ssl3.h ../include/openssl/stack.h
+ssl_client_cache.o: ../include/openssl/symhacks.h ../include/openssl/tls1.h
+ssl_client_cache.o: ../include/openssl/x509.h ../include/openssl/x509_vfy.h
+ssl_client_cache.o: ssl_client_cache.c ssl_locl.h
 ssl_conf.o: ../e_os.h ../include/openssl/asn1.h ../include/openssl/bio.h
 ssl_conf.o: ../include/openssl/buffer.h ../include/openssl/comp.h
 ssl_conf.o: ../include/openssl/conf.h ../include/openssl/crypto.h

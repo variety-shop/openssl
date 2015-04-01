@@ -300,6 +300,7 @@ $cflags.=" -DOPENSSL_FIPS"    if $fips;
 $cflags.=" -DOPENSSL_NO_JPAKE"    if $no_jpake;
 $cflags.=" -DOPENSSL_NO_EC2M"    if $no_ec2m;
 $cflags.=" -DOPENSSL_NO_WEAK_SSL_CIPHERS"   if $no_weak_ssl;
+$cflags.=" -DOPENSSL_NO_AKAMAI_CLIENT_CACHE" if $no_akamai_client_cache; #Akamai
 $cflags.=" -DZLIB" if $zlib_opt;
 $cflags.=" -DZLIB_SHARED" if $zlib_opt == 2;
 $cflags.=" -DOPENSSL_NO_COMP" if $no_comp;
@@ -1239,6 +1240,7 @@ sub read_options
 		"no-gost" => \$no_gost,
 		"no-engine" => \$no_engine,
 		"no-hw" => \$no_hw,
+	        "no-akamai-client-cache" => \$no_akamai_client_cache, #Akamai
 		"no-rsax" => 0,
 		"just-ssl" =>
 			[\$no_rc2, \$no_idea, \$no_des, \$no_bf, \$no_cast,
