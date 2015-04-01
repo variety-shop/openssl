@@ -123,7 +123,11 @@ static int dtls1_copy_record(SSL *s, pitem *item)
 
     rdata = (DTLS1_RECORD_DATA *)item->data;
 
+#ifdef OPENSSL_NO_AKAMAI
     SSL3_BUFFER_release(&s->rlayer.rbuf);
+#else
+    ssl3_release_read_buffer(s);
+#endif
 
     s->rlayer.packet = rdata->packet;
     s->rlayer.packet_length = rdata->packet_length;

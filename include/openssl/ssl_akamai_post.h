@@ -69,6 +69,10 @@ void SSL_set_cert_verify_callback(SSL *s,
                                   void *arg);
 void* SSL_get_cert_verify_arg(SSL *s);
 
+/* SSL buffer allocation routine */
+/* The int argument is 1 for read buffers, 0 for write buffers */
+void SSL_set_buffer_mem_functions(void* (*m)(int, size_t), void(*f)(int, size_t, void*));
+
 /* Replaces SSL_CTX_sessions() and OPENSSL_LH_stats_bio() for shared session cache. */
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b);
 
