@@ -80,6 +80,26 @@ void* SSL_get_cert_verify_arg(SSL *s);
 /* The int argument is 1 for read buffers, 0 for write buffers */
 void SSL_set_buffer_mem_functions(void* (*m)(int, size_t), void(*f)(int, size_t, void*));
 
+#  ifndef OPENSSL_NO_AKAMAI_CLIENT_CACHE
+/* Support for client cache */
+#   ifdef OPENSSL_SYS_WINDOWS
+#    include <winsock.h>
+#   else
+#    include <sys/socket.h>
+#   endif
+
+/* IPv4/6 versions */
+int SSL_set_remote_addr_ex(SSL *s, struct sockaddr_storage* addr);
+int SSL_get_remote_addr_ex(const SSL *s, struct sockaddr_storage* addr);
+
+#   define MUST_HAVE_APP_DATA 0x1
+#   define MUST_COPY_SESSION  0x2
+int SSL_get_prev_client_session(SSL *s, int flags);
+long SSL_SESSION_set_timeout_update_cache(const SSL *s, long t);
+
+int SSL_CTX_set_client_session_cache(SSL_CTX *ctx);
+#  endif /* OPENSSL_NO_AKAMAI_CLIENT_CACHE */
+
 /* Replaces SSL_CTX_sessions() and OPENSSL_LH_stats_bio() for shared session cache. */
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b);
 
