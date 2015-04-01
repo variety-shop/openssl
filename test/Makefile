@@ -72,6 +72,8 @@ CONSTTIMETEST=  constant_time_test
 VERIFYEXTRATEST=	verify_extra_test
 TASKTEST=       tasktest
 TLSEXTTEST=     tlsexttest
+CLIENTCACHETEST= client_cache_test
+CLIENTCACHE2TEST= clientcache2test
 
 TESTS=		alltests
 
@@ -85,7 +87,8 @@ EXE=	$(BNTEST)$(EXE_EXT) $(ECTEST)$(EXE_EXT)  $(ECDSATEST)$(EXE_EXT) $(ECDHTEST)
 	$(EVPTEST)$(EXE_EXT) $(EVPEXTRATEST)$(EXE_EXT) $(IGETEST)$(EXE_EXT) $(JPAKETEST)$(EXE_EXT) $(SRPTEST)$(EXE_EXT) \
 	$(ASN1TEST)$(EXE_EXT) $(V3NAMETEST)$(EXE_EXT) $(HEARTBEATTEST)$(EXE_EXT) \
 	$(CONSTTIMETEST)$(EXE_EXT) $(VERIFYEXTRATEST)$(EXE_EXT) \
-	$(TASKTEST)$(EXE_EXT) $(TLSEXTTEST)$(EXE_EXT)
+	$(TASKTEST)$(EXE_EXT) $(TLSEXTTEST)$(EXE_EXT) \
+	$(CLIENTCACHETEST)$(EXE_EXT) $(CLIENTCACHE2TEST)$(EXE_EXT)
 
 # $(METHTEST)$(EXE_EXT)
 
@@ -99,7 +102,8 @@ OBJ=	$(BNTEST).o $(ECTEST).o  $(ECDSATEST).o $(ECDHTEST).o $(IDEATEST).o \
 	$(BFTEST).o  $(SSLTEST).o  $(DSATEST).o  $(EXPTEST).o $(RSATEST).o \
 	$(EVPTEST).o $(EVPEXTRATEST).o $(IGETEST).o $(JPAKETEST).o $(ASN1TEST).o $(V3NAMETEST).o \
 	$(HEARTBEATTEST).o $(CONSTTIMETEST).o $(VERIFYEXTRATEST).o \
-	$(TASKTEST).o $(TLSEXTTEST).o
+	$(TASKTEST).o $(TLSEXTTEST).o \
+	$(CLIENTCACHETEST).o $(CLIENTCACH2TEST).o
 
 SRC=	$(BNTEST).c $(ECTEST).c  $(ECDSATEST).c $(ECDHTEST).c $(IDEATEST).c \
 	$(MD2TEST).c  $(MD4TEST).c $(MD5TEST).c \
@@ -110,7 +114,8 @@ SRC=	$(BNTEST).c $(ECTEST).c  $(ECDSATEST).c $(ECDHTEST).c $(IDEATEST).c \
 	$(BFTEST).c  $(SSLTEST).c $(DSATEST).c   $(EXPTEST).c $(RSATEST).c \
 	$(EVPTEST).c $(EVPEXTRATEST).c $(IGETEST).c $(JPAKETEST).c $(SRPTEST).c $(ASN1TEST).c \
 	$(V3NAMETEST).c $(HEARTBEATTEST).c $(CONSTTIMETEST).c $(VERIFYEXTRATEST).c \
-	$(TASKTEST).c $(TLSEXTTEST).c
+	$(TASKTEST).c $(TLSEXTTEST).c \
+	$(CLIENTCACHETEST).c $(CLIENTCACHE2TEST).c
 
 EXHEADER= 
 HEADER=	testutil.h $(EXHEADER)
@@ -154,7 +159,8 @@ alltests: \
 	test_gen test_req test_pkcs7 test_verify test_dh test_dsa \
 	test_ss test_ca test_engine test_evp test_evp_extra test_ssl test_tsa test_ige \
 	test_jpake test_srp test_cms test_ocsp test_v3name test_heartbeat \
-	test_constant_time test_verify_extra test_task test_tlsext
+	test_constant_time test_verify_extra test_task test_tlsext \
+	test_client_cache test_clientcache2
 
 test_evp: $(EVPTEST)$(EXE_EXT) evptests.txt
 	../util/shlib_wrap.sh ./$(EVPTEST) evptests.txt
@@ -365,6 +371,13 @@ test_task: $(TASKTEST)$(EXE_EXT) testtask
 test_tlsext: $(TLSEXTTEST)$(EXE_EXT) testtlsext
 	@sh ./testtlsext
 
+test_client_cache: $(CLIENTCACHETEST)$(EXE_EXT)
+	@echo "Test client caching"
+	../util/shlib_wrap.sh ./$(CLIENTCACHETEST)
+
+test_clientcache2: $(CLIENTCACHE2TEST)$(EXE_EXT) testclientcache2
+	@sh ./testclientcache2
+
 lint:
 	lint -DLINT $(INCLUDES) $(SRC)>fluff
 
@@ -546,6 +559,12 @@ $(TASKTEST)$(EXE_EXT): $(TASKTEST).o
 $(TLSEXTTEST)$(EXE_EXT): $(TLSEXTTEST).o
 	@target=$(TLSEXTTEST) $(BUILD_CMD)
 
+$(CLIENTCACHETEST)$(EXE_EXT): $(CLIENTCACHETEST).o
+	@target=$(CLIENTCACHETEST) $(BUILD_CMD)
+
+$(CLIENTCACHE2TEST)$(EXE_EXT): $(CLIENTCACHE2TEST).o
+	@target=$(CLIENTCACHE2TEST) $(BUILD_CMD)
+
 #$(AESTEST).o: $(AESTEST).c
 #	$(CC) -c $(CFLAGS) -DINTERMEDIATE_VALUE_KAT -DTRACE_KAT_MCT $(AESTEST).c
 
@@ -591,6 +610,51 @@ bntest.o: ../include/openssl/stack.h ../include/openssl/symhacks.h
 bntest.o: ../include/openssl/x509.h ../include/openssl/x509_vfy.h bntest.c
 casttest.o: ../e_os.h ../include/openssl/cast.h ../include/openssl/e_os2.h
 casttest.o: ../include/openssl/opensslconf.h casttest.c
+client_cache_test.o: ../e_os.h ../include/openssl/asn1.h
+client_cache_test.o: ../include/openssl/bio.h ../include/openssl/bn.h
+client_cache_test.o: ../include/openssl/buffer.h ../include/openssl/comp.h
+client_cache_test.o: ../include/openssl/conf.h ../include/openssl/crypto.h
+client_cache_test.o: ../include/openssl/dh.h ../include/openssl/dsa.h
+client_cache_test.o: ../include/openssl/dtls1.h ../include/openssl/e_os2.h
+client_cache_test.o: ../include/openssl/ec.h ../include/openssl/ecdh.h
+client_cache_test.o: ../include/openssl/ecdsa.h ../include/openssl/engine.h
+client_cache_test.o: ../include/openssl/err.h ../include/openssl/evp.h
+client_cache_test.o: ../include/openssl/hmac.h ../include/openssl/kssl.h
+client_cache_test.o: ../include/openssl/lhash.h ../include/openssl/obj_mac.h
+client_cache_test.o: ../include/openssl/objects.h
+client_cache_test.o: ../include/openssl/opensslconf.h
+client_cache_test.o: ../include/openssl/opensslv.h
+client_cache_test.o: ../include/openssl/ossl_typ.h ../include/openssl/pem.h
+client_cache_test.o: ../include/openssl/pem2.h ../include/openssl/pkcs7.h
+client_cache_test.o: ../include/openssl/pqueue.h ../include/openssl/rand.h
+client_cache_test.o: ../include/openssl/rsa.h ../include/openssl/safestack.h
+client_cache_test.o: ../include/openssl/sha.h ../include/openssl/srtp.h
+client_cache_test.o: ../include/openssl/ssl.h ../include/openssl/ssl2.h
+client_cache_test.o: ../include/openssl/ssl23.h ../include/openssl/ssl3.h
+client_cache_test.o: ../include/openssl/stack.h ../include/openssl/symhacks.h
+client_cache_test.o: ../include/openssl/tls1.h ../include/openssl/x509.h
+client_cache_test.o: ../include/openssl/x509_vfy.h ../include/openssl/x509v3.h
+client_cache_test.o: ../ssl/ssl_locl.h client_cache_test.c
+clientcache2test.o: ../include/openssl/asn1.h ../include/openssl/bio.h
+clientcache2test.o: ../include/openssl/buffer.h ../include/openssl/comp.h
+clientcache2test.o: ../include/openssl/crypto.h ../include/openssl/dtls1.h
+clientcache2test.o: ../include/openssl/e_os2.h ../include/openssl/ec.h
+clientcache2test.o: ../include/openssl/ecdh.h ../include/openssl/ecdsa.h
+clientcache2test.o: ../include/openssl/err.h ../include/openssl/evp.h
+clientcache2test.o: ../include/openssl/hmac.h ../include/openssl/kssl.h
+clientcache2test.o: ../include/openssl/lhash.h ../include/openssl/obj_mac.h
+clientcache2test.o: ../include/openssl/objects.h
+clientcache2test.o: ../include/openssl/opensslconf.h
+clientcache2test.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
+clientcache2test.o: ../include/openssl/pem.h ../include/openssl/pem2.h
+clientcache2test.o: ../include/openssl/pkcs7.h ../include/openssl/pqueue.h
+clientcache2test.o: ../include/openssl/safestack.h ../include/openssl/sha.h
+clientcache2test.o: ../include/openssl/srtp.h ../include/openssl/ssl.h
+clientcache2test.o: ../include/openssl/ssl2.h ../include/openssl/ssl23.h
+clientcache2test.o: ../include/openssl/ssl3.h ../include/openssl/stack.h
+clientcache2test.o: ../include/openssl/symhacks.h ../include/openssl/tls1.h
+clientcache2test.o: ../include/openssl/x509.h ../include/openssl/x509_vfy.h
+clientcache2test.o: clientcache2test.c testharness.c
 constant_time_test.o: ../crypto/constant_time_locl.h ../e_os.h
 constant_time_test.o: ../include/openssl/e_os2.h
 constant_time_test.o: ../include/openssl/opensslconf.h constant_time_test.c
