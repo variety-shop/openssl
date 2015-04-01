@@ -229,6 +229,8 @@ static const ERR_STRING_DATA SSL_str_functs[] = {
      "SSL_CTX_set_cipher_list"},
     {ERR_PACK(ERR_LIB_SSL, SSL_F_SSL_CTX_SET_CLIENT_CERT_ENGINE, 0),
      "SSL_CTX_set_client_cert_engine"},
+    {ERR_PACK(ERR_LIB_SSL, SSL_F_SSL_CTX_SET_CLIENT_SESSION_CACHE, 0),
+     "SSL_CTX_set_client_session_cache"},
     {ERR_PACK(ERR_LIB_SSL, SSL_F_SSL_CTX_SET_CT_VALIDATION_CALLBACK, 0),
      "SSL_CTX_set_ct_validation_callback"},
     {ERR_PACK(ERR_LIB_SSL, SSL_F_SSL_CTX_SET_SESSION_ID_CONTEXT, 0),

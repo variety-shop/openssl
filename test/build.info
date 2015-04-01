@@ -24,6 +24,7 @@ INCLUDE_MAIN___test_libtestutil_OLB = /INCLUDE=MAIN
   ENDRAW[descrip.mms]
 
   PROGRAMS_NO_INST=\
+          client_cache_test \
           versions \
           aborttest test_test \
           sanitytest exdatatest bntest \
@@ -545,6 +546,14 @@ INCLUDE_MAIN___test_libtestutil_OLB = /INCLUDE=MAIN
   SOURCE[gosttest]=gosttest.c ssltestlib.c
   INCLUDE[gosttest]=../include ..
   DEPEND[gosttest]=../libcrypto ../libssl libtestutil.a
+
+  SOURCE[client_cache_test]=client_cache_test.c
+  INCLUDE[client_cache_test]=.. ../include
+  DEPEND[client_cache_test]=../libcrypto ../libssl
+
+  SOURCE[clientcache2test]=clientcache2test.c
+  INCLUDE[clientcache2test]=.. ../include
+  DEPEND[clientcache2test]=../libcrypto ../libssl
 ENDIF
 
 {-

@@ -927,6 +927,13 @@ int SSL_has_matching_session_id(const SSL *ssl, const unsigned char *id,
 
     if (id_len > sizeof(r.session_id))
         return 0;
+    /*
+     * SSL_SESSION r may be completely uninitialized, if we override
+     * the hashing functions to look at EX_DATA, then the code will
+     * crash without this memeset()
+     */
+    memset(&r, 0, sizeof(r));
+
 
     r.ssl_version = ssl->version;
     r.session_id_length = id_len;
