@@ -1,0 +1,1368 @@
+===========================================================================
+AKAMAI OPENSSL CHANGES
+
+PLEASE USE THIS CHANGENOTES TEMPLATE
+
+ADD NEW NOTES AT THE END OF THIS FILE
+
+AFTER THE CHECK-IN, PASTE THE  CHANGENOTES INTO THE CR.
+===========================================================================
+CR 1138222 - Add support for disallow renegotiation in openssl
+
+Wed Jun  1 12:04:06 PDT 2011
+Developer: shjain
+Code Review: done by fshotton, no open code issues, results stored in CR 1138222
+
+[Openssl]
+- Added support for disallowing renegotiation completely on servers.
+
+- New option added to allow application servers to choose not to do renegotiations:
+  SSL_OP_DISALLOW_RENEGOTIATION
+
+- Detailed design at:
+https://docs.akamai.com/esp/eng/ghost/design/features/openssl_no_renegotiation.xml
+
+[Files Changed]
+//projects/shared/openssl-5.2.4/akamai/openssl/akamai/ChangeNotes#1 - add default change (text)
+//projects/shared/openssl-5.2.4/akamai/openssl/apps/s_server.c#1 - edit default change (ktext)
+//projects/shared/openssl-5.2.4/akamai/openssl/ssl/s3_pkt.c#1 - edit default change (ktext)
+//projects/shared/openssl-5.2.4/akamai/openssl/ssl/ssl.h#1 - edit default change (ktext)
+//projects/shared/openssl-5.2.4/akamai/openssl/ssl/t1_lib.c#1 - edit default change (ktext)
+===========================================================================
+CR 1250734 (SPDY) Add NPN TLS Extension support to OpenSSL.
+[This check in is to the openssl-5.2.5 branch]
+
+Mon Aug 15 16:31:33 PDT 2011
+Developer: gdewan
+Code Review: done by shjain, no open code issues, results stored in CR 1250734
+
+[Openssl]
+- Added support for the NPN TLS extension to OpenSSL 0.9.8n.
+
+- Original patch was supplied by Adam Langley of Google. 
+  The patch is attached to the CR.
+
+- This patch will not do anyting unless the server side and/or the client side
+  NPN related callbacks are instantiated. The callbacks are NOT being instantiated 
+  as part of this CR.
+
+
+[Files Changed]
+//projects/shared/openssl-5.2.5/akamai/openssl/akamai/ChangeNotes#1 - edit default change (text)
+//projects/shared/openssl-5.2.5/akamai/openssl/apps/apps.c#1 - edit default change (ktext)
+//projects/shared/openssl-5.2.5/akamai/openssl/apps/s_apps.h#1 - edit default change (ktext)
+//projects/shared/openssl-5.2.5/akamai/openssl/apps/s_client.c#1 - edit default change (ktext)
+//projects/shared/openssl-5.2.5/akamai/openssl/apps/s_server.c#1 - edit default change (ktext)
+//projects/shared/openssl-5.2.5/akamai/openssl/ssl/s3_both.c#1 - edit default change (ktext)
+//projects/shared/openssl-5.2.5/akamai/openssl/ssl/s3_clnt.c#1 - edit default change (ktext)
+//projects/shared/openssl-5.2.5/akamai/openssl/ssl/s3_lib.c#1 - edit default change (ktext)
+//projects/shared/openssl-5.2.5/akamai/openssl/ssl/s3_pkt.c#1 - edit default change (ktext)
+//projects/shared/openssl-5.2.5/akamai/openssl/ssl/s3_srvr.c#1 - edit default change (ktext)
+//projects/shared/openssl-5.2.5/akamai/openssl/ssl/ssl.h#1 - edit default change (ktext)
+//projects/shared/openssl-5.2.5/akamai/openssl/ssl/ssl3.h#1 - edit default change (ktext)
+//projects/shared/openssl-5.2.5/akamai/openssl/ssl/ssl_err.c#1 - edit default change (ktext)
+//projects/shared/openssl-5.2.5/akamai/openssl/ssl/ssl_lib.c#1 - edit default change (ktext)
+//projects/shared/openssl-5.2.5/akamai/openssl/ssl/ssl_locl.h#1 - edit default change (ktext)
+//projects/shared/openssl-5.2.5/akamai/openssl/ssl/t1_lib.c#1 - edit default change (ktext)
+//projects/shared/openssl-5.2.5/akamai/openssl/ssl/tls1.h#1 - edit default change (ktext)
+===========================================================================
+CR1619770 - (btf/anaconda) support for 64bit
+[This check in is to the openssl-5.2.6 branch]
+
+Mon Apr 1 15:27:33 PDT 2012
+Developer: edao
+Code Review: done by fshotton, no open code issues, results stored in CR 1619770
+
+[Openssl]
+- Change akamake to support 64 bit build variable
+
+[Files Changed]
+//projects/shared/openssl-5.2.6/akamai/openssl/akamai/ChangeNotes#1 - edit default change (text)
+//projects/shared/openssl-5.2.6/akamai/openssl/akamake#1 - edit default change (kxtext)
+===========================================================================
+###################   OPEN SSL 6.101.3.2  #################################
+===========================================================================
+CR1865260 - disable camellia and seed cipher
+[This check in is to the openssl-6.101.3.2 branch]
+
+Mon Aug 27 12:27:30 PDT 2012
+Developer: edao
+Code Review: done by shjain, no open code issues, results stored in CR 1865260
+
+[Openssl]
+remove camellia and seed cipher 
+
+Resulting order after patch (matching that of old order):
+DHE-RSA-AES256-SHA      SSLv3 Kx=DH       Au=RSA  Enc=AES(256)  Mac=SHA1
+DHE-DSS-AES256-SHA      SSLv3 Kx=DH       Au=DSS  Enc=AES(256)  Mac=SHA1
+AES256-SHA              SSLv3 Kx=RSA      Au=RSA  Enc=AES(256)  Mac=SHA1
+EDH-RSA-DES-CBC3-SHA    SSLv3 Kx=DH       Au=RSA  Enc=3DES(168) Mac=SHA1
+EDH-DSS-DES-CBC3-SHA    SSLv3 Kx=DH       Au=DSS  Enc=3DES(168) Mac=SHA1
+DES-CBC3-SHA            SSLv3 Kx=RSA      Au=RSA  Enc=3DES(168) Mac=SHA1
+DES-CBC3-MD5            SSLv2 Kx=RSA      Au=RSA  Enc=3DES(168) Mac=MD5 
+DHE-RSA-AES128-SHA      SSLv3 Kx=DH       Au=RSA  Enc=AES(128)  Mac=SHA1
+DHE-DSS-AES128-SHA      SSLv3 Kx=DH       Au=DSS  Enc=AES(128)  Mac=SHA1
+AES128-SHA              SSLv3 Kx=RSA      Au=RSA  Enc=AES(128)  Mac=SHA1
+RC2-CBC-MD5             SSLv2 Kx=RSA      Au=RSA  Enc=RC2(128)  Mac=MD5 
+RC4-SHA                 SSLv3 Kx=RSA      Au=RSA  Enc=RC4(128)  Mac=SHA1
+RC4-MD5                 SSLv3 Kx=RSA      Au=RSA  Enc=RC4(128)  Mac=MD5 
+RC4-MD5                 SSLv2 Kx=RSA      Au=RSA  Enc=RC4(128)  Mac=MD5 
+EDH-RSA-DES-CBC-SHA     SSLv3 Kx=DH       Au=RSA  Enc=DES(56)   Mac=SHA1
+EDH-DSS-DES-CBC-SHA     SSLv3 Kx=DH       Au=DSS  Enc=DES(56)   Mac=SHA1
+DES-CBC-SHA             SSLv3 Kx=RSA      Au=RSA  Enc=DES(56)   Mac=SHA1
+DES-CBC-MD5             SSLv2 Kx=RSA      Au=RSA  Enc=DES(56)   Mac=MD5 
+EXP-EDH-RSA-DES-CBC-SHA SSLv3 Kx=DH(512)  Au=RSA  Enc=DES(40)   Mac=SHA1 export
+EXP-EDH-DSS-DES-CBC-SHA SSLv3 Kx=DH(512)  Au=DSS  Enc=DES(40)   Mac=SHA1 export
+EXP-DES-CBC-SHA         SSLv3 Kx=RSA(512) Au=RSA  Enc=DES(40)   Mac=SHA1 export
+EXP-RC2-CBC-MD5         SSLv3 Kx=RSA(512) Au=RSA  Enc=RC2(40)   Mac=MD5  export
+EXP-RC2-CBC-MD5         SSLv2 Kx=RSA(512) Au=RSA  Enc=RC2(40)   Mac=MD5  export
+EXP-RC4-MD5             SSLv3 Kx=RSA(512) Au=RSA  Enc=RC4(40)   Mac=MD5  export
+EXP-RC4-MD5             SSLv2 Kx=RSA(512) Au=RSA  Enc=RC4(40)   Mac=MD5  export
+
+[Files Changed]
+//projects/shared/openssl-6.101.3.2/akamai/openssl/Configure#2 - edit default change (xtext)
+//projects/shared/openssl-6.101.3.2/akamai/openssl/akamai/ChangeNotes#1 - edit default change (text)
+//projects/shared/openssl-6.101.3.2/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/enable-sslv2-by-default.diff#1 - edit default change (text)
+//projects/shared/openssl-6.101.3.2/akamai/openssl/ssl/ssl.h#1 - edit default change (ktext)
+
+===========================================================================
+CR1865260 - disable camellia and seed cipher
+[This check in is to the openssl-6.101.3.2 branch]
+
+Tue Aug 28 16:57:52 PDT 2012
+Developer: edao
+Code Review: done by shjain, no open code issues, results stored in CR 1865260
+
+[Openssl]
+remove TLSv1.2
+
+[Files Changed]
+//projects/shared/openssl-6.101.3.2/akamai/openssl/Configure#3 - edit default change (xtext)
+//projects/shared/openssl-6.101.3.2/akamai/openssl/akamai/ChangeNotes#2 - edit default change (text)
+//projects/shared/openssl-6.101.3.2/akamai/openssl/ssl/s3_lib.c#1 - edit default change (ktext)
+===========================================================================
+CR1865260 - disable camellia and seed cipher
+[This check in is to the openssl-6.101.3.2 branch]
+
+Tue Aug 28 17:32:40 PDT 2012
+Developer: edao
+Code Review: done by shjain, no open code issues, results stored in CR 1865260
+
+[Openssl]
+add back IDEA
+
+[Files Changed]
+//projects/shared/openssl-6.101.3.2/akamai/openssl/Configure#4 - edit default change (xtext)
+//projects/shared/openssl-6.101.3.2/akamai/openssl/akamai/ChangeNotes#3 - edit default change (text)
+//projects/shared/openssl-6.101.3.2/akamai/openssl/ssl/ssl.h#2 - edit default change (ktext)
+===========================================================================
+CR1865260 - disable camellia and seed cipher
+[This check in is to the openssl-6.101.3.2 branch]
+
+Tue Aug 28 16:57:52 PDT 2012
+Developer: edao
+Code Review: done by shjain, no open code issues, results stored in CR 1865260
+
+[Openssl]
+remove TLSv1.2
+
+[Files Changed]
+//projects/shared/openssl-6.101.3.2/akamai/openssl/Configure#3 - edit default change (xtext)
+//projects/shared/openssl-6.101.3.2/akamai/openssl/akamai/ChangeNotes#2 - edit default change (text)
+//projects/shared/openssl-6.101.3.2/akamai/openssl/ssl/s3_lib.c#1 - edit default change (ktext)
+===========================================================================
+CR1865260 - disable camellia and seed cipher
+[This check in is to the openssl-6.101.3.2 branch]
+
+Wed Aug 29 10:50:30 PDT 2012
+Developer: edao
+Code Review: done by shjain, no open code issues, results stored in CR 1865260
+
+[Openssl]
+add back Elliptical Curve but not shows it as available cipher in SSL
+
+[Files Changed]
+//projects/ghost/ghost-6.9.0/akamai/ghost-test/etc/ghost/ghost.xml#2 - edit default change (text)
+//projects/shared/openssl-6.101.3.2/akamai/openssl/Configure#5 - edit default change (xtext)
+//projects/shared/openssl-6.101.3.2/akamai/openssl/akamai/ChangeNotes#4 - edit default change (text)
+//projects/shared/openssl-6.101.3.2/akamai/openssl/ssl/s3_lib.c#2 - edit default change (ktext)
+===========================================================================
+###################   OPEN SSL 6.101.3.3  #################################
+===========================================================================
+CR 1897057 - (SSL) Fix possible deadlock when decoding public keys.
+[This check in is to the openssl-6.101.3.3 branch]
+
+Thu Sep 13 02:27:06 PDT 2012
+Developer: edao
+Code Review: done by shjain, no open code issues, results stored in CR 1897057
+
+[Openssl]
+patch openssl fix posible deadlock when decoding public key
+http://cvs.openssl.org/chngview?cn=22570
+
+[Files Changed]
+//projects/shared/openssl-6.101.3.3/akamai/openssl/akamai/ChangeNotes#1 - edit default change (text)
+//projects/shared/openssl-6.101.3.3/akamai/openssl/akamai/auto_patch_openssl-1.0.x/bin/construct-static-build-deps#1 - edit default change (xtext)
+//projects/shared/openssl-6.101.3.3/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR1897057.diff#1 - add default change (text)
+//projects/shared/openssl-6.101.3.3/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/patchlist#1 - edit default change (text)
+//projects/shared/openssl-6.101.3.3/akamai/openssl/crypto/asn1/x_pubkey.c#1 - edit default change (ktext)
+===========================================================================
+###################   OPEN SSL 6.101.3.5  #################################
+===========================================================================
+CR 942625 - (SSL) OpenSSL patch to improve OpenSSL's memory performance
+[This check in is to the openssl-6.101.3.5 branch]
+
+Mon Oct 15 16:57:06 PDT 2012
+Developer: edao
+Code Review: done by shjain, no open code issues, results stored in CR 942625
+
+[Openssl]
+  Add -DOPENSSL_NO_BUF_FREELISTS compile flag since we use tcmalloc and having a buffer freelist in openssl is redundant.
+[Test]
+  There is no easy way to test this change because it requires looking into the memory footprint to compare the before and after.
+
+[Files Changed]
+//projects/shared/openssl-6.101.3.5/akamai/openssl/Configure#1 - edit default change (xtext)
+//projects/shared/openssl-6.101.3.5/akamai/openssl/akamai/ChangeNotes#1 - edit default change (text)
+//projects/shared/openssl-6.101.3.5/akamai/openssl/akamai/auto_patch_openssl-1.0.x/bin/auto_patch#1 - edit default change (xtext)
+//projects/shared/openssl-6.101.3.5/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/Configure#1 - add default change (xtext)
+//projects/shared/openssl-6.101.3.5/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/static-build-deps.mak#1 - add default change (text)
+//projects/shared/openssl-6.101.3.5/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/static-configure-deps.mak#1 - add default change (text)
+//projects/shared/openssl-6.101.3.5/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/makefiles.diff#1 - edit default change (text)
+//projects/shared/openssl-6.101.3.5/akamai/openssl/static-build-deps.mak#1 - edit default change (text)
+===========================================================================
+CR 1961542 - SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION and SSL_OP_DISALLOW_RENEGOTIATION share the same option bit
+[This check in is to the openssl-6.101.3.5 branch]
+
+Tue Oct 23 14:18:25 PDT 2012
+Developer: edao
+Code Review: done by shjain, no open code issues, results stored in CR 1961542
+
+[Openssl]
+  SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION and SSL_OP_DISALLOW_RENEGOTIATION 
+  shared the same option bit.  This causes GHost to not be able to support 
+  allow-session-resume-on-reneg: off and client-renegotiation: on at the same time.
+
+  Basically if client-renegotiation is set then it override allow-session-resume-on-reneg to also on.
+  the fix is to extend option from 32 bits to 64 bits
+
+[Test]
+  Test should be in ghost ESTest.  Combine root/ESSL/B600292.pm and root/SSL/renegotiationMetadataCheck.pm 
+  to make sure that allow-session-resume-on-reneg: off and client-renegotiation: on is supported.
+
+[Files Changed]
+//projects/shared/openssl-6.101.3.5/akamai/openssl/akamai/ChangeNotes#2 - edit default change (text)
+//projects/shared/openssl-6.101.3.5/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR1961542.diff#1 - add default change (text)
+//projects/shared/openssl-6.101.3.5/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/patchlist#1 - edit default change (text)
+//projects/shared/openssl-6.101.3.5/akamai/openssl/ssl/ssl.h#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.3.5/akamai/openssl/ssl/ssl_lib.c#1 - edit default change (ktext)
+===========================================================================
+###################   OPEN SSL 6.101.5.0  #################################
+===========================================================================
+CR 2103643 - Update the code base with openssl-1.0.1e
+
+Tue Feb 12 10:01:03 EST 2013
+Developer: rsalz
+Code Review: done by eddao, no open code issues, results stored in CR 2103643
+
+[Openssl]
+- Updated auto-patch script: cache .tgz file so it can be run multiple times
+  (which is useful for patching/resolving diffs); have it rsync itself into
+  the new source tree; remove outdated patches; use common "#" as comment
+  character in patchlist file; have it generate the dependency .mak files
+  automatically.
+- Replace the construct-xxx scripts with simple gen-xxx scripts for use
+  in auto-patch.
+- Update to OpenSSL 1.0.1e.  Driving force was a timing attack vulnerability,
+  CVE-2013-0169, commonly known as the "lucky 13" attack.  See the CR for
+  complete list of changes.
+- Remove a lot of obsolete change notes
+[Files Changed]
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/097c_upgrade_notes.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/098d_upgrade_notes.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/098k_upgrade_notes.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/098n_upgrade_notes.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/ChangeNotes#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/bin/auto_patch#1 - edit default change (xtext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/bin/construct-static-build-deps#1 - delete default change (xtext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/bin/construct-static-configure-deps#1 - delete default change (xtext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/bin/gen-static-build-deps.mak#1 - add default change (xtext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/bin/gen-static-configure-deps.mak#1 - add default change (xtext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/Akamai.Component#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/THIRD-PARTY-VERSION#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamai/097c_upgrade_notes.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamai/098d_upgrade_notes.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamai/098k_upgrade_notes.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamai/098n_upgrade_notes.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamai/ChangeNotes#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamai/configure.w32.pl#1 - delete default change (kxtext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamai/diffs_our_096b_vs_orig.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamai/diffs_our_097c_vs_orig_as_of_20040219.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamai/diffs_our_098d_vs_orig_as_of_20061107.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamai/diffs_our_098k_vs_orig_as_of_20090424.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamai/diffs_our_098n_vs_orig_as_of_20100329.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamai/fips_notes.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamai/key_security.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamai/ms_build.bat#1 - delete default change (xtext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamai/openssl_s_client_s_server_with_ipv6.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamai/patch_results_our_098k_to_098n.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamai/upgrade_notes.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamake#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamake-env.mak#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/componentinfo.xml#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/componentinfo.xml.in#1 - add default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/crypto/secure_malloc.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/hostsetup/configure_openssl.pl#1 - edit default change (kxtext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/hostsetup/hostsetup/configure_openssl.pl#1 - edit default change (kxtext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/static-build-deps.mak#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/static-configure-deps.mak#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/util/mkcopy.pl#1 - edit default change (kxtext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/2004-2006.diff#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR1225129_CR1396000_CR1357256.diff#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR1865260.diff#1 - add default change (text)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR1897057.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR1975321.diff#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR211521.diff#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/enable-sslv2-by-default.diff#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/makefiles-crypto.diff#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/makefiles-demos.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/patch.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/patchlist#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/pre2004.diff#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/configure.w32.pl#1 - delete default change (kxtext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/diffs_our_096b_vs_orig.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/diffs_our_097c_vs_orig_as_of_20040219.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/diffs_our_098d_vs_orig_as_of_20061107.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/diffs_our_098k_vs_orig_as_of_20090424.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/diffs_our_098n_vs_orig_as_of_20100329.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/fips_notes.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/key_security.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/ms_build.bat#1 - delete default change (xtext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/openssl_s_client_s_server_with_ipv6.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/patch_results_our_098k_to_098n.txt#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/upgrade_notes.txt#1 - delete default change (ktext)
+===========================================================================
+CR 2103643 - Update the code base with openssl-1.0.1e
+
+Tue Feb 12 10:01:03 EST 2013
+Developer: rsalz
+Code Review: trivial change, no review needed
+
+[Openssl]
+- Remove the Perforce $Id: ...$ lines, to avoid gratuitous diff output
+[Files Changed]
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/ChangeNotes#2 - edit default change (text)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamake#2 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamake-env.mak#2 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/crypto/secure_malloc.c#2 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/hostsetup/configure_openssl.pl#2 - edit default change (kxtext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/hostsetup/hostsetup/configure_openssl.pl#2 - edit default change (kxtext)
+//projects/shared/openssl-6.101.5.0/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/util/mkcopy.pl#2 - edit default change (kxtext)
+===========================================================================
+CR 2103643 - Update the code base with openssl-1.0.1e
+
+Tue Feb 12 10:01:03 EST 2013
+Developer: rsalz
+Code Review: done by edao, no open code issues, results stored in CR 1138222
+
+[Openssl]
+- Check in patched 1.0.1e sources
+[Files Changed]
+218 files... not listed here.
+===========================================================================
+###################   OPEN SSL 6.101.5.2  #################################
+===========================================================================
+CR 2139634  x509 -CA no longer performs signing 
+
+Thu May  2 14:07:20 EDT 2013
+Developer: rsalz
+Code Review: minor change, no review needed
+
+[Openssl]
+Add in upstream bugfix that will be pulled in next time we update.
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.2/akamai/openssl/akamai/ChangeNotes#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.2/akamai/openssl/crypto/x509/x_all.c#1 - edit default change (text)
+===========================================================================
+###################   OPEN SSL 6.101.5.4  #################################
+===========================================================================
+CR 2361612 - (TLS-1.2) Enable TLS-1.2 ciphers
+Developer: sthiruma
+Code Review: Rich Salz, no open code issues, result stored in CR 2361612
+Date: Tue Nov  5 20:11:57 UTC 2013
+
+[OpenSSL]
+- Enabled TLS 1.2 ciphers by removing '#if 0' around the cipher definitions from s3_lib.c
+- Enabled availability of ECDH ciphers by removing the #if 0 block around '#ifndef OPENSSL_NO_ECDH' in s3_lib.c 
+
+[Test]
+- Ran bin/auto_patch and inspectd code to veirfy that the patch (CR2361612.diff) is being applied correctly.
+- After the build, ran openssl/apps/openssl ciphers -v to make sure ECDH ciphers are avaialble. Made
+  sure that 'openssl ciphers -v HIGH' matches expected value (see comment #3 of CR 2361612)
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.4/akamai/openssl/akamai/ChangeNotes#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.4/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR2361612.diff#1 - add default change (text)
+//projects/shared/openssl-6.101.5.4/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/patchlist#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.4/akamai/openssl/ssl/s3_lib.c#1 - edit default change (ktext)
+===========================================================================
+CR 2127457 -  openssl fails to compile on vbe39 64 bit
+Developer: Jay Bonci
+Code Review: Rich Salz, no open code issues, result stored in CR 2127457
+Date: Tue Nov 12 11:41:10 EST 2013
+
+[openssl]
+- crypto/objects/Makefile -- add chmod so that obj_xref.h can be rebuilt
+  if the timestamps get out of sync
+[akamai]
+- Uupdate makefiles-crypto.diff to include this additional change
+
+[Test]
+- Build works.
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.4/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/makefiles-crypto.diff#2 edit
+//projects/shared/openssl-6.101.5.4/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/patchlist#3 edit
+//projects/shared/openssl-6.101.5.4/akamai/openssl/crypto/objects/Makefile#2 edit
+===========================================================================
+CR 2452494 -  OpenSSL fails to build when used as an ALSI7 64 bit build dependency
+Developer: Jay Bonci
+Code Review: Rich Salz, no open code issues, result stored in CR 2452494
+Date: Wed Nov 13 11:41:10 EST 2013
+
+[akamake]
+- Add -fPIC flag to configure when building 64bit ALSI7
+
+[Test]
+- alsi6 build (still) works fine.
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.4/akamai/openssl/akamai/ChangeNotes#2 - edit default change (text)
+//projects/shared/openssl-6.101.5.4/akamai/openssl/akamake#1 - edit default change (kxtext)
+===========================================================================
+###################   OPEN SSL 6.101.5.5  #################################
+===========================================================================
+CR 2479287 -  Eliminate contended lock from non-secure arena in OpenSSL
+Developer: ilevin
+Code Review: Rich Salz, no open code issues, result stored in CR 2479287
+Date: Mon Jan 6 19:09 EST 2014
+
+[openssl/crypto]
+- Change the akamaized secure_malloc.c file to take mutex only for secure arena (which has a proprietory 
+ non-thread-aware implementation), and do not lock for non-secure arena, where allocations/frees are 
+ redirected to malloc/free. 
+
+[Test]
+- Ghost 6.15.0 64-bit build passes all SSL ESTests.
+- GHost  binary with this fix tested through MC on ESSL production region.
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.5/akamai/openssl/akamai/ChangeNotes#1 - edit change 11953552 (text)
+//projects/shared/openssl-6.101.5.5/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/crypto/secure_malloc.c#1 - edit change 11953552 (ktext)
+//projects/shared/openssl-6.101.5.5/akamai/openssl/crypto/secure_malloc.c#1 - edit change 11953552 (ktext)
+===========================================================================
+CR 2509095 -  Add openssl-cve fixes from 1.0.1f
+Developer: rsalz
+Code Review: Rich Salz, no open code issues, result stored in CR 2509095
+Date: Fri Jan 10 13:59:27 EST 2014
+
+[openssl]
+Add these patches to fix openssl cve-2013-4353 and cve-2013-6449
+We are not putting these into the auto-patch directory because our
+intent is to just move to openssl 1.0.1f and get these "for free"
+
+The git commit links are here:
+  http://git.openssl.org/gitweb/?p=openssl.git;a=commitdiff;h=197e0ea817ad64820789d86711d55ff50d71f631
+  http://git.openssl.org/gitweb/?p=openssl.git;a=commitdiff;h=ca98926
+
+
+Added a more complete fix; see comment 6 in the CR
+http://git.openssl.org/gitweb/?p=openssl.git;a=commit;h=f3dcc8411e518fb0835c7d72df4a58718205260d
+
+[Test]
+openssl 'make test' passes
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.5/akamai/openssl/akamai/ChangeNotes#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.5/akamai/openssl/akamai/ChangeNotes#4 - edit default change (text)
+//projects/shared/openssl-6.101.5.5/akamai/openssl/ssl/s3_both.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.5/akamai/openssl/ssl/s3_lib.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.5/akamai/openssl/ssl/s3_lib.c#3 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.5/akamai/openssl/ssl/s3_pkt.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.5/akamai/openssl/ssl/s3_srvr.c#1 - edit default change (ktext)
+===========================================================================
+CR 2521488 - add VC10 patches into patchdata scheme
+Developer: rsalz
+Code Review: gfu, no open code issues, result stored in CR 2521488
+Date: Wed Jan 22 22:05:57 EST 2014
+
+[openssl]
+CR 1666228 patched files to make VC-10 builds work.
+But they didn't include a patchdata/patches/xxxx.diff file, so that those
+changes were lost when openssl was upgraded.
+This submit takes the fixes for CR 1666228 and creates a patch file
+and adds it to the patchlist.
+
+[Test]
+openssl 'make test' passes
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.5/akamai/openssl/akamai/ChangeNotes#5 - edit default change (text)
+//projects/shared/openssl-6.101.5.5/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR1666228.diff#1 - add default change (text)
+//projects/shared/openssl-6.101.5.5/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/patchlist#3 - edit default change (text)
+//projects/shared/openssl-6.101.5.5/akamai/openssl/e_os.h#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.5/akamai/openssl/util/mk1mf.pl#1 - edit default change (kxtext)
+===========================================================================
+CR 2521488 - add VC10 patches into patchdata scheme
+Developer: rsalz
+Code Review: gfu, no open code issues, result stored in CR 2521488
+Date: Mon Jan 27 15:27:26 EST 2014
+
+[openssl]
+In addition to the previous change, the newfiles/aka-VC-32.pl needs
+to be patched.  This is different from the patches files in the pervious
+checkin, and was caught by Sahitya, thanks.
+
+[Test]
+openssl 'make test' passes
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.5/akamai/openssl/akamai/ChangeNotes#7 - edit default change (text)
+//projects/shared/openssl-6.101.5.5/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/util/pl/aka-VC-32.pl#1 - edit default change (kxtext)
+===========================================================================
+###################   OPEN SSL 6.101.5.5.3  ###############################
+===========================================================================
+CR 2621919 - backport upstream fix for bug#2167, reuse of buffer returned to free pool prematurely.
+Developer: OpenSSL maintainers, Benson Kwok (BensonKwok923@air-watch.com) and ilevin.
+
+Code review: shjain, no open issues, results stored in CR 2621919
+
+[openssl]
+1. In function ssl3_readv_bytes, check that no input data is left in the buffer before releasing to the pool.
+
+[Test]
+Regression only.
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.5.3/akamai/openssl/akamai/ChangeNotes#1 - edit change 12659773 (text)
+//projects/shared/openssl-6.101.5.5.3/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR2621919.diff#1 - add change 12659773 (xtext)
+//projects/shared/openssl-6.101.5.5.3/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/patchlist#1 - edit change 12659773 (text)
+//projects/shared/openssl-6.101.5.5.3/akamai/openssl/ssl/s3_pkt.c#1 - edit change 12659773 (ktext)
+===========================================================================
+###################   OPEN SSL 6.101.5.6  #################################
+===========================================================================
+CR 2573643 - protect secure arena from being dumped to the core by using madvise(MADV_DONTDUMP)
+Developer: ilevin
+Code Review: rsalz, no open code issues, result stored in CR 2573643
+Date: Tue Mar 18 15:27:26 EST 2014
+
+[openssl]
+Call madvise(MADV_DONTDUMP) during the initialization of secure arena if MADV_DONTDUMP is supported (depnding on VBE used). 
+This call is supported starting from Kernel 3.4 in the world, and starting with Platform pack 3.0 Akamai wise.
+Update secure_malloc_init() interface to have now return value of 2 in case madvise(MADV_DONTDUMP) succeeded.
+
+
+[Test]
+During GHost start up, check that new value 2 is returned from secure_malloc_init() if running GHost over PP 3.0+.
+Intentionally crash the GHost, and check that secure arena memory is not visible in the core dump. 
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.6/akamai/openssl/akamai/ChangeNotes#1 - edit change 12419358 (text)
+//projects/shared/openssl-6.101.5.6/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/crypto/secure_malloc.c#1 - edit change 12419358 (ktext)
+//projects/shared/openssl-6.101.5.6/akamai/openssl/crypto/secure_malloc.c#1 - edit change 12419358 (ktext)
+===========================================================================
+CR 2588484 - Backport ALPN patch from openssl
+Developer: shjain
+Code Review: rsalz, no open code issues, result stored in CR 2588484
+Thu Mar 27 23:05:27 PDT 2014
+
+[openssl]
+This patch file contains 6f017a8f9d and a898936218 changes from openssl
+mainline that contain changes for ALPN. The changes from mainline had to
+be applied by hand in some cases so this is not a clean port of the
+aforementioned changes from openssl. Once we move to openssl branch that
+contains ALPN changes we should remove this patch file and remove the patch
+filename from the patchlist.
+
+[Test]
+- Used s_server to run a server and used s_client to run a client and made sure
+  that ALPN is negotiated.
+
+Client
+------
+o Command
+openssl s_client -connect 127.0.0.1:4433 -tls1_1 -alpn "http/1.1"
+
+o Output
+ALPN protocol: http/1.1
+
+Server
+------
+o Command
+openssl s_server -cert test/ESTest/tests/root/ESSL/essl.data/decrypted/essl_srv_1.pem -alpn "http/1.1"
+
+o Output
+ALPN protocols advertised by the client: http/1.1
+ALPN protocols selected: http/1.1
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.6/akamai/openssl/akamai/ChangeNotes#2 - edit default change (text)
+//projects/shared/openssl-6.101.5.6/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR2588484_alpn.diff#1 - add default change (text)
+//projects/shared/openssl-6.101.5.6/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/patchlist#2 - edit default change (text)
+//projects/shared/openssl-6.101.5.6/akamai/openssl/apps/s_client.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.6/akamai/openssl/apps/s_server.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.6/akamai/openssl/ssl/s3_lib.c#2 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.6/akamai/openssl/ssl/ssl.h#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.6/akamai/openssl/ssl/ssl3.h#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.6/akamai/openssl/ssl/ssl_lib.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.6/akamai/openssl/ssl/ssltest.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.6/akamai/openssl/ssl/t1_lib.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.6/akamai/openssl/ssl/tls1.h#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.6/akamai/openssl/test/testssl#1 - edit default change (text)
+===========================================================================
+CR 2594649 - Add -DOPENSSL_NO_HEARTBEATS to Configure flags
+Developer: rsalz
+Code Review: rsalz, no open code issues, result stored in CR 2594649
+Date: Mon Mar 31 18:07:15 EDT 2014
+
+[openssl]
+To avoid an upcoming vulnerability, add =DOPENSSL_NO_HEARTBEATS to the
+compile flags
+
+[Test]
+"make test" passes
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.6/akamai/openssl/Configure#1 - edit default change (xtext)
+//projects/shared/openssl-6.101.5.6/akamai/openssl/akamai/ChangeNotes#5 - edit default change (text)
+//projects/shared/openssl-6.101.5.6/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/Configure#1 - edit default change (xtext)
+===========================================================================
+CR 2603496 - add beginning and end guard pages around secure arena
+Developer: ilevin
+Code Review: rsalz, no open code issues, result stored in CR 2603496
+Date: Wed 04-09 18:07:15 EDT 2014
+
+[openssl]
+Protect secure arena from over running pointers drifting into it from below or above.
+In case such an overrun happens (due to delibarate exploit or bug) SEGV will be raised.
+
+[Test]
+After Ghost start up, check its memory maps. Ensure that secure arena is now surrounded by protected guard pages from below and above.
+Example:
+cat /proc/<ghost_pid>/maps
+...
+7fc595f6e000-7fc595f6f000 rwxp 0000c000 08:01 115801                     /lib/x86_64-linux-gnu/libnss_files-2.15.so
+7fc595f76000-7fc595f7c000 rwxs 00000000 08:03 81                         /usr/local/akamai/logs/ghost.crashguard
+7fc595f7c000-7fc595f7d000 ---p 00000000 00:00 0   <-- Secure arena lower guard page
+7fc595f7d000-7fc59677d000 rwxp 00000000 00:00 0   <-- Secure arena
+7fc59677d000-7fc59677f000 ---p 00000000 00:00 0   <-- Secure arena upper guard page
+7fc59677f000-7fc596792000 rwxp 00000000 00:00 0                          [stack:15847]
+...
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.6/akamai/openssl/akamai/ChangeNotes#6 - edit change 12569695 (text)
+//projects/shared/openssl-6.101.5.6/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/crypto/buddy_allocator.c#1 - edit change 12569695 (ktext)
+//projects/shared/openssl-6.101.5.6/akamai/openssl/crypto/buddy_allocator.c#1 - edit change 12569695 (ktext)
+===========================================================================
+###################   OPEN SSL 6.101.5.6.1  ###############################
+===========================================================================
+2649657 - add pre-CVE fix for zero-size PMS that allows MitM
+Developer: Stephen Henson, openssl team
+Code review: Dan Franke, Rich Salz, Adam Langley of Google
+Wed May 21 18:15:41 EDT 2014
+
+[openssl]
+This is a fix for a pre-GA CVE that prevents a MitM from sniffing traffic
+by forcing the pre-master secret to be "empty."  I will add the CVE
+notice once it is released.  There are two patches; this is the simple
+one-line fix that rejects a zero-length PMS.
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.6.1/akamai/openssl/akamai/ChangeNotes#2 - edit default change (text)
+//projects/shared/openssl-6.101.5.6.1/akamai/openssl/ssl/s3_pkt.c#2 - edit default change (ktext)
+===========================================================================
+###################   OPEN SSL 6.101.5.7  #################################
+===========================================================================
+CR 2637399 - Remove auto-patch directory
+Developer: rsalz
+Code Review: ilevin, no open code issues, result stored in CR 2637399
+Fri May  9 12:59:31 EDT 2014
+
+[openssl]
+Removing the akamai/auto_patch_openssl-1.0.x and the files therein.
+We have consultants who are integrating our changes and we're going
+to feed them upstream to openssl, which uses git.  So for now, we
+only need to keep modified sources, not the ability to carry changes
+forward.
+
+[Test]
+- n/a
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/ChangeNotes#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/bin/auto_patch#1 - delete default change (xtext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/bin/gen-static-build-deps.mak#1 - delete default change (xtext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/bin/gen-static-configure-deps.mak#1 - delete default change (xtext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/AKAMAI.W32#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/Akamai.Component#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/Configure#1 - delete default change (xtext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/THIRD-PARTY-VERSION#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamai/ChangeNotes#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamake#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/akamake-env.mak#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/componentinfo.xml.in#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/configure.w32.pl#1 - delete default change (kxtext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/crypto/buddy_allocator.c#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/crypto/conf/conf_parse.c#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/crypto/secure_malloc.c#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/crypto/secure_malloc.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/hostsetup/build.info.NT-5.0#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/hostsetup/build.info.linux#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/hostsetup/configure_openssl.pl#1 - delete default change (kxtext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/hostsetup/hostsetup/build.info.NT-5.0#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/hostsetup/hostsetup/build.info.linux#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/hostsetup/hostsetup/configure_openssl.pl#1 - delete default change (kxtext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/ms/do_aka_nt.bat#1 - delete default change (xtext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/ms/libeay16.def#1 - delete default change (xtext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/ms/libeay32.def#1 - delete default change (xtext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/ms/ssleay16.def#1 - delete default change (xtext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/ms/ssleay32.def#1 - delete default change (xtext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/ms/win32.mak#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/ms_build.bat#1 - delete default change (xtext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/openssl.dsp#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/util/mkcopy.pl#1 - delete default change (kxtext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/new-files/util/pl/aka-VC-32.pl#1 - delete default change (kxtext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/2004-2006.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/2006-2009.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR1103943.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR1138222.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR1225129_CR1396000_CR1357256.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR1666228.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR1865260.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR1961542.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR1975321.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR211521.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR2215613.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR2361612.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR2507727.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR2537769.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR2588484_alpn.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR2621919.diff#1 - delete default change (xtext)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR540532.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/enable-sslv2-by-default.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/makefiles-apps.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/makefiles-crypto.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/makefiles-ssl.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/makefiles-test.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/makefiles.diff#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/patchlist#1 - delete default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/pre2004.diff#1 - delete default change (text)
+===========================================================================
+CR 2633889 - Incorporate CVE-2010-5298 fix
+Developer: rsalz
+Code Review: no review necessary
+Fri May  9 12:59:31 EDT 2014
+
+[openssl]
+This integrates an OpenSSL upstream fix into our source tree.
+See the CR for details.
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/ChangeNotes#2 - edit default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/ssl/s3_pkt.c#1 - edit default change (ktext)
+===========================================================================
+CR 2594649 - Add -DOPENSSL_NO_HEARTBEATS to Configure flags (windows)
+Developer: gervais
+Code Review: rsalz, no open code issues, result stored in CR 2594649
+Date: Mon Mar 31 18:07:15 EDT 2014
+
+[openssl]
+Add -DOPENSSL_NO_HEARTBEATS to win32 VC build flags.
+
+[Test]
+n/a
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/ChangeNotes#3 - edit default change (text)
+//projects/shared/openssl-6.101.5.7/akamai/openssl/util/pl/aka-VC-32.pl#1 - edit default change (kxtext)
+===========================================================================
+CR 2626977: More secure arena use (BIGNUM and BIO)
+Developer: rsalz
+Code review: many people, results recorded in CR 2626977
+Date: Tue Jun  3 15:23:13 EDT 2014
+
+[openssl]
+	This creates a new "secure memory" facility for OpenSSL.
+	Reviewers include Tim Hudson and Stephen Henson of OpenSSL,
+	consultant Willem Pinkers, and Michael Stone and Daniel
+	Franke of info-sec (cursory review given the previous set).
+	The new API makes explicit CRYPTO_secure_malloc API, and
+	replaces the old start/stop secure allocation 'swap the
+	pointers' trick.
+
+[Files Changed]
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/Akamai.Component#1 edit
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR2609553.diff#1 delete
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/akamai/auto_patch_openssl-1.0.x/patchdata/patches/CR2621919.diff#3 delete
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/akamake#1 edit
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/apps/version.c#1 edit
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/crypto/Makefile#1 edit
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/crypto/asn1/tasn_dec.c#2 edit
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/crypto/bio/bio.h#1 edit
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/crypto/bio/bss_mem.c#1 edit
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/crypto/bn/bn_lib.c#1 edit
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/crypto/buddy_allocator.c#1 delete
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/crypto/buffer/buffer.c#1 edit
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/crypto/buffer/buffer.h#1 edit
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/crypto/crypto.h#1 edit
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/crypto/cversion.c#1 edit
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/crypto/mem.c#1 edit
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/crypto/sec_mem.c#1 add
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/crypto/secure_malloc.c#1 delete
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/crypto/secure_malloc.h#1 delete
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/doc/crypto/BIO_s_mem.pod#1 edit
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/doc/crypto/CRYPTO_secure_malloc.pod#1 add
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/doc/crypto/bio.pod#1 edit
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/doc/crypto/buffer.pod#1 edit
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/include/openssl/crypto.h#1 edit
+... //projects/shared/openssl-6.101.5.7/akamai/openssl/ms/win32.mak#1 edit
+
+===========================================================================
+###################   OPEN SSL 6.101.5.8  #################################
+===========================================================================
+Backported the change for 6.101.5.8 below
+
+===========================================================================
+###################   OPEN SSL 6.101.5.8  #################################
+===========================================================================
+
+===========================================================================
+CR 2626977: More secure arena use (BIGNUM and BIO)
+Developer: rsalz
+Code review: ilevin, Steffan Essing (Greenbytes), results recorded in CR 2626977
+Date: Tue Jun  3 15:23:13 EDT 2014
+
+[openssl]
+	Only put private keys into secure arena
+	Finish off the "CBIGNUM" implementation, which use BN_secure_new, which
+	in turn uses secure BUFFER to hold the bignum.
+	And change the ASN1 and key creation routines to use BN_secure_new and
+	CBIGNUM for the parsing code.
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.8/akamai/openssl/akamai/ChangeNotes#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.8/akamai/openssl/crypto/asn1/x_bignum.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.8/akamai/openssl/crypto/bn/bn.h#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.8/akamai/openssl/crypto/bn/bn_lib.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.8/akamai/openssl/crypto/dh/dh_ameth.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.8/akamai/openssl/crypto/dh/dh_key.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.8/akamai/openssl/crypto/dsa/dsa_ameth.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.8/akamai/openssl/crypto/dsa/dsa_asn1.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.8/akamai/openssl/crypto/dsa/dsa_key.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.8/akamai/openssl/crypto/ec/ec_asn1.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.8/akamai/openssl/crypto/rsa/rsa_asn1.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.8/akamai/openssl/crypto/rsa/rsa_gen.c#1 - edit default change (ktext)
+
+===========================================================================
+CR 2665101: Restore akamai_lib support for secure allocations using the new openssl arena API's
+Developer: rsalz
+Code review: pvincent, results recorded in cR 2665101
+Date: Mon Jul 14 11:19:07 EDT 2014
+
+[openssl]
+Add CRYPTO_secure_actual_size() so it can be used by akamai_lib secure realloc.
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.8/akamai/openssl/akamai/ChangeNotes#3 - edit default change (text)
+//projects/shared/openssl-6.101.5.8/akamai/openssl/crypto/crypto.h#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.8/akamai/openssl/crypto/sec_mem.c#1 - edit default change (ktext)
+
+===========================================================================
+###################   OPEN SSL 6.101.5.9  #################################
+===========================================================================
+
+===========================================================================
+CR 2719758: Fix new secure arena clean up to prevent double free
+Developer: ilevin
+Code review: maroman, no open issues, results stored in CR 2719758
+Date: Wed Jul  23 15:23:13 EST 2014
+
+[openssl]
+    Improving secure arena clean up code, normally run under roll, to avoid
+    double free of memory areas.
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.9/akamai/openssl/akamai/ChangeNotes#2 - edit change 13194492 (text)
+//projects/shared/openssl-6.101.5.9/akamai/openssl/crypto/sec_mem.c#2 - edit change 13194492 (ktext)
+
+===========================================================================
+CR 2730846: fix windows build
+Developer: rsalz
+Code review: ilevin, no open issues, results stored in CR 2730846
+Date: Wed Aug  6 11:46:19 EDT 2014
+
+[openssl]
+Fix Windows build.
+Add -ggdb to Akamai alsi[67] build targets; debugging now possible :)
+Make secure-heap API always available. If not enabled, the code falls back
+to calling regular heap functions.
+Add CRYPTO_secure_realloc(), with handling for various special-cases
+(size==0, oldptr==NULL, size<=oldsize, etc).
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.9/akamai/openssl/Configure#1 - edit change 13271022 (xtext)
+//projects/shared/openssl-6.101.5.9/akamai/openssl/akamai/ChangeNotes#3 - edit default change (text)
+//projects/shared/openssl-6.101.5.9/akamai/openssl/crypto/sec_mem.c#5 - edit change 13271022 (ktext)
+===========================================================================
+CR 2755821: Fix SSL client session cache handling, where the same session instance could end up being
+used simultaneously for several connections.
+Developer: ilevin
+Code review: rsalz, no open issues, results stored in CR 2755821
+Date: Wed Aug  20 11:46:19 EDT 2014
+
+[openssl]
+Fix the code in SSL_get_prev_client_session() to duplicate session found in client cache.
+Add a routine for session object duplication.
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.9/akamai/openssl/akamai/ChangeNotes#4 - edit change 13455933 (text)
+//projects/shared/openssl-6.101.5.9/akamai/openssl/ssl/ssl.h#1 - edit change 13455933 (ktext)
+//projects/shared/openssl-6.101.5.9/akamai/openssl/ssl/ssl_sess.c#3 - edit change 13455933 (ktext)
+===========================================================================
+
+===========================================================================
+###################   OPEN SSL 6.101.5.9.1  #################################
+===========================================================================
+
+===========================================================================
+CR 2755821: Additional fix for setting a timeout on a cached session.
+Developer: ilevin
+Code review: shjain, no open issues, results stored in CR 2755821
+Date: Tue Aug 26 15:23:13 EST 2014
+
+[openssl]
+Patches the case where intention of the user is to set timeout of -1 to the cached session, 
+meaning to remove it from the cache. After previous fix the user may actually hold a copy of the session in cache, 
+so there is a need to update the original one as well.
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.9.1/akamai/openssl/akamai/ChangeNotes#1 - edit change 13542289 (text)
+//projects/shared/openssl-6.101.5.9.1/akamai/openssl/ssl/ssl.h#1 - edit change 13542289 (ktext)
+//projects/shared/openssl-6.101.5.9.1/akamai/openssl/ssl/ssl_sess.c#1 - edit change 13542289 (ktext)
+===========================================================================
+CR 2765640: Fix locking around reference counter of sess_cert.
+Developer: ilevin
+Code review: rsalz, no open issues, results stored in CR 2765640
+Date: Fri Aug 29 18:23:13 EST 2014
+
+[openssl]
+SEGV due to deleting a pointed substructure inside SSL_session, called "sess_cert", simultaneously by several threads. 
+This is a reference counted object, and it gets its count incremented when session is duplicated out of the original in cache, 
+and decremented on an attempt to destroy the object (which in this case happens together with destruction of a session).
+
+The increment and decrement should ultimately just use __sync_add_and_fetch() builtins, but in OpenSSL real mutexes are used for protection. 
+It turns out however that different mutexes are used for increment and decrement, so that there is indeed a small window race around this reference counter.
+
+Lock of type "CRYPTO_LOCK_SSL_CERT" is used in increment, but lock "CRYPTO_LOCK_SSL_SESS_CERT" is used for decrement.
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.9.1/akamai/openssl/akamai/ChangeNotes#2 - edit change 13585827 (text)
+//projects/shared/openssl-6.101.5.9.1/akamai/openssl/ssl/ssl_sess.c#2 - edit change 13585827 (ktext)
+===========================================================================
+
+===========================================================================
+###################   OPEN SSL 6.101.5.9.2  ###############################
+===========================================================================
+CR 2793918 - Remote DoS attack from malicious clients
+Developer: rsalz
+Code review: minor change, no review necessary
+Date: Fri Sep 26 14:18:26 EDT 2014
+
+[openssl]
+Add -DOPENSSL_NO_SRP to all Akamai build configuration stanza's.
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.9.2/akamai/openssl/Configure#2 - edit default change (xtext)
+//projects/shared/openssl-6.101.5.9.2/akamai/openssl/akamai/ChangeNotes#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.9.2/akamai/openssl/util/pl/aka-VC-32.pl#1 - edit default change (kxtext)
+===========================================================================
+
+===========================================================================
+###################   OPEN SSL 6.101.5.9.3  #################################
+===========================================================================
+CR 2804646 - Add fallback-scsv support
+Developer: rsalz
+Code review: from upstream, no review necessary
+Date: Tue Oct  7 16:15:29 EDT 2014
+
+[openssl]
+Add detection/reject of the SCSV fallback indicator.
+Add a new API to allow clients to signal fallback is happening.
+This is from usptream, not yet publically released.
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.9.3/akamai/openssl/CHANGES#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.9.3/akamai/openssl/akamai/ChangeNotes#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.9.3/akamai/openssl/apps/s_client.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.9.3/akamai/openssl/apps/s_server.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.9.3/akamai/openssl/crypto/err/openssl.ec#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.9.3/akamai/openssl/ssl/d1_lib.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.9.3/akamai/openssl/ssl/dtls1.h#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.9.3/akamai/openssl/ssl/s23_clnt.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.9.3/akamai/openssl/ssl/s23_srvr.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.9.3/akamai/openssl/ssl/s2_lib.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.9.3/akamai/openssl/ssl/s3_enc.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.9.3/akamai/openssl/ssl/s3_lib.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.9.3/akamai/openssl/ssl/ssl.h#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.9.3/akamai/openssl/ssl/ssl3.h#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.9.3/akamai/openssl/ssl/ssl_err.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.9.3/akamai/openssl/ssl/ssl_lib.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.9.3/akamai/openssl/ssl/t1_enc.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.9.3/akamai/openssl/ssl/tls1.h#1 - edit default change (ktext)
+
+===========================================================================
+###################   OPEN SSL 6.101.5.9.4  #################################
+===========================================================================
+CR 2813340  - Disable forcibly SSLv2 and SSLv3 support in OpenSSL.
+Developer: ilevin
+Code review: David Gervais and Rich Salz, results stored in the CR.
+
+[openssl]
+Add code changes to support "no-ssl3" option (goes upstream as well, patch actually done by Emily Kasper) and "no-ssl2" (Akamai-specific).
+
+This version not to be used with GHost or components requiring SSLv2 and/or SSLv3 support.
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.9.4/akamai/openssl/akamai/ChangeNotes#1 - edit change 14155047 (text)
+//projects/shared/openssl-6.101.5.9.4/akamai/openssl/ssl/s23_clnt.c#1 - edit change 14155047 (ktext)
+//projects/shared/openssl-6.101.5.9.4/akamai/openssl/ssl/s23_srvr.c#1 - edit change 14155047 (ktext)
+//projects/shared/openssl-6.101.5.9.4/akamai/openssl/ssl/s2_pkt.c#1 - edit change 14155047 (ktext)
+//projects/shared/openssl-6.101.5.9.4/akamai/openssl/ssl/ssl_lib.c#1 - edit change 14155047 (ktext)
+
+===========================================================================
+###################   OPEN SSL 6.101.5.9.5  #################################
+===========================================================================
+CR 2886645 - Fix NT-6.0-VC7-G3 build
+Developer: tshort
+Code review: Peter Bohman, results stored in the CR.
+
+[openssl]
+Get the NT-6.0-VC7-G3 build working:
+* Add #defines for AI_ADDRCONFIG and AI_NUMERICSERV if needed
+* Remove /WX option as it's too strict
+* Fix cast
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.9.5/akamai/openssl/e_os.h#2 - edit change 14631057 (ktext)
+//projects/shared/openssl-6.101.5.9.5/akamai/openssl/util/pl/aka-VC-32.pl#2 - edit change 14631152 (kxtext)
+//projects/shared/openssl-6.101.5.9.5/akamai/openssl/ssl/ssl_lib.c#2 - edit change 14630866 (ktext)
+
+==========================================================================
+###################   OPEN SSL 6.101.5.10  #################################
+===========================================================================
+CR 2666208: Update crypto locks setup to use RW locks instead of mutexes
+Developer: ilevin
+Code review: rsalz, no open issues, results stored in CR 2666208
+Date: Wed Jul  29 15:23:13 EST 2014
+
+[openssl]
+    OpenSSL allows CRYPTO_thread_setup to arrange/initialize locks used by CRYPTO operations. Originally included th-lock.c example
+    code was using pthread_mutex_t as locks, while on an interface level (abstracted from partucular locks implementation), support exists
+    in OpenSSL for RW locks. This fix updates the low level locks to become pthread_rwlock_t, thus reducing the contention
+    in CRYPTO flows.
+      It appears also that NPTL RWLocks are efficient in ~ 90% R - 10% W scenarios, and less so if readers and writers are 
+    approaching similar amounts. Few simple optimization for making more use of R locks done in ex_data and SSL error parts.
+      Using mutex/lock in add/decrement cases was replaced with built-in interlocked pragma's (e.g.__sync_add_and_fetch()). 
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.10/akamai/openssl/Configure#3 - edit change 13641803 (xtext)
+//projects/shared/openssl-6.101.5.10/akamai/openssl/akamai/ChangeNotes#5 - edit change 13641803 (text)
+//projects/shared/openssl-6.101.5.10/akamai/openssl/akamake#1 - edit change 13641803 (kxtext)
+//projects/shared/openssl-6.101.5.10/akamai/openssl/crypto/Makefile#1 - edit change 13641803 (ktext)
+//projects/shared/openssl-6.101.5.10/akamai/openssl/crypto/err/err.c#1 - edit change 13641803 (ktext)
+//projects/shared/openssl-6.101.5.10/akamai/openssl/crypto/ex_data.c#1 - edit change 13641803 (ktext)
+//projects/shared/openssl-6.101.5.10/akamai/openssl/crypto/threads/th-lock.c#1 - edit change 13641803 (ktext)
+===========================================================================
+CR None : support parallel compile for openssl
+Developer: akuchlou
+Code review: rsalz, no open issues
+
+[openssl]
+	support
+	./akamake -j 16
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.10/akamai/openssl/akamai/ChangeNotes#6 - edit default change (text)
+//projects/shared/openssl-6.101.5.10/akamai/openssl/akamake#2 - edit default change (kxtext)
+
+===========================================================================
+CR 2804646 - Add fallback-scsv support
+Developer: rsalz
+Code review: from upstream, no review necessary
+
+[openssl]
+This adds fallback support to SSLv2
+
+[Files changed]
+//projects/shared/openssl-6.101.5.10/akamai/openssl/akamai/ChangeNotes#8 - edit default change (text)
+//projects/shared/openssl-6.101.5.10/akamai/openssl/ssl/s2_lib.c#2 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.10/akamai/openssl/ssl/ssl_lib.c#2 - edit default change (ktext)
+===========================================================================
+###################   OPEN SSL 6.101.5.11  #################################
+===========================================================================
+CR 2885673 - akamake fixes for OpenSSL
+Developer: ilevin, sverasch
+Code review: rsalz, no open issues, results stored in CR 2885673
+
+[openssl]
+1. Do not remove header files in include/openssl directory when performing "alldistclean". Originally, those files
+were being autogenerated (actually copied) from their locations into include/openssl, but we store those files
+in P4. Generation of the headers depends on the configuration features, however, in akamake we have a hard coded
+list of those files, which may contradict the ones being copied under different configs. The more complete fix is
+to remove the header files from P4 and make the list dynamic, this will be done in a separate CR later.
+
+2. Update FIPs build steps - change done by sverasch, for government CDN support.
+
+[Files changed]
+//projects/shared/openssl-6.101.5.11/akamai/openssl/akamai/ChangeNotes#2 - edit change 14626010 (text)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/akamake#1 - edit change 14626010 (kxtext)
+
+===========================================================================
+CR 1949320 - Fix openssl build issues
+Developer: tshort
+Code Review: results stored in CR 1949320
+
+[openssl]
+There were inconsistencies between the header files in include/openssl and their original paths.
+* Delete all the include/openssl headers - the are re-created during configuration
+* Change the Makefile to use mklink.pl rather than mkcopy.pl so that edits won't cause inconsistencies
+  during development; on Windows platforms, the file is copied, so some caution is still needed there
+* Add akamake.export_install makefile to copy the include/openssl files into the common/include directory
+  This is needed because this set of files can change during configuration, thus the list is not known
+  at invocation of akamake. Putting it into a separate, simpler, akamake file avoid recompiles. This also
+  means that the list of header files is removed from akamake
+* Add back in the delete of the include/openssl files that was removed in change 14626010, now that these
+  files are no longer checked into Perforce
+* Have akamake do a 'make depend', so that dependencies are updated after configuration is done in akamake,
+  this means that Makefiles need to be made temporarily writeable during configuration.
+
+__sync_add_and_fetch() is not supported under Windows, it is a GNU-specific builtin. Replace with
+CRYPTO_add() which does the same thing when compiled under GCC.
+
+[Files changed]
+//projects/shared/openssl-6.101.5.11/akamai/openssl/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/Makefile.org#1 - integrate default change (text)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/akamai/ChangeNotes#3 - edit default change (text)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/akamake#2 - edit default change (kxtext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/akamake.export_install#1 - add default change (kxtext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/aes/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/asn1/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/bf/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/bio/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/bn/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/buffer/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/camellia/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/cast/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/cmac/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/cms/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/comp/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/conf/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/des/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/dh/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/dsa/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/dso/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/ec/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/ecdh/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/ecdsa/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/engine/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/err/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/err/err.c#1 - integrate default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/evp/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/hmac/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/idea/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/jpake/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/krb5/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/lhash/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/md2/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/md4/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/md5/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/mdc2/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/objects/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/ocsp/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/pem/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/pkcs12/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/pkcs7/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/pqueue/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/rand/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/rc2/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/rc4/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/rc5/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/ripemd/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/rsa/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/seed/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/sha/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/stack/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/store/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/txt_db/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/ui/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/x509/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/crypto/x509v3/Makefile#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/aes.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/asn1.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/asn1_mac.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/asn1t.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/bio.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/blowfish.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/bn.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/buffer.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/camellia.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/cast.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/cmac.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/cms.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/comp.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/conf.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/conf_api.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/crypto.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/des.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/des_old.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/dh.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/dsa.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/dso.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/dtls1.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/e_os2.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/ebcdic.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/ec.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/ecdh.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/ecdsa.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/engine.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/err.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/evp.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/hmac.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/idea.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/krb5_asn.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/kssl.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/lhash.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/md4.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/md5.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/mdc2.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/modes.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/obj_mac.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/objects.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/ocsp.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/opensslconf.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/opensslv.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/ossl_typ.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/pem.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/pem2.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/pkcs12.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/pkcs7.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/pqueue.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/rand.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/rc2.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/rc4.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/ripemd.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/rsa.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/safestack.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/seed.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/sha.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/srp.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/srtp.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/ssl.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/ssl2.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/ssl23.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/ssl3.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/stack.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/symhacks.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/tls1.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/ts.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/txt_db.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/ui.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/ui_compat.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/whrlpool.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/x509.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/x509_vfy.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/include/openssl/x509v3.h#1 - delete default change (ktext)
+//projects/shared/openssl-6.101.5.11/akamai/openssl/ssl/Makefile#1 - edit default change (ktext)
+===========================================================================
+###################   OPEN SSL 6.101.5.12  ################################
+===========================================================================
+CR 2764605 - Adopt OpenSSL session cache for using IPv6 remote address
+Developer: tshort
+Code review: rsalz, dgervais
+
+[openssl]     
+Update client cache to use IPv4/6 addresses via sockaddr_storage.
+Add unit tests for client cache
+
+[Files changed]
+//projects/shared/openssl-6.101.5.12/akamai/openssl/Akamai.Component#2 edit change 14838565
+//projects/shared/openssl-6.101.5.12/akamai/openssl/akamake#5 edit change 14838565
+//projects/shared/openssl-6.101.5.12/akamai/openssl/ms/win32.mak#2 edit change 14838565
+//projects/shared/openssl-6.101.5.12/akamai/openssl/ssl/Makefile#2 edit change 14838565
+//projects/shared/openssl-6.101.5.12/akamai/openssl/ssl/akamaitest.c#1 add change 14838565
+//projects/shared/openssl-6.101.5.12/akamai/openssl/ssl/ssl.h#2 edit change 14838565
+//projects/shared/openssl-6.101.5.12/akamai/openssl/ssl/ssl_akamai.c#1 add change 14838565
+//projects/shared/openssl-6.101.5.12/akamai/openssl/ssl/ssl_akamai.h#1 add change 14838565
+//projects/shared/openssl-6.101.5.12/akamai/openssl/ssl/ssl_lib.c#2 edit change 14838565
+//projects/shared/openssl-6.101.5.12/akamai/openssl/ssl/ssl_sess.c#2 edit change 14838565
+//projects/shared/openssl-6.101.5.12/akamai/openssl/static-build-deps.mak#2 edit change 14838565
+//projects/shared/openssl-6.101.5.12/akamai/openssl/test/Makefile#2 edit change 14838565
+===========================================================================
+CR 2915553 - Instrument OpenSSL heap memory usage by categories/types
+Developer: tshort
+Code Review: ilevin, udatta
+ 
+[openssl]
+Removed OPENSSL_NO_BUF_FREELISTS code.
+Added function to register callbacks to allocate and free data buffers. These callbacks can then allocate
+and free the memory as needed, while also recording buffer allocations.
+  
+[Files Changed]
+//projects/shared/openssl-6.101.5.12/akamai/openssl/ssl/s3_both.c#2 edit change 14838889
+//projects/shared/openssl-6.101.5.12/akamai/openssl/ssl/ssl.h#3 edit change 14838889
+===========================================================================
+###################  OPEN SSL 6.101.5.12.1  ###############################
+===========================================================================
+CR 2933697 - Incorporate fix to CVE-2015-0204
+Developer: upstream from openssl master
+code Review, rsalz, shjain, tshort
+
+[openssl]
+  *) Remove non-export ephemeral RSA code on client and server. This code
+     violated the TLS standard by allowing the use of temporary RSA keys in
+     non-export ciphersuites and could be used by a server to effectively
+     downgrade the RSA key length used to a value smaller than the server
+     certificate. Thanks for Karthikeyan Bhargavan for reporting this issue.
+     (CVE-2015-0204)
+     [Steve Henson]
+
+[Files Changed]
+//projects/shared/openssl-6.101.5.10.1/akamai/openssl/CHANGES#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.10.1/akamai/openssl/akamai/ChangeNotes#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.10.1/akamai/openssl/ssl/d1_srvr.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.10.1/akamai/openssl/ssl/s3_clnt.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.10.1/akamai/openssl/ssl/s3_srvr.c#1 - edit default change (ktext)
+//projects/shared/openssl-6.101.5.10.1/akamai/openssl/ssl/ssl.h#1 - edit default change (ktext)
+===========================================================================
+CR 2959157 -- Fix CVE-2015-0286
+Developer: usptream from openssl master
+Code review: tshort
+
+[openssl]
+    commit ee5a1253285e5c9f406c8b57b0686319b70c07d8
+    Author: Dr. Stephen Henson <steve@openssl.org>
+    Date:   Mon Mar 9 23:11:45 2015 +0000
+
+    Fix ASN1_TYPE_cmp
+    
+    Fix segmentation violation when ASN1_TYPE_cmp is passed a boolean type. This
+    can be triggered during certificate verification so could be a DoS attack
+    against a client or a server enabling client authentication.
+    
+//projects/shared/openssl-6.101.5.11.1/akamai/openssl/akamai/ChangeNotes#1 - edit default change (text)
+//projects/shared/openssl-6.101.5.11.1/akamai/openssl/crypto/asn1/a_type.c#1 - edit default change (ktext)
+===========================================================================
+###################  OPEN SSL 6.101.5.12.2  ###############################
+===========================================================================

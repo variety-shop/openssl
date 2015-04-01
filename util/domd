@@ -28,6 +28,8 @@ if ${MAKEDEPEND} --version 2>&1 | grep -q "clang" ||
     RC=$?
     rm -f Makefile.tmp
 else
+    # makedepend on OS X is in /usr/X11/bin
+    export PATH="${PATH}:/usr/X11/bin"
     ${MAKEDEPEND} -D OPENSSL_DOING_MAKEDEPEND $@ && \
     ${PERL} $TOP/util/clean-depend.pl < Makefile > Makefile.new
     RC=$?
