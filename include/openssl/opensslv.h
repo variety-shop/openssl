@@ -97,7 +97,17 @@ extern "C" {
  */
 # define SHLIB_VERSION_HISTORY ""
 # define SHLIB_VERSION_NUMBER "1.1"
-
+# ifndef OPENSSL_NO_AKAMAI
+/* Akamai has lots of customizations and new APIs in our shared library,
+ * making it fundamentally a different thing than stock OpenSSL.  To
+ * indicate these differences and avoid collisions, use a vastly different
+ * numbering space for SONAMEs for Akamai versions.
+ * The "110" represents that this branch is based off of the OpenSSL 1.1.0
+ * series.
+ */
+#  undef SHLIB_VERSION_NUMBER
+#  define SHLIB_VERSION_NUMBER "110.0.0"
+# endif
 
 #ifdef  __cplusplus
 }
