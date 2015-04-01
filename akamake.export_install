@@ -1,0 +1,65 @@
+#! /bin/sh
+# -*- Makefile -*-
+magic_startup_code=a; cd `echo "$0" | sed 's@^[^/]*$@.@; s@/[^/]*$@@;'` && exec make -f `basename $0` ${1+"$@"}
+#
+# This file contains component specific dependency rules.  
+
+# This is an extremely simplified akamake file to copy the exported files
+# that OpenSSL puts into its include/openssl directories. The headers are
+# put in there after OpenSSL configuration, so the primary akamake file
+# doesn't really know at invocation what those files are. However, after
+# that initial build, THIS akamake file will know what those files are
+
+#
+# No operating system (environment) rules are contained here directly.
+# They are include from Akamake-env file.  Autoconf stuff takes
+# place in the akamake-env file.
+#
+# Detail discussion: quality.akamai.com/Release/CommonMake.html
+#
+
+all: export_install
+
+#********************************************************************
+#**** Section 1:  establish essential paths and component title ****
+#****      TODO:  fill in component directory information
+#********************************************************************
+
+# C: name of this component's directory
+C := openssl
+
+
+#********************************************************************
+#**** Section 2:  directory construction, load of environment file
+#********************************************************************
+
+# akamake definitions, do NOT edit
+BASE_PATH := $(firstword $(BASE_PATH) $(subst /$C-xx,,$(CURDIR)-xx))
+P := $(BASE_PATH)/$C
+REF_PATH := $(firstword $(REF_PATH) NoValidPath)
+AKAMAKE := $(firstword $(wildcard $(BASE_PATH)/Akamake) $(REF_PATH)/Akamake)
+
+# This include can come from the standard environment file in
+# $(AKAMAKE) directory.  It will automatically load a local
+# akamake-env.mak, if it exists.
+ifndef ATTR_ONLY
+-include $(AKAMAKE)/akamake-env.mak
+endif
+
+$P/HEADERS-LOCAL-DIRECTORY := include/openssl
+$P/HEADERS-COMMON-DIRECTORY := openssl
+
+$P/CONFIG-GEN-HEADERS := $(notdir $(wildcard $($P/HEADERS-LOCAL-DIRECTORY)/*.h))
+
+$P/SSL-HEADERS-COMMON = $(addprefix $(COMMON)/include/$C/, $($P/CONFIG-GEN-HEADERS))
+
+#********************************************************************
+#**** Section 3:  rules for exports
+#********************************************************************
+
+.PHONY: export_install 
+export_install: $($P/SSL-HEADERS-COMMON)
+
+$($P/SSL-HEADERS-COMMON) : $(COMMON)/include/$C/% : $P/$($P/HEADERS-LOCAL-DIRECTORY)/%
+	$P/util/install-if-changed '$(MKDIR)' '$(INSTALL)' $(@D) $< $@
+
