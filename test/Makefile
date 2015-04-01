@@ -69,6 +69,7 @@ V3NAMETEST=	v3nametest
 ASN1TEST=	asn1test
 HEARTBEATTEST=  heartbeat_test
 CONSTTIMETEST=  constant_time_test
+CLIENTCACHETEST= client_cache_test
 
 TESTS=		alltests
 
@@ -81,7 +82,7 @@ EXE=	$(BNTEST)$(EXE_EXT) $(ECTEST)$(EXE_EXT)  $(ECDSATEST)$(EXE_EXT) $(ECDHTEST)
 	$(BFTEST)$(EXE_EXT) $(CASTTEST)$(EXE_EXT) $(SSLTEST)$(EXE_EXT) $(EXPTEST)$(EXE_EXT) $(DSATEST)$(EXE_EXT) $(RSATEST)$(EXE_EXT) \
 	$(EVPTEST)$(EXE_EXT) $(EVPEXTRATEST)$(EXE_EXT) $(IGETEST)$(EXE_EXT) $(JPAKETEST)$(EXE_EXT) $(SRPTEST)$(EXE_EXT) \
 	$(ASN1TEST)$(EXE_EXT) $(V3NAMETEST)$(EXE_EXT) $(HEARTBEATTEST)$(EXE_EXT) \
-	$(CONSTTIMETEST)$(EXE_EXT)
+	$(CONSTTIMETEST)$(EXE_EXT) $(CLIENTCACHETEST)$(EXE_EXT)
 
 # $(METHTEST)$(EXE_EXT)
 
@@ -94,7 +95,7 @@ OBJ=	$(BNTEST).o $(ECTEST).o  $(ECDSATEST).o $(ECDHTEST).o $(IDEATEST).o \
 	$(RANDTEST).o $(DHTEST).o $(ENGINETEST).o $(CASTTEST).o \
 	$(BFTEST).o  $(SSLTEST).o  $(DSATEST).o  $(EXPTEST).o $(RSATEST).o \
 	$(EVPTEST).o $(EVPEXTRATEST).o $(IGETEST).o $(JPAKETEST).o $(ASN1TEST).o $(V3NAMETEST).o \
-	$(HEARTBEATTEST).o $(CONSTTIMETEST).o
+	$(HEARTBEATTEST).o $(CONSTTIMETEST).o $(CLIENTCACHETEST).o
 
 SRC=	$(BNTEST).c $(ECTEST).c  $(ECDSATEST).c $(ECDHTEST).c $(IDEATEST).c \
 	$(MD2TEST).c  $(MD4TEST).c $(MD5TEST).c \
@@ -104,7 +105,7 @@ SRC=	$(BNTEST).c $(ECTEST).c  $(ECDSATEST).c $(ECDHTEST).c $(IDEATEST).c \
 	$(RANDTEST).c $(DHTEST).c $(ENGINETEST).c $(CASTTEST).c \
 	$(BFTEST).c  $(SSLTEST).c $(DSATEST).c   $(EXPTEST).c $(RSATEST).c \
 	$(EVPTEST).c $(EVPEXTRATEST).c $(IGETEST).c $(JPAKETEST).c $(SRPTEST).c $(ASN1TEST).c \
-	$(V3NAMETEST).c $(HEARTBEATTEST).c $(CONSTTIMETEST).c
+	$(V3NAMETEST).c $(HEARTBEATTEST).c $(CONSTTIMETEST).c $(CLIENTCACHETEST).c
 
 EXHEADER= 
 HEADER=	testutil.h $(EXHEADER)
@@ -148,7 +149,7 @@ alltests: \
 	test_gen test_req test_pkcs7 test_verify test_dh test_dsa \
 	test_ss test_ca test_engine test_evp test_evp_extra test_ssl test_tsa test_ige \
 	test_jpake test_srp test_cms test_ocsp test_v3name test_heartbeat \
-	test_constant_time
+	test_constant_time test_client_cache
 
 test_evp: $(EVPTEST)$(EXE_EXT) evptests.txt
 	../util/shlib_wrap.sh ./$(EVPTEST) evptests.txt
@@ -349,6 +350,10 @@ test_constant_time: $(CONSTTIMETEST)$(EXE_EXT)
 	@echo "Test constant time utilites"
 	../util/shlib_wrap.sh ./$(CONSTTIMETEST)
 
+test_client_cache: $(CLIENTCACHETEST)$(EXE_EXT)
+	@echo "Test client caching"
+	../util/shlib_wrap.sh ./$(CLIENTCACHETEST)
+
 lint:
 	lint -DLINT $(INCLUDES) $(SRC)>fluff
 
@@ -519,6 +524,9 @@ $(HEARTBEATTEST)$(EXE_EXT): $(HEARTBEATTEST).o $(DLIBCRYPTO)
 $(CONSTTIMETEST)$(EXE_EXT): $(CONSTTIMETEST).o
 	@target=$(CONSTTIMETEST) $(BUILD_CMD)
 
+$(CLIENTCACHETEST)$(EXE_EXT): $(CLIENTCACHETEST).o
+	@target=$(CLIENTCACHETEST) $(BUILD_CMD)
+
 #$(AESTEST).o: $(AESTEST).c
 #	$(CC) -c $(CFLAGS) -DINTERMEDIATE_VALUE_KAT -DTRACE_KAT_MCT $(AESTEST).c
 
@@ -564,6 +572,38 @@ bntest.o: ../include/openssl/stack.h ../include/openssl/symhacks.h
 bntest.o: ../include/openssl/x509.h ../include/openssl/x509_vfy.h bntest.c
 casttest.o: ../e_os.h ../include/openssl/cast.h ../include/openssl/e_os2.h
 casttest.o: ../include/openssl/opensslconf.h casttest.c
+client_cache_test.o: ../e_os.h ../include/openssl/aes.h
+client_cache_test.o: ../include/openssl/asn1.h ../include/openssl/bio.h
+client_cache_test.o: ../include/openssl/blowfish.h ../include/openssl/bn.h
+client_cache_test.o: ../include/openssl/buffer.h ../include/openssl/cast.h
+client_cache_test.o: ../include/openssl/comp.h ../include/openssl/conf.h
+client_cache_test.o: ../include/openssl/crypto.h ../include/openssl/des.h
+client_cache_test.o: ../include/openssl/des_old.h ../include/openssl/dh.h
+client_cache_test.o: ../include/openssl/dsa.h ../include/openssl/dtls1.h
+client_cache_test.o: ../include/openssl/e_os2.h ../include/openssl/ec.h
+client_cache_test.o: ../include/openssl/ecdh.h ../include/openssl/ecdsa.h
+client_cache_test.o: ../include/openssl/engine.h ../include/openssl/err.h
+client_cache_test.o: ../include/openssl/evp.h ../include/openssl/hmac.h
+client_cache_test.o: ../include/openssl/idea.h ../include/openssl/kssl.h
+client_cache_test.o: ../include/openssl/lhash.h ../include/openssl/md4.h
+client_cache_test.o: ../include/openssl/md5.h ../include/openssl/mdc2.h
+client_cache_test.o: ../include/openssl/obj_mac.h ../include/openssl/objects.h
+client_cache_test.o: ../include/openssl/opensslconf.h
+client_cache_test.o: ../include/openssl/opensslv.h
+client_cache_test.o: ../include/openssl/ossl_typ.h ../include/openssl/pem.h
+client_cache_test.o: ../include/openssl/pem2.h ../include/openssl/pkcs7.h
+client_cache_test.o: ../include/openssl/pqueue.h ../include/openssl/rand.h
+client_cache_test.o: ../include/openssl/rc2.h ../include/openssl/rc4.h
+client_cache_test.o: ../include/openssl/ripemd.h ../include/openssl/rsa.h
+client_cache_test.o: ../include/openssl/safestack.h ../include/openssl/sha.h
+client_cache_test.o: ../include/openssl/srtp.h ../include/openssl/ssl.h
+client_cache_test.o: ../include/openssl/ssl2.h ../include/openssl/ssl23.h
+client_cache_test.o: ../include/openssl/ssl3.h ../include/openssl/stack.h
+client_cache_test.o: ../include/openssl/symhacks.h ../include/openssl/tls1.h
+client_cache_test.o: ../include/openssl/ui.h ../include/openssl/ui_compat.h
+client_cache_test.o: ../include/openssl/x509.h ../include/openssl/x509_vfy.h
+client_cache_test.o: ../include/openssl/x509v3.h ../ssl/ssl_locl.h
+client_cache_test.o: client_cache_test.c
 constant_time_test.o: ../crypto/constant_time_locl.h ../e_os.h
 constant_time_test.o: ../include/openssl/e_os2.h
 constant_time_test.o: ../include/openssl/opensslconf.h constant_time_test.c
