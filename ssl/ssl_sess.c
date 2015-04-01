@@ -431,6 +431,9 @@ int ssl_get_new_session(SSL *s, int session)
         SSL_SESSION_free(ss);
         return 0;
     }
+#ifndef OPENSSL_NO_AKAMAI_CLIENT_CACHE
+    SSL_SESSION_copy_remote_addr(ss, s);
+#endif /* OPENSSL_NO_AKAMAI_CLIENT_CACHE */
     memcpy(ss->sid_ctx, s->sid_ctx, s->sid_ctx_length);
     ss->sid_ctx_length = s->sid_ctx_length;
     s->session = ss;
