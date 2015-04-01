@@ -1,0 +1,32 @@
+#!/bin/bash
+
+#Collect our command line arguements
+MKDIR=$1
+CP=$2
+TARGET_DIR=$3
+SOURCE=$4
+TARGET=$5
+
+# If the target directory doesn't exist then we must create it.
+if [ ! -d ${TARGET_DIR} ]; then
+${MKDIR} ${TARGET_DIR}
+if [ $? -ne 0 ]; then
+exit $?
+fi
+fi
+
+# If the target doesn't exist then we install it
+if [ ! -e ${TARGET} ]; then
+echo ${CP} ${SOURCE} ${TARGET}
+${CP} ${SOURCE} ${TARGET}
+exit $?
+else
+# If the target already exists we check if it differs from the source
+diff --brief ${SOURCE} ${TARGET} > /dev/null
+if [ $? -eq 1 ]; then
+# If the target differs we install it
+echo ${CP} ${SOURCE} ${TARGET}
+${CP} ${SOURCE} ${TARGET}
+exit $?
+fi
+fi
