@@ -417,6 +417,13 @@ foreach my $proto ((@tls, @dtls))
 	push(@disablables, "$proto-method");
 	}
 
+# do this in one place
+my @akamai = qw(akamai-client-cache);
+foreach my $proto ((@akamai))
+        {
+        push(@disablables, $proto);
+        }
+
 my %deprecated_disablables = (
     "ssl2" => undef,
     "buf-freelists" => undef,
@@ -426,6 +433,7 @@ my %deprecated_disablables = (
 #Akamai adds %enabled to list enabled features
 my %enabled = ( # "what"                => "comment"
                 "akamai"                => "akamai-default",
+                "akamai-client-cache"   => "akamai-default",
 );
 
 # All of the following is disabled by default (RC5 was enabled before 0.9.8):
@@ -483,6 +491,7 @@ our %disabled = ( # "what"         => "comment"
 # Note: => pair form used for aesthetics, not to truly make a hash table
 my @disable_cascades = (
     # "what"		=> [ "cascade", ... ]
+    "akamai"            => [ @akamai ],
     sub { $config{processor} eq "386" }
 			=> [ "sse2" ],
     "ssl"		=> [ "ssl3" ],
@@ -622,6 +631,16 @@ while (@argvcopy)
                         foreach my $proto (@tls)
                                 {
                                 $disabled{$proto} = "option(tls)";
+                                delete $enabled{$proto}; # Akamai
+                                }
+                        }
+                elsif ($1 eq "akamai")
+                        {
+                        $disabled{$1} = "option(akamai)";
+                        delete $enabled{$1};
+                        foreach my $proto (@akamai)
+                                {
+                                $disabled{$proto} = "option(akamai)";
                                 delete $enabled{$proto}; # Akamai
                                 }
                         }
