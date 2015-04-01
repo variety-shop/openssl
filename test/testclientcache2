@@ -1,0 +1,19 @@
+#!/bin/sh
+
+clientcache2test="./clientcache2test"
+
+#############################################################################
+
+echo Test Client Cache \(2\)
+if [ ! -d gen ]; then
+    ./gen_cert.sh server
+fi
+
+# test client session reuse, expected to work on all protocols
+$clientcache2test           || exit 1
+$clientcache2test --sslv3   || exit 1
+$clientcache2test --tlsv1   || exit 1
+$clientcache2test --tlsv1_1 || exit 1
+$clientcache2test --tlsv1_2 || exit 1
+
+exit 0
