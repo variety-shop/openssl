@@ -1,0 +1,460 @@
+#! /bin/sh
+# -*- Makefile -*-
+magic_startup_code=a; cd `echo "$0" | sed 's@^[^/]*$@.@; s@/[^/]*$@@;'` && exec make -f `basename $0` ${1+"$@"}
+#
+# This file contains component specific dependency rules.  
+
+#
+# No operating system (environment) rules are contained here directly.
+# They are include from Akamake-env file.  Autoconf stuff takes
+# place in the akamake-env file.
+#
+# Detail discussion: quality.akamai.com/Release/CommonMake.html
+#
+
+all: build  # build is defined in Akamake/akamaster.mak
+
+
+#********************************************************************
+#**** Section 1:  establish essential paths and component title ****
+#****      TODO:  fill in component directory information
+#********************************************************************
+
+# C: name of this component's directory
+C := openssl
+
+
+#********************************************************************
+#**** Section 2:  directory construction, load of environment file
+#********************************************************************
+
+# akamake definitions, do NOT edit
+BASE_PATH := $(firstword $(BASE_PATH) $(subst /$C-xx,,$(CURDIR)-xx))
+P := $(BASE_PATH)/$C
+REF_PATH := $(firstword $(REF_PATH) NoValidPath)
+AKAMAKE := $(firstword $(wildcard $(BASE_PATH)/Akamake) $(REF_PATH)/Akamake)
+
+# This include can come from the standard environment file in
+# $(AKAMAKE) directory.  It will automatically load a local
+# akamake-env.mak, if it exists.
+ifndef ATTR_ONLY
+-include $(AKAMAKE)/akamake-env.mak
+endif
+
+ifeq ($(AKARELEASE_PLATFORM),btf-anaconda)
+AKAMAKE-OPENSSL-WITH-FPIC := 1
+endif
+
+ifdef AKAMAKE-LINUX-BUILD-64
+AKAMAKE-OPENSSL-WITH-FPIC := 1
+endif 
+
+ifdef GCOV
+# enable coverage
+CONFIGFLAGS := $(CONFIGFLAGS) -ftest-coverage -fprofile-arcs
+endif
+
+ifdef AKAMAKE-OPENSSL-WITH-FPIC
+$P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) -fPIC
+endif
+
+ifdef AKAMAKE-OPENSSL-WITH-EC-NIST-64-OP
+$P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) enable-ec_nistp_64_gcc_128 no-engine
+endif
+
+# turn off SSLv2 and SSLv3 unless someone really wants it
+ifndef AKAMAKE-OPENSSL-ENABLE-POODLE
+$P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) no-ssl2 no-ssl3
+endif
+
+# NOTE: changes to compiler options (CFLAGS & CXXFLAGS) and
+#        addition of operating system specific libraries (LIBS)
+#        need to be isolated in a local akamake-env.mak file.
+#
+# Add search path += statements here for CPPFLAGS (-I options)
+#   and LIBS (-L options) IF AND ONLY IF the local akamake-env.mak
+#   file is not necessary.  The "$P/% : " prefix is essential.
+#
+# Also, $P/DEP-LIBS is automatically transformed and added to LIBS.
+
+# $P/% : CPPFLAGS +=
+# $P/% : DEFS +=
+
+ifeq ($(MAKECMDGOALS),debug)
+# $P/% : DEFS += -DDEBUG
+endif
+# $P/% : LIBS +=
+
+#********************************************************************
+#**** Section 3:  Exported Interface
+#****      TODO:  Fill in directory names and header/library files 
+#********************************************************************
+
+# REMINDER:  All variables, target, and prerequisites need $P prefix
+#            Key variables are $P/HEADERS and $P/EXP-LIBS
+
+#  HEADERS-LOCAL-DIRECTORY: relative directory of exported interface headers
+# HEADERS-COMMON-DIRECTORY: destination directory in common/include for
+#                            exported interface headers
+$P/HEADERS-LOCAL-DIRECTORY := include/openssl
+$P/HEADERS-COMMON-DIRECTORY := openssl
+
+# $P/configure.ts-generated headers to be exported
+$P/CONFIG-GEN-HEADERS := 
+
+# Static headers to be exported
+$P/STATIC-HEADERS := 
+
+# $P/HEADERS: List of export header files (relative to HEADERS_LOCAL_DIRECTORY)
+$P/HEADERS := $($P/CONFIG-GEN-HEADERS) $($P/STATIC-HEADERS)
+$P/HEADERS: $P/build.ts
+
+#     LIBS_LOCAL_DIRECTORY: relative directory of exported library files
+$P/LIBS-LOCAL-DIRECTORY := 
+
+# $P/EXP-LIBS: List of exported library files (relative to LIBS_LOCAL_DICTORY)
+
+ifndef AKAMAKE-WIN-BUILD
+$P/EXP-LIBS := libopenssl.a libcrypto.a libssl.a
+$(call declare-lib-deps, ssl, crypto)
+$(call declare-lib-deps, crypto, dl)
+else
+$P/EXP-LIBS := libopenssl.lib libcrypto.lib libopenssl.dll_lib libcrypto.dll_lib
+$(call declare-lib-deps, openssl, crypto)
+endif
+
+# TODO: add any unique export INSTALL rules here
+$P/export_install:
+	cd $P && $(SYSTEM_MAKE) -f akamake.export_install export_install
+	@touch $@
+
+#********************************************************************
+#**** Section 4:  Prerequisites (dependencies)
+#****      TODO:  List names of component directories AND specific
+#****             library files needed for this component's build
+#********************************************************************
+
+$P/DEP-COMPS := 
+$P/DEP-LIBS := 	
+$P/TARGETS := 
+$P/SRC := 
+
+#$(warning FIPSBUILD is '$(FIPSBUILD)')
+ifdef FIPSBUILD
+$P/DEP-COMPS := $($P/DEP-COMPS) fipscanister
+endif
+
+#
+# clean up rules
+#
+.PHONY: $P/clean $P/distclean
+
+ifeq ($(SYSTEM_MAKE),)
+SYSTEM_MAKE := make
+endif
+
+$P/clean:
+	$(CLEAN-LOCAL)
+	$(CLEAN-COMMON)
+	-cd $P && $(SYSTEM_MAKE) clean
+	-rm -f $P/configure.ts $P/build.ts $P/export_install
+	-rm -rf $P/obj32 $P/lib32 $P/dll_obj32 $P/dll_lib32
+	-rm -f $P/*.lib $P/*.dll_lib
+	-rm -f $P/buildenv.FIPS
+	-rm -f $P/MINFO
+	-rm -f $P/ms/version32.rc
+	-find $P -name "Makefile.save" -delete
+	-find $P -name "*.gc??" -delete
+
+$P/distclean: $P/clean
+	$(DISTCLEAN-LOCAL)
+	$(DISTCLEAN-COMMON)
+	-cd $P && $(SYSTEM_MAKE) dclean
+	-rm -f $P/include/openssl
+	-rm -f $P/ms/nt.mak $P/ms/ntdll_lib.mak
+
+#********************************************************************
+#**** Section 5:  Standard rules for supporting $(COMMON) directory
+#********************************************************************
+
+
+
+#********************************************************************
+#**** Section 6:  Make rules necessary for building binaries, libraries,
+#****             derived headers, and third party makefile execution.
+#********************************************************************
+
+#
+# WARNING:  Do NOT assume that the make is running in the component's
+#           subdirectory.  Also do not use $P and $C within the 
+#           commands for the rules.   The values are invalid by the
+#           time the rules execute.  Used Implied Rule variables.
+
+ifeq ($(filter clean subclean allclean distclean subdistclean alldistclean, $(MAKECMDGOALS)),)
+
+ifndef AKAMAKE-WIN-BUILD
+
+#### LINUX and UNIX ####
+
+# Figure out NO_FOMIT_FRAME_POINTER status
+_openssl_default-if-null = $(if $(strip $(1)),$(1),$(2))
+ifeq ($(strip $(MASTER)),)
+  # Special case: MASTER is blank in $(MASTER)/akamake.
+  # ("/OPENSSL...-master" should be unset anyway, so we would get "no"
+  # anyway...  Hmm...)
+  $P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER := no
+else
+  $P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER := $(call _openssl_default-if-null, $($(MASTER)/OPENSSL_BUILDENV.$(BUILDENV.OS).NO_FOMIT_FRAME_POINTER-master), $(call _openssl_default-if-null, $($(MASTER)/OPENSSL_BUILDENV.$(BUILDENV.BASEOS).NO_FOMIT_FRAME_POINTER-master), no))
+endif
+
+ifneq ($(strip $(OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER-master.OVERRIDE)),)
+$P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER := $(OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER-master.OVERRIDE)
+endif
+
+#  Enforce "yes" or "no" setting; set the _OPTION value, which is
+#  actually used in akamake-env.mak.
+ifeq ($(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER)),yes)
+  $P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION := -no-fomit-frame-pointer
+else
+  ifeq ($(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER)),no)
+    $P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION := 
+  else
+    $(error Invalid $P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER: "$($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER)")
+  endif
+endif
+
+ifdef ASAN_BUILD
+  $P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION := -no-fomit-frame-pointer
+endif
+
+$P/buildenv.NO_FOMIT_FRAME_POINTER.$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER)):
+	if [ ! -e $P/buildenv.NO_FOMIT_FRAME_POINTER.$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER)) ]; then \
+		if [ -e $P/buildenv.NO_FOMIT_FRAME_POINTER.* ]; then \
+			echo distcleaning opensssl due to NO_FOMIT_FRAME_POINTER change... ; \
+			cd $P && make -f akamake distclean && \
+			rm -f $P/buildenv.NO_FOMIT_FRAME_POINTER.* ; \
+		fi && \
+		touch $P/buildenv.NO_FOMIT_FRAME_POINTER.$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER)); \
+	fi
+
+ifdef FIPSBUILD
+#### fipscanister has all the modules precompiled due to compliance reasons, so we'll have to specify which one ####
+#### we'll want to use here, this is the same environment detection used in the fipscanister akamake ####
+
+# XXX: First version is the "ALSI" version, right?                                                                     
+$P/ALSI_VERSION := $(shell grep AKARELEASE_VERSION /etc/akamai-release | cut -d '=' -f 2 | head -c1)
+
+OSTYPE := alsi-invalid
+
+# We are not supporting alsi6-64                                                                                       
+ifeq ($($P/ALSI_VERSION),6)
+OSTYPE := alsi6
+ARCH := i386
+endif
+
+ifeq ($($P/ALSI_VERSION),7)
+
+ifeq ($(SYSTEM),i686)
+OSTYPE := alsi7-32
+ARCH := i386
+# XXX: OpenSSL cleans out the CFLAGS environment variable at build time.  This is a good enough hack...                
+CC="gcc -m32"
+endif
+
+ifeq ($(SYSTEM),x86_64)
+OSTYPE := alsi7
+ARCH := x86_64
+endif
+
+endif # ifeq ($($P/ALSI_VERSION),7)                                                                                    
+
+FIPS_LIBDIR=$P/module/$(OSTYPE)
+#### end fipscanister code ####
+
+# [fshotton 07/01/2010] if FIPSBUILD is defined by Ghost akamake-defs.mak
+# then we build with FIPS support
+$P/% : FIPSFLAGS = fips --with-fipsdir=$P/../fipscanister/module/$(OSTYPE)/ --with-fipslibdir=$P/../fipscanister/module/$(OSTYPE)/lib/
+$P/buildenv.FIPS: 
+	echo "FIPS build enabled" > $P/buildenv.FIPS
+else
+$P/% : FIPSFLAGS = 
+$P/buildenv.FIPS: 
+	echo "FIPS build disabled" > $P/buildenv.FIPS
+endif
+
+# SPOILER ALERT!  Do not read this if you want to spend a long time
+# figuring out how config picks a platform!  "./config" is an openssl
+# script which uses "uname"-type information to choose a platform.  On
+# a typical linux system, the answer ends up being "linux-elf".  This
+# value is passed on to openssl's Configure script as the first
+# argument followed by any additional arguments to ./config.  The
+# openssl/akamake-env.mak file matches on several known compiler
+# configurations and sets "CONFIGFLAGS" accordingly.  These "options"
+# include a platform specification "akamai-..." which is passed to
+# ./config.  ./config then runs "./Configure linux-elf akamai-...", so
+# this second setting overrides the first one.  -lisiecki, 10/16/2008
+
+# Configure options
+$P/CONFIGURE_PREREQUISITES := $P/config $P/Configure $P/Makefile.org $P/akamake $P/buildenv.NO_FOMIT_FRAME_POINTER.$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER)) $P/buildenv.FIPS
+
+$P/Makefile.org: $P/config $P/Configure
+
+# Regarding -j: there is no real easy way to parse the -j option passed
+# to akamake, using the $(MAKE) variable does not work, which is why there
+# is $(SYSTEM_MAKE). So, just always pass -j1 to linux builds, This can be
+# substituted with another value (-j) for ~100% speedup,
+# if OPENSSL_MFLAGS is set to something else (e.g. -j2) use that instead
+ifeq ($(OPENSSL_MFLAGS),)
+OPENSSL_MFLAGS := -j1
+endif
+
+# Next line intentional "=" - krose, 12/10/2001
+$P/% : CONFIGURE_STEP = cd $P && (./config $(CONFIGFLAGS) $(FIPSFLAGS)) && ($(SYSTEM_MAKE) CC="$(CC)" depend)
+# FIPS requires their own linker to build correctly so we're doing that here - sverasch 7/24/14
+ifdef FIPSBUILD
+$P/% : MAKE_STEP = cd $P && $(SYSTEM_MAKE) $(OPENSSL_MFLAGS) CC="$(COMMON)/bin/fipsld" FIPSLD_CC="$(CC)"
+$P/% : CONFIGURE_STEP = cd $P && (./config $(CONFIGFLAGS) $(FIPSFLAGS)) && ($(SYSTEM_MAKE) CC="$(COMMON)/bin/fipsld" FIPSLD_CC="$(CC)" depend)
+else
+$P/% : MAKE_STEP = cd $P && $(SYSTEM_MAKE) $(OPENSSL_MFLAGS) CC="$(CC)"
+$P/% : CONFIGURE_STEP = cd $P && (./config $(CONFIGFLAGS) $(FIPSFLAGS)) && ($(SYSTEM_MAKE) CC="$(CC)" depend)
+endif
+$P/% : EXTRA_STEP := 
+$P/% : TEST_STEP = cd $P && $(SYSTEM_MAKE) CC="$(CC)" test
+ifdef AKAMAKE-OPENSSL-WITH-EC-NIST-64-OP
+$P/% : CONFIGURE_STEP = cd $P && (./config $(CONFIGFLAGS) $(FIPSFLAGS)) && chmod 644 */Makefile && chmod 644 */*/Makefile && ($(SYSTEM_MAKE) CC="$(CC)" depend)
+endif
+else 
+
+#### WIN32 ####
+ifndef ATTR_ONLY
+ifeq ($(filter ActiveState,$(shell perl -v)),)
+$(error "WIN32 version of openssl requires use of ActiveState Perl (http://www.ActiveState.com)" )
+endif
+endif
+
+ifdef AKAMAKE-VC9-BUILD
+$P/VC=VC9
+ifdef AKAMAKE-WIN64-BUILD
+$P/VCFG=VC-WIN64A
+else
+$P/VCFG=VC-WIN32
+endif
+else
+$P/VC=VC7
+$P/VCFG=VC-WIN32
+endif
+
+$P/CONFIGURE_PREREQUISITES := $P/Configure $P/Makefile.org $P/akamake $P/util/mk1mf.pl $P/util/mkfiles.pl $P/ms/do_aka_nt.bat
+ifdef INTERIX
+$P/% : CONFIGURE_STEP = cd $P && perl Configure $($P/VCFG) $(CONFIGFLAGS) && runwin32 'ms\do_aka_nt.bat' $(CONFIGFLAGS) $($P/VC) && $(NMAKE) -f ms/nt.mak headers
+else
+$P/% : CONFIGURE_STEP = cd $P && perl Configure $($P/VCFG) $(CONFIGFLAGS) && ms/do_aka_nt.bat $(CONFIGFLAGS) $($P/VC) && $(NMAKE) -f ms/nt.mak headers
+endif
+$P/% : MAKE_STEP := cd $P && $(NMAKE) -f ms/nt.mak && $(NMAKE) -f ms/ntdll_lib.mak
+$P/% : EXTRA_STEP := \
+ cp $P/lib32/libeay32.lib $P/libcrypto.lib && \
+ cp $P/lib32/ssleay32.lib $P/libopenssl.lib && \
+ cp $P/dll_lib32/libeay32.dll_lib $P/libcrypto.dll_lib && \
+ cp $P/dll_lib32/ssleay32.dll_lib $P/libopenssl.dll_lib
+$P/% : TEST_STEP := cd $P && $(NMAKE) -f ms/nt.mak test && $(NMAKE) -f ms/ntdll_lib.mak test
+
+endif 
+
+#### COMMON ####
+$P/third-party: $P/build.ts
+
+# ./config step
+$P/configure.ts: $($P/CONFIGURE_PREREQUISITES)
+	$(CONFIGURE_STEP) 
+	@touch $@
+
+
+$P/static-build-deps.mak : $P/component-configure
+
+$P/component-configure: $P/configure.ts
+
+$(addprefix $(call get-headers-local-path)/,$($P/CONFIG-GEN-HEADERS)) : $P/configure.ts $P/build.ts
+	@if [ ! -e $@ ]; then \
+		echo '**** ERROR: Header file $@ missing.  Please re-run akamake.'; \
+		rm -f $P/configure.ts $P/build.ts; \
+		exit 1; \
+	fi
+	@touch $@
+
+# make step
+$P/build.ts: $P/configure.ts $P/export_install
+	$(MAKE_STEP)
+	$(EXTRA_STEP)
+	@touch $@
+
+# Just in case
+ifndef ATTR_ONLY
+-include $P/static-build-deps.mak
+endif
+
+# if ar cq fails, force creation of an empty archive
+$P/libcrypto.a $P/libssl.a: $P/build.ts
+	@ar qc $@ || (ar qc $@ $P/crypto/cversion.o && ar d $@ cversion.o)
+
+$P/libopenssl.a: $P/libcrypto.a $P/libssl.a
+	rm -f $P/libopenssl.a
+	rm -rf $P/libmake-tmp
+	mkdir $P/libmake-tmp
+	(cd $P/libmake-tmp && ar x $P/libcrypto.a && ar x $P/libssl.a && ar qc $P/libopenssl.a *)
+	rm -rf $P/libmake-tmp
+	ranlib $P/libopenssl.a
+
+else
+
+### NON-BUILDS ###########################################################
+
+$P/libopenssl.a $P/libcrypto.a $P/libssl.a:
+	@echo "Make of $@ bypassed for clean"
+
+endif
+
+# BUILD ENVIRONMENT
+#
+# In this section, you can specify variables that affect the build
+# environment.
+
+$P/BUILDENV.linux-2.4.CC-supported := gcc-2.95 gcc-3.3 gcc-3.4 gcc-4.0 gcc-4.1
+$P/BUILDENV.linux-2.4.CC-master := gcc-3.3
+
+$P/BUILDENV.linux-2.4.FILE_OFFSET_BITS-master := 32
+$P/BUILDENV.linux-2.4.FILE_OFFSET_BITS-supported := 32 64
+
+$P/BUILDENV.linux.FILE_OFFSET_BITS-master := 32
+$P/BUILDENV.linux.FILE_OFFSET_BITS-supported := 32 64
+
+#********************************************************************
+#**** Section 7:  Include of master rules, and recursive load of 
+#****             other components' and .d file make rules.  Also 
+#****             set up build and unit test automation targets.
+#********************************************************************
+
+$P/test: $P/build.ts
+	$(TEST_STEP)
+	echo Test successful.
+
+ifndef ATTR_ONLY
+
+include $(AKAMAKE)/akamaster.mak
+
+else
+
+dep_comp: $P/DEP-COMPS
+
+$P/DEP-COMPS:
+	@echo Akamake $($@)
+
+endif
+
+
+#********************************************************************
+#** Anything placed past this point is probably not going to work. **
+#** Especially since $P and $C are no longer valid due to recusive **
+#** make file loading in akamaster.                                **
+#********************************************************************
+P := pbad
+C := cbad
