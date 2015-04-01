@@ -2774,6 +2774,9 @@ const struct openssl_ssl_test_functions *SSL_test_functions(void);
 
 # ifndef OPENSSL_NO_AKAMAI
 void SSL_CTX_share_session_cache(SSL_CTX *a, SSL_CTX *b);
+/* SSL3 buffer allocation routine */
+/* The int argument is 1 for read buffers, 0 for write buffers */
+void ssl3_set_buffer_mem_functions(void* (*m)(int, size_t), void(*f)(int, size_t, void*));
 # endif 
 
 /* BEGIN ERROR CODES */
