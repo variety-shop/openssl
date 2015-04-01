@@ -183,3 +183,10 @@ pod2htmd.tmp
 
 # test
 test/core
+
+# Akamake generated files
+*.ts
+buildenv.*
+component-configure
+third-party
+akamake-dynamic-build-deps.mak
