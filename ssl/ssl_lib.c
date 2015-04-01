@@ -501,6 +501,13 @@ int SSL_has_matching_session_id(const SSL *ssl, const unsigned char *id,
 
     if (id_len > sizeof(r.session_id))
         return 0;
+#ifndef OPENSSL_NO_AKAMAI
+    /* SSL_SESSION r may be completely uninitialized, if we override
+       the hashing functions (which we do) to look at EX_DATA, then
+       the code will crash without this memeset() */
+    memset(&r, 0, sizeof(r));
+#endif /* OPENSSL_NO_AKAMAI */
+
 
     r.ssl_version = ssl->version;
     r.session_id_length = id_len;
@@ -3813,7 +3820,7 @@ void SSL_CTX_share_session_cache(SSL_CTX *a, SSL_CTX *b)
 
     if (b->session_list->session_ref_count == 0) {
         if (b->sessions) {
-            SSL_CTX_flush_sessions(b,0);
+            SSL_CTX_flush_sessions_lock(b, 0, 0); /* do not lock */
             lh_SSL_SESSION_free(b->sessions);
         }
 
