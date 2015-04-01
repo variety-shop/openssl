@@ -56,6 +56,10 @@ have details about the connection), the application must select the session
 to be reused by using the L<SSL_set_session(3)>
 function. This option is not activated by default.
 
+This mode is automatically enabled by the
+L<SSL_CTX_set_client_session_cache(3)>
+function to manage the cache via IP address rather than session id.
+
 =item SSL_SESS_CACHE_SERVER
 
 Server sessions are added to the session cache. When a client proposes a
@@ -128,6 +132,7 @@ L<SSL_CTX_sess_set_get_cb(3)>,
 L<SSL_CTX_set_session_id_context(3)>,
 L<SSL_CTX_set_timeout(3)>,
 L<SSL_CTX_flush_sessions(3)>
+L<SSL_CTX_set_client_session_cache(3)>
 
 =head1 COPYRIGHT
 

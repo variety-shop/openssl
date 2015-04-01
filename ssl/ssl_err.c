@@ -126,6 +126,8 @@ static ERR_STRING_DATA SSL_str_functs[] = {
     {ERR_FUNC(SSL_F_SSL_CTX_SET_CIPHER_LIST), "SSL_CTX_set_cipher_list"},
     {ERR_FUNC(SSL_F_SSL_CTX_SET_CLIENT_CERT_ENGINE),
      "SSL_CTX_set_client_cert_engine"},
+    {ERR_FUNC(SSL_F_SSL_CTX_SET_CLIENT_SESSION_CACHE),
+     "SSL_CTX_set_client_session_cache"},
     {ERR_FUNC(SSL_F_SSL_CTX_SET_CT_VALIDATION_CALLBACK),
      "SSL_CTX_set_ct_validation_callback"},
     {ERR_FUNC(SSL_F_SSL_CTX_SET_SESSION_ID_CONTEXT),
