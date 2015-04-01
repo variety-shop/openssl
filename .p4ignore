@@ -1,3 +1,6 @@
+# If the git repo is in a perforce workspace
+.git
+
 # Ignore editor artefacts
 /.dir-locals.el
 
@@ -57,12 +60,15 @@ Makefile
 /test/ssltest_old
 /test/x509aux
 /test/v3ext
-/test/versions
 /test/ossl_shim/ossl_shim
-/test/rsa_complex
 
 # Certain files that get created by tests on the fly
-/test/test-runs
+/test/*.ss
+/test/*.srl
+/test/.rnd
+/test/test*.pem
+/test/newkey.pem
+/test/*.log
 /test/buildtest_*
 
 # Fuzz stuff.
@@ -82,8 +88,8 @@ Makefile
 /util/shlib_wrap.sh
 /tags
 /TAGS
-/libcrypto.map
-/libssl.map
+/crypto.map
+/ssl.map
 
 # Windows (legacy)
 /tmp32
@@ -190,11 +196,7 @@ doc-nits
 
 # test
 test/core
-
-# new stuff
-
-libcrypto.map
-libssl.map
+test/gen
 
 # Akamake generated files
 *.ts
