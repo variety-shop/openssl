@@ -10,6 +10,38 @@
 #include "../ssl_locl.h"
 #include "record_locl.h"
 
+#ifndef OPENSSL_NO_AKAMAI
+/*
+ * Add user-definable version buffer allocation/free.
+ * With this, users are able to define and record data-buffer
+ * allocations separately from regular memory allocations.
+ */
+static void* (*buffer_malloc_cb)(int, size_t) = NULL;
+static void (*buffer_free_cb)(int, size_t, void*) = NULL;
+
+static void* ssl3_buffer_malloc(int for_read, size_t sz)
+{
+    if (buffer_malloc_cb)
+        return (*buffer_malloc_cb)(for_read, sz);
+
+    return OPENSSL_malloc(sz);
+}
+
+static void ssl3_buffer_free(int for_read, size_t sz, void *mem)
+{
+    if (buffer_free_cb)
+        (*buffer_free_cb)(for_read, sz, mem);
+    else
+        OPENSSL_free(mem);
+}
+
+void SSL_set_buffer_mem_functions(void* (*m)(int, size_t), void(*f)(int, size_t, void*))
+{
+    buffer_malloc_cb = m;
+    buffer_free_cb = f;
+}
+#endif
+
 void SSL3_BUFFER_set_data(SSL3_BUFFER *b, const unsigned char *d, size_t n)
 {
     if (d != NULL)
@@ -60,6 +92,7 @@ int ssl3_setup_read_buffer(SSL *s)
 #endif
         if (b->default_len > len)
             len = b->default_len;
+#ifdef OPENSSL_NO_AKAMAI
         if ((p = OPENSSL_malloc(len)) == NULL) {
             /*
              * We've got a malloc failure, and we're still initialising buffers.
@@ -70,6 +103,18 @@ int ssl3_setup_read_buffer(SSL *s)
                      ERR_R_MALLOC_FAILURE);
             return 0;
         }
+#else
+        if ((p = ssl3_buffer_malloc(1, len)) == NULL) {
+            /*
+             * We've got a malloc failure, and we're still initialising buffers.
+             * We assume we're so doomed that we won't even be able to send an
+             * alert.
+             */
+            SSLfatal(s, SSL_AD_NO_ALERT, SSL_F_SSL3_SETUP_READ_BUFFER,
+                     ERR_R_MALLOC_FAILURE);
+            return 0;
+        }
+#endif
         b->buf = p;
         b->len = len;
     }
@@ -117,6 +162,7 @@ int ssl3_setup_write_buffer(SSL *s, size_t numwpipes, size_t len)
         }
 
         if (thiswb->buf == NULL) {
+#ifdef OPENSSL_NO_AKAMAI
             p = OPENSSL_malloc(len);
             if (p == NULL) {
                 s->rlayer.numwpipes = currpipe;
@@ -129,6 +175,19 @@ int ssl3_setup_write_buffer(SSL *s, size_t numwpipes, size_t len)
                          SSL_F_SSL3_SETUP_WRITE_BUFFER, ERR_R_MALLOC_FAILURE);
                 return 0;
             }
+#else
+            if ((p = ssl3_buffer_malloc(0, len)) == NULL) {
+                s->rlayer.numwpipes = currpipe;
+                /*
+                 * We've got a malloc failure, and we're still initialising
+                 * buffers. We assume we're so doomed that we won't even be able
+                 * to send an alert.
+                 */
+                SSLfatal(s, SSL_AD_NO_ALERT,
+                         SSL_F_SSL3_SETUP_WRITE_BUFFER, ERR_R_MALLOC_FAILURE);
+                return 0;
+            }
+#endif
             memset(thiswb, 0, sizeof(SSL3_BUFFER));
             thiswb->buf = p;
             thiswb->len = len;
@@ -160,7 +219,11 @@ int ssl3_release_write_buffer(SSL *s)
     while (pipes > 0) {
         wb = &RECORD_LAYER_get_wbuf(&s->rlayer)[pipes - 1];
 
+#ifdef OPENSSL_NO_AKAMAI
         OPENSSL_free(wb->buf);
+#else
+        ssl3_buffer_free(0, wb->len, wb->buf);
+#endif
         wb->buf = NULL;
         pipes--;
     }
@@ -173,7 +236,11 @@ int ssl3_release_read_buffer(SSL *s)
     SSL3_BUFFER *b;
 
     b = RECORD_LAYER_get_rbuf(&s->rlayer);
+#ifdef OPENSSL_NO_AKAMAI
     OPENSSL_free(b->buf);
+#else
+    ssl3_buffer_free(1, b->len, b->buf);
+#endif
     b->buf = NULL;
     return 1;
 }
