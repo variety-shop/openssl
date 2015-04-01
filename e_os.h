@@ -77,6 +77,19 @@ extern "C" {
 #  define REF_PRINT(a,b)  fprintf(stderr,"%08X:%4d:%s\n",(int)b,b->references,a)
 # endif
 
+# ifndef OPENSSL_NO_AKAMAI
+#  if (_MSC_VER < 1500) /* pre-VC9 */                                                                                            
+    /* These are defined in glibc 2.3.3 and 2.3.4 respectively, and are not
+     * defined before in Visual Studio before VC9 */
+#   ifndef AI_ADDRCONFIG
+#    define AI_ADDRCONFIG 0
+#   endif
+#   ifndef AI_NUMERICSERV
+#    define AI_NUMERICSERV 0
+#   endif
+#  endif /* pre-VC9 */
+# endif
+
 # ifndef DEVRANDOM
 /*
  * set this to a comma-separated list of 'random' device files to try out. My
