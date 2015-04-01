@@ -47,8 +47,13 @@ LIBOBJ= \
 
 SRC= $(LIBSRC)
 
+ifdef OPENSSL_NO_AKAMAI
 EXHEADER= ssl.h ssl2.h ssl3.h ssl23.h tls1.h dtls1.h kssl.h srtp.h
 HEADER=	$(EXHEADER) ssl_locl.h kssl_lcl.h
+else
+EXHEADER= ssl.h ssl2.h ssl3.h ssl23.h tls1.h dtls1.h kssl.h srtp.h ssl_locl.h
+HEADER=	$(EXHEADER) kssl_lcl.h
+endif
 
 ALL=    $(GENERAL) $(SRC) $(HEADER)
 

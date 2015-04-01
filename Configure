@@ -1737,7 +1737,6 @@ sub dofile
 	close(OUT);
 	rename($f,"$f.bak") || die "unable to rename $f\n" if -e $f;
 	rename("$f.new",$f) || die "unable to rename $f.new\n";
-	chmod 0555, $f; #Akamai
 	}
 
 sub print_table_entry
