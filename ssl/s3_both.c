@@ -584,6 +584,7 @@ int ssl_verify_alarm_type(long type)
     return (al);
 }
 
+#ifdef OPENSSL_NO_AKAMAI
 #ifndef OPENSSL_NO_BUF_FREELISTS
 /*-
  * On some platforms, malloc() performance is bad enough that you can't just
@@ -653,6 +654,40 @@ static void freelist_insert(SSL_CTX *ctx, int for_read, size_t sz, void *mem)
 # define freelist_extract(c,fr,sz) OPENSSL_malloc(sz)
 # define freelist_insert(c,fr,sz,m) OPENSSL_free(m)
 #endif
+#else /* OPENSSL_NO_AKAMAI */
+/* 
+ * The OPENSSL_NO_BUF_FREELISTS option (and corresponding functions) are going
+ * away in the latest OpenSSL. So, get rid of them and replace them with a 
+ * user-definable version. With this, users are able to define and record
+ * data-buffer allocations separately from regular memory allocations 
+ */
+static void* (*buffer_malloc_cb)(int, size_t) = NULL;
+static void (*buffer_free_cb)(int, size_t, void*) = NULL;
+
+static void*
+ssl3_buffer_malloc(int for_read, size_t sz)
+{
+    if (buffer_malloc_cb)
+        return (*buffer_malloc_cb)(for_read, sz);
+
+    return OPENSSL_malloc(sz);
+}
+static void
+ssl3_buffer_free(int for_read, size_t sz, void *mem)
+{
+    if (buffer_free_cb)
+        (*buffer_free_cb)(for_read, sz, mem);
+    else
+        OPENSSL_free(mem);
+}
+
+void ssl3_set_buffer_mem_functions(void* (*m)(int, size_t), void(*f)(int, size_t, void*))
+{
+    buffer_malloc_cb = m;
+    buffer_free_cb = f;
+}
+
+#endif /* OPENSSL_NO_AKAMAI */
 
 int ssl3_setup_read_buffer(SSL *s)
 {
@@ -679,8 +714,13 @@ int ssl3_setup_read_buffer(SSL *s)
         if (!(s->options & SSL_OP_NO_COMPRESSION))
             len += SSL3_RT_MAX_COMPRESSED_OVERHEAD;
 #endif
+#ifdef OPENSSL_NO_AKAMAI
         if ((p = freelist_extract(s->ctx, 1, len)) == NULL)
             goto err;
+#else
+        if ((p = ssl3_buffer_malloc(1, len)) == NULL)
+            goto err;
+#endif
         s->s3->rbuf.buf = p;
         s->s3->rbuf.len = len;
     }
@@ -717,8 +757,13 @@ int ssl3_setup_write_buffer(SSL *s)
         if (!(s->options & SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS))
             len += headerlen + align + SSL3_RT_SEND_MAX_ENCRYPTED_OVERHEAD;
 
+#ifdef OPENSSL_NO_AKAMAI
         if ((p = freelist_extract(s->ctx, 0, len)) == NULL)
             goto err;
+#else
+        if ((p = ssl3_buffer_malloc(0, len)) == NULL)
+            goto err;
+#endif
         s->s3->wbuf.buf = p;
         s->s3->wbuf.len = len;
     }
@@ -742,7 +787,11 @@ int ssl3_setup_buffers(SSL *s)
 int ssl3_release_write_buffer(SSL *s)
 {
     if (s->s3->wbuf.buf != NULL) {
+#ifdef OPENSSL_NO_AKAMAI
         freelist_insert(s->ctx, 0, s->s3->wbuf.len, s->s3->wbuf.buf);
+#else
+        ssl3_buffer_free(0, s->s3->wbuf.len, s->s3->wbuf.buf);
+#endif
         s->s3->wbuf.buf = NULL;
     }
     return 1;
@@ -751,7 +800,11 @@ int ssl3_release_write_buffer(SSL *s)
 int ssl3_release_read_buffer(SSL *s)
 {
     if (s->s3->rbuf.buf != NULL) {
+#ifdef OPENSSL_NO_AKAMAI
         freelist_insert(s->ctx, 1, s->s3->rbuf.len, s->s3->rbuf.buf);
+#else
+        ssl3_buffer_free(1, s->s3->rbuf.len, s->s3->rbuf.buf);
+#endif
         s->s3->rbuf.buf = NULL;
     }
     return 1;
