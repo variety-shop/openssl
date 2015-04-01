@@ -102,6 +102,34 @@ void SSL_CTX_tlsext_ticket_appdata_cbs(SSL_CTX *ctx,
                                        tlsext_ticket_appdata_parse_cb_fn parse_cb,
                                        void *arg);
 
+#  ifndef OPENSSL_NO_AKAMAI_CLIENT_CACHE
+/* Support for client cache */
+#   ifdef OPENSSL_SYS_WINDOWS
+#    include <winsock.h>
+#   else
+#    include <sys/socket.h>
+#   endif
+
+/* IPv4 legacy functions */
+void SSL_set_remote_addr(SSL *s, unsigned int addr);
+void SSL_set_remote_port(SSL *s, unsigned int port);
+unsigned int SSL_get_remote_addr(const SSL *s);
+unsigned int SSL_get_remote_port(const SSL *s);
+
+/* IPv4/6 versions */
+int SSL_set_remote_addr_ex(SSL *s, struct sockaddr_storage* addr);
+int SSL_get_remote_addr_ex(const SSL *s, struct sockaddr_storage* addr);
+
+void SSL_SESSION_copy_remote_addr(SSL_SESSION *ss, SSL *s);
+
+#   define MUST_HAVE_APP_DATA 0x1
+#   define MUST_COPY_SESSION  0x2
+int SSL_get_prev_client_session(SSL *s, int flags);
+long SSL_SESSION_set_timeout_update_cache(const SSL *s, long t);
+
+int SSL_CTX_set_client_session_cache(SSL_CTX *ctx);
+#  endif /* OPENSSL_NO_AKAMAI_CLIENT_CACHE */
+
 #  ifdef  __cplusplus
 }
 #  endif
