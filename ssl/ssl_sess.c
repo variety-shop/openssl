@@ -1062,6 +1062,11 @@ static void timeout_cb(SSL_SESSION *s, TIMEOUT_PARAM *p)
          * The reason we don't call SSL_CTX_remove_session() is to save on
          * locking overhead
          */
+#ifndef OPENSSL_NO_AKAMAI
+        /* session must be the same */
+        if (lh_SSL_SESSION_retrieve(p->cache, s) != s)
+            return;
+#endif
         (void)lh_SSL_SESSION_delete(p->cache, s);
         SSL_SESSION_list_remove(p->ctx, s);
         s->not_resumable = 1;
