@@ -86,4 +86,6 @@ int SSL_SESSION_cmp(const SSL_SESSION *a, const SSL_SESSION *b);
 
 void ssl_akamai_fixup_ciphers(void);
 
+void SSL_CTX_flush_sessions_lock(SSL_CTX *ctx, long tm, int lock);
+
 #endif /* HEADER_SSL_LOCL_AKAMAI_POST_H */
