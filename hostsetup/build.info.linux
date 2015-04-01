@@ -1,0 +1,3 @@
+D openssl /usr/local/akamai/bin			akamai akamai 0755
+F openssl /usr/local/akamai/bin/openssl		akamai akamai 0755
+
