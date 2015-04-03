@@ -189,6 +189,7 @@ all: clean-shared Makefile build_all libopenssl.a openssl.pc libssl.pc libcrypto
 
 libopenssl.a: sub_all
 	rm -f libopenssl.a
+	ar qc libopenssl.a || touch libopenssl.a
 	rm -rf libmake-tmp
 	mkdir libmake-tmp
 	(cd libmake-tmp && ar x ../libcrypto.a && ar x ../libssl.a && ar q ../libopenssl.a *)

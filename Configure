@@ -276,29 +276,45 @@ if (exists $ENV{FIPSDIR})
 	$fipsdir =~ s/\/$//;
 	}
 
+#Akamai adds %enabled to list enabled features
+my %enabled = ();
+
 # All of the following is disabled by default (RC5 was enabled before 0.9.8):
 
 my %disabled = ( # "what"         => "comment" [or special keyword "experimental"]
-		 "buf_freelists"  => "akamai-default", #Akamai
-		 "camellia"	  => "akamai-default", #Akamai
+   	         "bf"             => "akamai-default",
+		 "buf-freelists"  => "akamai-default",
+		 "camellia"	  => "akamai-default",
+		 "cast"		  => "akamai-default",
+		 "dtls1"	  => "akamai-default",
+		 "dynamic-engine" => "akamai-default",
 		 "ec_nistp_64_gcc_128" => "default",
 		 "gmp"		  => "default",
-		 "heartbeats"	  => "akamai-default", #Akamai
+		 "gost"		  => "akamak-default",
+		 "heartbeats"	  => "akamai-default",
+		 "hw"		  => "akamai-default",
+		 "idea"		  => "akamai-default",
 #Akamai		 "iovec"          => "default",
 		 "jpake"          => "experimental",
 		 "libunbound"     => "experimental",
-#Akamai		 "md2"            => "default",
-		 "psk"		  => "akamai-default", #Akamai
-#Akamai		 "rc5"            => "default",
+		 "md2"            => "default",
+		 "md4"		  => "akamai-default",
+		 "mdc2"		  => "akamai-default",
+		 "psk"		  => "akamai-default",
+		 "rc5"            => "default",
 		 "rfc3779"	  => "default",
-		 "sctp"       => "default",
-		 "seed"	          => "akamai-default", #Akamai
+		 "ripemd"	  => "akamai-default",
+		 "sctp"       	  => "default",
+		 "seed"	          => "akamai-default",
 		 "shared"         => "default",
-		 "srp"		  => "akamai-default", #Akamai
-		 "srtp"		  => "akamai-default", #Akamai
+		 "srp"		  => "akamai-default",
+		 "srtp"		  => "akamai-default",
 		 "ssl-trace"	  => "default",
+		 "ssl2"	  	  => "akamai-default",
+		 "ssl3"	  	  => "akamai-default",
 #Akamai		 "store"	  => "experimental",
 		 "unit-test"	  => "default",
+		 "whirlpool"	  => "akamai-default",
 		 "zlib"           => "default",
 		 "zlib-dynamic"   => "default"
 	       );
@@ -392,6 +408,7 @@ PROCESS_ARGS:
 					{
 					$disabled{$1} = "option";
 					}
+				delete $enabled{$1}; # Akamai
 				}			
 			}
 		elsif (/^enable-(.+)$/ || /^experimental-(.+)$/)
@@ -404,6 +421,7 @@ PROCESS_ARGS:
 				push @experimental, $algo;
 				}
 			delete $disabled{$algo};
+			$enabled{$algo} = "option"; #Akamai
 
 			$threads = 1 if ($algo eq "threads");
 			}
@@ -635,6 +653,11 @@ print "Configuring for $target\n";
 
 &usage if (!defined($table{$target}));
 
+#Akamai
+foreach (sort (keys %enabled))
+	{
+	printf "    enable-%-8s %-10s\n", $_, "[$enabled{$_}]";
+	}
 
 foreach (sort (keys %disabled))
 	{
