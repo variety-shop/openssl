@@ -117,7 +117,7 @@ and [options] can be one of
 	no-rc2 no-rc4 no-rc5 no-idea no-des     - Skip this symetric cipher
 	no-bf no-cast no-aes no-camellia no-seed
 	no-rsa no-dsa no-dh			- Skip this public key cipher
-	no-ssl2 no-ssl3				- Skip this version of SSL
+	no-ssl2 no-ssl3	no-tls1 no-dtls1	- Skip this version of SSL
 	just-ssl				- remove all non-ssl keys/digest
 	no-asm 					- No x86 asm
 	no-krb5					- No KRB5
@@ -157,6 +157,9 @@ foreach (grep(!/^$/, split(/ /, $OPTIONS)))
 $no_static_engine = 0 if (!$shlib);
 
 $no_mdc2=1 if ($no_des);
+
+$no_tls1=1 if ($no_md5 || $no_sha);
+$no_tls1=1 if ($no_rsa && $no_dh);
 
 $no_ssl3=1 if ($no_md5 || $no_sha);
 $no_ssl3=1 if ($no_rsa && $no_dh);
@@ -284,6 +287,8 @@ $cflags.=" -DOPENSSL_NO_WHIRLPOOL"   if $no_whirlpool;
 $cflags.=" -DOPENSSL_NO_SOCK" if $no_sock;
 $cflags.=" -DOPENSSL_NO_SSL2" if $no_ssl2;
 $cflags.=" -DOPENSSL_NO_SSL3" if $no_ssl3;
+$cflags.=" -DOPENSSL_NO_TLS1" if $no_tls1;
+$cflags.=" -DOPENSSL_NO_DTLS1" if $no_dtls1;
 $cflags.=" -DOPENSSL_NO_TLSEXT" if $no_tlsext;
 $cflags.=" -DOPENSSL_NO_SRP" if $no_srp;
 $cflags.=" -DOPENSSL_NO_CMS" if $no_cms;
@@ -299,6 +304,9 @@ $cflags.=" -DOPENSSL_FIPS"    if $fips;
 $cflags.=" -DOPENSSL_NO_JPAKE"    if $no_jpake;
 $cflags.=" -DOPENSSL_NO_EC2M"    if $no_ec2m;
 $cflags.=" -DOPENSSL_NO_WEAK_SSL_CIPHERS"   if $no_weak_ssl;
+$cflags.=" -DOPENSSL_NO_BUF_FREELISTS" if $no_buf_freelists;
+$cflags.=" -DOPENSSL_NO_HEARTBEATS" if $no_heartbeats;
+$cflags.=" -DOPENSSL_PSK" if $no_psk;
 $cflags.= " -DZLIB" if $zlib_opt;
 $cflags.= " -DZLIB_SHARED" if $zlib_opt == 2;
 
@@ -1215,6 +1223,8 @@ sub read_options
 		"gaswin" => \$gaswin,
 		"no-ssl2" => \$no_ssl2,
 		"no-ssl3" => \$no_ssl3,
+		"no-tls1" => \$no_tls1,
+		"no-dtls1" => \$no_dtls1,
 		"no-ssl3-method" => 0,
 		"no-tlsext" => \$no_tlsext,
 		"no-srp" => \$no_srp,
@@ -1232,6 +1242,9 @@ sub read_options
 		"no-gost" => \$no_gost,
 		"no-engine" => \$no_engine,
 		"no-hw" => \$no_hw,
+	        "no-buf-freelists" => \$no_buf_freelists,
+	        "no-heartbeats" => \$no_heartbeats,
+	        "no-psk" => \$no_psk,
 		"no-rsax" => 0,
 		"just-ssl" =>
 			[\$no_rc2, \$no_idea, \$no_des, \$no_bf, \$no_cast,
@@ -1290,6 +1303,14 @@ sub read_options
 	elsif (/^enable-static-engine/)
 		{
 		$no_static_engine = 0;
+		}
+	elsif (/^no-dynamic-engine/)
+		{
+		$no_static_engine = 0;
+		}
+	elsif (/^enable-dynamic-engine/)
+		{
+		$no_static_engine = 1;
 		}
 	# There are also enable-xxx options which correspond to
 	# the no-xxx. Since the scalars are enabled by default
