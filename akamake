@@ -44,6 +44,34 @@ endif
 # We need this earlier than most akamake files
 $P/%: P := $P
 
+# Disable OpenSSL ciphers/prototools
+# See Configure script to see automatically disabled/enabled features
+# Note: no-rc2 breaks the CMS unittests
+# Note: no-bf, no-rc5, no-idea breaks ASCI
+# Note: no-cast no-ripemd breaks keyagent
+
+ifndef MASTER
+
+# Compiling OpenSSL in standalone mode
+# only enable TLSv1, keep DTLSv1/SSLv3/v2 disabled
+$P/configure.ts : CONFIGFLAGS := $(filter-out no-bf,$(CONFIGFLAGS)) enable-bf
+$P/configure.ts : CONFIGFLAGS := $(filter-out no-cast,$(CONFIGFLAGS)) enable-cast
+$P/configure.ts : CONFIGFLAGS := $(filter-out no-md4,$(CONFIGFLAGS)) enable-md4
+$P/configure.ts : CONFIGFLAGS := $(filter-out no-psk,$(CONFIGFLAGS)) enable-psk
+$P/configure.ts : CONFIGFLAGS := $(filter-out no-rc2,$(CONFIGFLAGS)) enable-rc2
+$P/configure.ts : CONFIGFLAGS := $(filter-out no-rc4,$(CONFIGFLAGS)) enable-rc4
+$P/configure.ts : CONFIGFLAGS := $(filter-out no-ripemd,$(CONFIGFLAGS)) enable-ripemd
+$P/configure.ts : CONFIGFLAGS := $(filter-out no-tls1,$(CONFIGFLAGS)) enable-tls1
+
+OPENSSL-TARGET := $(OPENSSL-TARGET) all
+
+else
+
+# Compiling OpenSSL as a component
+OPENSSL-TARGET := $(OPENSSL-TARGET) build_crypto
+
+endif
+
 ifeq ($(AKARELEASE_PLATFORM),btf-anaconda)
 AKAMAKE-OPENSSL-WITH-FPIC := 1
 endif
@@ -52,22 +80,13 @@ ifdef AKAMAKE-LINUX-BUILD-64
 AKAMAKE-OPENSSL-WITH-FPIC := 1
 endif
 
-ifdef GCOV
-# enable coverage
-CONFIGFLAGS := $(CONFIGFLAGS) -ftest-coverage -fprofile-arcs
-endif
-
 ifdef AKAMAKE-OPENSSL-WITH-FPIC
 $P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) -fPIC
 endif
 
-ifdef AKAMAKE-OPENSSL-WITH-EC-NIST-64-OP
-$P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) enable-ec_nistp_64_gcc_128 no-engine
-endif
-
-# turn off SSLv2 and SSLv3 unless someone really wants it
-ifndef AKAMAKE-OPENSSL-ENABLE-POODLE
-$P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) no-ssl2 no-ssl3
+ifdef GCOV
+# enable coverage
+$P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) -ftest-coverage -fprofile-arcs
 endif
 
 # NOTE: changes to compiler options (CFLAGS & CXXFLAGS) and
@@ -201,7 +220,7 @@ $P/clean:
 	-rm -f $P/configure.ts $P/build.ts
 	-rm -rf $P/obj32 $P/lib32 $P/dll_obj32 $P/dll_lib32
 	-rm -f $P/*.lib $P/*.dll_lib
-	-rm -f $P/buildenv.FIPS
+	-rm -f $P/buildenv.*
 	-rm -f $P/MINFO
 	-rm -f $P/ms/version32.rc
 	-rm -f $P/akamake-dynamic-build-deps.mak
@@ -214,6 +233,7 @@ $P/distclean:
 	$(DISTCLEAN-LOCAL)
 	$(DISTCLEAN-COMMON)
 	-$($P/SYSTEM_MAKE) -C $P dclean
+	-rm -f $P/Makefile
 	-rm -f $P/include/openssl
 	-rm -f $P/ms/nt.mak $P/ms/ntdll_lib.mak
 
@@ -334,7 +354,7 @@ OPENSSL-CC = CC="$($P/FIPSLD)" FIPSLD_CC="$(CC)"
 endif
 
 # Next line intentional "=" - krose, 12/10/2001
-$P/% : MAKE_STEP = $($P/SYSTEM_MAKE) -C $P $(OPENSSL-CC)
+$P/% : MAKE_STEP = $($P/SYSTEM_MAKE) -C $P $(OPENSSL-CC) $(OPENSSL-TARGET)
 # configure the system for options
 $P/% : CONFIGURE_STEP = cd $P && (./config $(CONFIGFLAGS) $(FIPSFLAGS))
 $P/% : DEPEND_STEP = $($P/SYSTEM_MAKE) -C $P $(OPENSSL-CC) depend
@@ -384,7 +404,7 @@ $P/component-configure: $P/configure.ts
 $P/configure.ts: $($P/CONFIGURE_PREREQUISITES)
 	$(CONFIGURE_STEP)
 	$(DEPEND_STEP)
-	@touch $@
+	@echo $(CONFIGFLAGS) > $@
 
 .DELETE_ON_ERROR: $P/akamake-dynamic-build-deps.mak
 $P/akamake-dynamic-build-deps.mak:
