@@ -299,6 +299,7 @@ my %enabled = ();
 # All of the following is disabled by default (RC5 was enabled before 0.9.8):
 
 my %disabled = ( # "what"         => "comment" [or special keyword "experimental"]
+                 "akamai-async-rsalg"    => "akamai-default",
    	         "bf"             => "akamai-default",
 		 "buf-freelists"  => "akamai-default",
 		 "camellia"	  => "akamai-default",
