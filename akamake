@@ -421,7 +421,7 @@ $P/configure.ts: $($P/CONFIGURE_PREREQUISITES)
 	-find $P -name Makefile -print | xargs chmod 0444
 	-chmod 0444 $P/crypto/opensslconf.h
 	-chmod 0555 $P/apps/CA.pl
-	@echo $(CONFIGGLAGS) > $@
+	@echo $(CONFIGFLAGS) > $@
 
 
 $P/static-build-deps.mak : $P/component-configure
