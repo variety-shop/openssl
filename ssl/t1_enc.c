@@ -239,6 +239,7 @@ static int tls1_P_hash(const EVP_MD *md, const unsigned char *sec,
 }
 
 /* seed1 through seed5 are virtually concatenated */
+#ifdef OPENSSL_NO_AKAMAI_ASYNC_RSALG
 static int tls1_PRF(long digest_mask,
                     const void *seed1, int seed1_len,
                     const void *seed2, int seed2_len,
@@ -247,6 +248,21 @@ static int tls1_PRF(long digest_mask,
                     const void *seed5, int seed5_len,
                     const unsigned char *sec, int slen,
                     unsigned char *out1, unsigned char *out2, int olen)
+#else
+/*
+ * NOTE: This function needs to be externally linkable (i.e., not static)
+ * so that TLS cryptoserver can invoke it to compute the master secret
+ * for RSALG.
+ */
+int tls1_PRF(long digest_mask,
+             const void *seed1, int seed1_len,
+             const void *seed2, int seed2_len,
+             const void *seed3, int seed3_len,
+             const void *seed4, int seed4_len,
+             const void *seed5, int seed5_len,
+             const unsigned char *sec, int slen,
+             unsigned char *out1, unsigned char *out2, int olen)
+#endif
 {
     int len, i, idx, count;
     const unsigned char *S1;
