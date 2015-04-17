@@ -306,6 +306,7 @@ $cflags.=" -DOPENSSL_NO_EC2M"    if $no_ec2m;
 $cflags.=" -DOPENSSL_NO_WEAK_SSL_CIPHERS"   if $no_weak_ssl;
 $cflags.=" -DOPENSSL_NO_BUF_FREELISTS" if $no_buf_freelists;
 $cflags.=" -DOPENSSL_NO_HEARTBEATS" if $no_heartbeats;
+$cflags.=" -DOPENSSL_NO_AKAMAI_ASYNC_RSALG" if $no_akamai_async_rsalg; #Akamai
 $cflags.=" -DOPENSSL_PSK" if $no_psk;
 $cflags.= " -DZLIB" if $zlib_opt;
 $cflags.= " -DZLIB_SHARED" if $zlib_opt == 2;
@@ -1244,6 +1245,7 @@ sub read_options
 		"no-hw" => \$no_hw,
 	        "no-buf-freelists" => \$no_buf_freelists,
 	        "no-heartbeats" => \$no_heartbeats,
+	        "no-akamai-async-rsalg" => \$no_akamai_async_rsalg, #Akamai
 	        "no-psk" => \$no_psk,
 		"no-rsax" => 0,
 		"just-ssl" =>
