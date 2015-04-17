@@ -98,6 +98,11 @@ ifdef GCOV
 CONFIGFLAGS := $(CONFIGFLAGS) -ftest-coverage -fprofile-arcs
 endif
 
+# allow components to explicitly enable RSALG if they need it
+ifdef AKAMAKE-OPENSSL-ENABLE-ASYNC-RSALG
+$P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) enable-akamai-async-rsalg
+endif
+
 ifdef OPENSSL-OPTIONS
 $(info Compiling OpenSSL with $(OPENSSL-OPTIONS))
 endif
