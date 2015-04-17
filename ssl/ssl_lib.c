@@ -3503,6 +3503,19 @@ int SSL_signal_event_result(SSL *s, int event, int retcode, int func, int reason
 		
         switch (event) {
         /* Insert handling of events common to all SSL versions here. */
+#ifndef OPENSSL_NO_AKAMAI_ASYNC_RSALG
+        case SSL_EVENT_KEY_EXCH_DECRYPT_DONE:
+       /*
+        * PORT NOTE: should this be handled in the callback below?
+        * For RSALG we've skipped ssl3_get_client_key_exchange_b(),
+        * so we need to do a length check here.
+        */
+            if (s->state == SSL3_ST_SR_KEY_EXCH_ASYNC_RSALG) {
+                if (retcode == SSL_MAX_MASTER_KEY_LENGTH)
+                    s->session->master_key_length = retcode;
+            }
+            /* FALLTHRU */
+#endif
         default:
             if (s->method->ssl_signal_event)
                 ret = s->method->ssl_signal_event(s, event, retcode);

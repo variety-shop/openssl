@@ -684,7 +684,32 @@ int ssl3_accept(SSL *s)
             if (!ssl_event_did_succeed(s, SSL_EVENT_KEY_EXCH_DECRYPT_DONE, &ret))
                 goto end;
 
+#ifdef OPENSSL_NO_AKAMAI_ASYNC_RSALG
             ret=ssl3_process_client_key_exchange(s);
+#else /* OPENSSL_NO_AKAMAI_ASYNC_RSALG */
+            if (s->state != SSL3_ST_SR_KEY_EXCH_ASYNC_RSALG)
+                ret = ssl3_process_client_key_exchange(s);
+            /* fall through */
+
+        case SSL3_ST_SR_KEY_EXCH_ASYNC_RSALG:
+            /*
+             * PORT NOTE: May need to be re-evaluated with new SSL events
+             * If we are using RSALG, the master secret was already computed
+             * on the crypto server, so we skip ssl3_get_client_key_exchange()
+             */
+            if (s->state == SSL3_ST_SR_KEY_EXCH_ASYNC_RSALG) {
+                /*
+                 * If the master secret is invalid, we still need to simulate
+                 * ssl3_get_client_key_exchange_b() failure.
+                 */
+                if (s->event.err_reason != 0) {
+                    SSLerr(SSL_F_SSL3_SEND_SERVER_KEY_EXCHANGE,
+                           s->event.err_reason);
+                    goto end;
+                }
+                ret = 1;
+            }
+#endif /* OPENSSL_NO_AKAMAI_ASYNC_RSALG */
             if (ret <= 0)
                 goto end;
             if (s->s3->tmp.skip_client_verify) {
@@ -1633,6 +1658,24 @@ int ssl3_get_client_hello_post_app(SSL *s, int retry_cert)
     return ret;
 }
 
+#ifndef OPENSSL_NO_AKAMAI_ASYNC_RSALG
+/*
+ * The RSALG algorithm requires that the random number be hashed before being
+ * placed in the server hello message.
+ */
+void RSALG_hash(unsigned char *s_rand, unsigned char *p, size_t len)
+{
+    /*
+     * Take a sha256 hash of the server random,
+     * to be placed in the server hello.
+     */
+    SHA256(s_rand, len, p);
+
+    /* The first 4 bytes must be the time, just as with standard RSA. */
+    memcpy(p, s_rand, 4);
+}
+#endif /* OPENSSL_NO_AKAMAI_ASYNC_RSALG */
+
 int ssl3_send_server_hello(SSL *s)
 {
     unsigned char *buf;
@@ -1657,7 +1700,20 @@ int ssl3_send_server_hello(SSL *s)
         *(p++) = s->version & 0xff;
 
         /* Random stuff */
+#ifdef OPENSSL_NO_AKAMAI_ASYNC_RSALG
         memcpy(p, s->s3->server_random, SSL3_RANDOM_SIZE);
+#else /* OPENSSL_NO_AKAMAI_ASYNC_RSALG */
+        if ((SSL_get_options(s) & SSL_OP_RSALG) &&
+            (s->s3->tmp.new_cipher->algorithm_mkey & SSL_kRSA) &&
+            /* Session resumption does not use the cryptoserver; skip hashing. */
+            s->hit == 0) {
+            /* We are using RSALG, so we need to hash the server random. */
+            RSALG_hash(s->s3->server_random, p, SSL3_RANDOM_SIZE);
+        } else {
+            /* not RSALG */
+            memcpy(p, s->s3->server_random, SSL3_RANDOM_SIZE);
+        }
+#endif /* OPENSSL_NO_AKAMAI_ASYNC_RSALG */
         p += SSL3_RANDOM_SIZE;
 
         /*-
@@ -2457,7 +2513,21 @@ int ssl3_get_client_key_exchange(SSL *s)
         ctx->rsa = rsa;
         ctx->padding = RSA_NO_PADDING;
 
+#ifdef OPENSSL_NO_AKAMAI_ASYNC_RSALG
         s->state=SSL3_ST_SR_KEY_EXCH_PROCESS;
+#else /* OPENSSL_NO_AKAMAI_ASYNC_RSALG */
+        if ((SSL_get_options(s) & SSL_OP_RSALG)) {
+            /*
+             * PORT NOTE: should this be done with a new task via
+             * a different ssl_schedule_task() call?
+             *
+             * The master_decrypt_cb() MUST overwrite the
+             * server random using the RSALG_hash() function.
+             */
+            s->state = SSL3_ST_SR_KEY_EXCH_ASYNC_RSALG;
+        } else
+            s->state = SSL3_ST_SR_KEY_EXCH_PROCESS;
+#endif /* OPENSSL_NO_AKAMAI_ASYNC_RSALG */
         i = ssl_schedule_task(s, SSL_EVENT_KEY_EXCH_DECRYPT_DONE,
                               ctx, (SSL_task_fn*)ssl_task_rsa_decrypt);
         if (i < 0) {
