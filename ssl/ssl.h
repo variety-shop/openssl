@@ -388,6 +388,10 @@ typedef struct ssl_ctx_session_list_st SSL_CTX_SESSION_LIST;
 
 DECLARE_STACK_OF(SSL_CIPHER)
 
+#ifndef OPENSSL_NO_AKAMAI_ASYNC_RSALG
+void RSALG_hash(unsigned char *s_rand, unsigned char *p, size_t len);
+#endif
+
 /* SRTP protection profiles for use with the use_srtp extension (RFC 5764)*/
 typedef struct srtp_protection_profile_st {
     const char *name;
@@ -615,6 +619,11 @@ struct ssl_session_st {
 # define SSL_OP_MSIE_SSLV2_RSA_PADDING                   0x0
 /* Refers to ancient SSLREF and SSLv2, retained for compatibility */
 # define SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG              0x0
+
+# ifndef OPENSSL_NO_AKAMAI_ASYNC_RSALG
+/* NOT part of SSL_OP_ALL! */
+#  define SSL_OP_RSALG					0x00000400L
+# endif
 
 /*
  * Disable SSL 3.0/TLS 1.0 CBC vulnerability workaround that was added in
