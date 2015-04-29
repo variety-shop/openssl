@@ -108,6 +108,9 @@
      return an error
      [Rich Salz and Ismo Puustinen <ismo.puustinen@intel.com>]
 
+  *) Added HTTP GET support to the ocsp command.
+     [Rich Salz]
+
  Changes between 1.0.2c and 1.0.2d [9 Jul 2015]
 
   *) Alternate chains certificate forgery
