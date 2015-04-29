@@ -2,6 +2,9 @@
  OpenSSL CHANGES
  _______________
 
+  *) Added HTTP GET support to the ocsp command.
+     [Rich Salz]
+
  Changes between 1.0.2b and 1.0.2c [12 Jun 2015]
 
   *) Fix HMAC ABI incompatibility. The previous version introduced an ABI
