@@ -1631,6 +1631,10 @@ struct ssl_st {
     int trust;                  /* Trust setting */
 #  endif
     /* crypto */
+#  ifndef OPENSSL_NO_AKAMAI
+    STACK_OF(SSL_CIPHER) *preferred_cipher_list;
+    STACK_OF(SSL_CIPHER) *preferred_cipher_list_by_id;
+#  endif
     STACK_OF(SSL_CIPHER) *cipher_list;
     STACK_OF(SSL_CIPHER) *cipher_list_by_id;
     /*
@@ -2373,6 +2377,9 @@ void SSL_set_bio(SSL *s, BIO *rbio, BIO *wbio);
 BIO *SSL_get_rbio(const SSL *s);
 BIO *SSL_get_wbio(const SSL *s);
 # endif
+#ifndef OPENSSL_NO_AKAMAI
+int SSL_set_preferred_cipher_list(SSL *s, const char *str);
+#endif
 int SSL_set_cipher_list(SSL *s, const char *str);
 void SSL_set_read_ahead(SSL *s, int yes);
 int SSL_get_verify_mode(const SSL *s);
