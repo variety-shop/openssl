@@ -381,6 +381,11 @@ SSL_CTX_ctrl(ctx,SSL_CTRL_SET_TLSEXT_SERVERNAME_ARG,0, (void *)arg)
 #  define SSL_CTX_set_tlsext_ticket_keys(ctx, keys, keylen) \
         SSL_CTX_ctrl((ctx),SSL_CTRL_SET_TLSEXT_TICKET_KEYS,(keylen),(keys))
 
+#  ifndef OPENSSL_NO_AKAMAI
+#   define SSL_CTX_set_session_appdata_ticket_ext_cb(ssl, cb) \
+SSL_CTX_callback_ctrl(ssl,SSL_CTRL_SET_SESSION_APPDATA_TICKET_EXT_CB,(void (*)(void))cb)
+#  endif /* OPENSSL_NO_AKAMAI */
+
 #  define SSL_CTX_set_tlsext_status_cb(ssl, cb) \
 SSL_CTX_callback_ctrl(ssl,SSL_CTRL_SET_TLSEXT_STATUS_REQ_CB,(void (*)(void))cb)
 

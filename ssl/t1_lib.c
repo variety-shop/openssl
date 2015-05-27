@@ -3390,6 +3390,12 @@ static int tls_decrypt_ticket(SSL *s, const unsigned char *etick,
     /* Need at least keyname + iv + some encrypted data */
     if (eticklen < 48)
         return 2;
+# ifndef OPENSSL_NO_AKAMAI
+    if (tctx->session_appdata_ticket_ext_cb) {
+        unsigned char *nctick = (unsigned char *)etick;
+        tctx->session_appdata_ticket_ext_cb(s, &nctick, &eticklen, 0);
+    }
+# endif /* OPENSSL_NO_AKAMAI */
     /* Initialize session ticket encryption and HMAC contexts */
     HMAC_CTX_init(&hctx);
     EVP_CIPHER_CTX_init(&ctx);

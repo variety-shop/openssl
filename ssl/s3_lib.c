@@ -4229,6 +4229,13 @@ long ssl3_ctx_callback_ctrl(SSL_CTX *ctx, int cmd, void (*fp) (void))
                                              HMAC_CTX *, int))fp;
         break;
 
+# ifndef OPENSSL_NO_AKAMAI
+    case SSL_CTRL_SET_SESSION_APPDATA_TICKET_EXT_CB:
+        ctx->session_appdata_ticket_ext_cb = (int (*)(SSL *, unsigned char **,
+                                                      int *, int))fp;
+        break;
+# endif /* OPENSSL_NO_AKAMAI */
+
 # ifndef OPENSSL_NO_SRP
     case SSL_CTRL_SET_SRP_VERIFY_PARAM_CB:
         ctx->srp_ctx.srp_Mask |= SSL_kSRP;
