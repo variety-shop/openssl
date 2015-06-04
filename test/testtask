@@ -1,0 +1,19 @@
+#!/bin/sh
+
+tasktest="../util/shlib_wrap.sh ./tasktest"
+
+#############################################################################
+
+echo Test Task Callbacks
+if [ ! -d gen ]; then
+    ./gen_cert.sh server
+fi
+
+# test openssl task callback extension
+$tasktest --tlsv1_2 || echo 1
+$tasktest --tlsv1_1 || echo 1
+$tasktest --tlsv1   || echo 1
+$tasktest --sslv3   || echo 1
+$tasktest --sslv2   || echo 1
+
+exit 0
