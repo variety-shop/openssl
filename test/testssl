@@ -220,20 +220,4 @@ if [ -z "$extra" -a `uname -m` = "x86_64" ]; then
   $ssltest -cipher AES128-SHA256 -bytes 8m	|| exit 1
 fi
 
-echo Test reuse \(4\)
-$ssltest -bio_pair -tls1 -reuse -num 4 || exit 1
-echo Test reuse with tickets \(4\)
-$ssltest -bio_pair -tls1 -reuse -ticket -num 4 || exit 1
-echo Test reuse with ticket appdata - no tickets \(4\)
-$ssltest -bio_pair -tls1 -reuse -ticket-appdata -num 4 || exit 1
-echo Test reuse with tickets and appdata \(4\)
-$ssltest -bio_pair -tls1 -reuse -ticket -ticket-appdata -num 4 || exit 1
-
-echo Test no-reuse with tickets \(4\)
-$ssltest -bio_pair -tls1 -ticket -num 4 || exit 1
-echo Test no-reuse with ticket appdata - no tickets \(4\)
-$ssltest -bio_pair -tls1 -ticket-appdata -num 4 || exit 1
-echo Test no-reuse with tickets and appdata \(4\)
-$ssltest -bio_pair -tls1 -ticket -ticket-appdata -num 4 || exit 1
-
 exit 0

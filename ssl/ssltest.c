@@ -295,49 +295,6 @@ static int MS_CALLBACK ssl_srp_server_param_cb(SSL *s, int *ad, void *arg)
 }
 #endif
 
-int session_ticket_appdata_cb(SSL* ssl, unsigned char **data_ptr, int *data_len, int send)
-{
-    unsigned char *p;
-    if (send && *data_ptr) {
-        printf("ticket appdata: adding 4 bytes\n");
-        p = *data_ptr;
-        *p++ = 1;
-        *p++ = 2;
-        *p++ = 3;
-        *p++ = 4;
-        *data_ptr = p;
-    } else if (!send) {
-        *data_len -= 4;
-        p = *data_ptr + *data_len;
-        if (p[0] != 1 || p[1] != 2 || p[2] != 3 || p[3] != 4) {
-            printf("ticket appdata: 4 mismatched bytes\n");
-            exit(1);
-        } else
-            printf("ticket appdata: 4 matching bytes\n");
-    }
-    return 0;
-}
-
-int session_ticket_key_cb(SSL* ssl, unsigned char key_name[16],
-                          unsigned char iv[EVP_MAX_IV_LENGTH],
-                          EVP_CIPHER_CTX *ctx, HMAC_CTX *hctx, int enc)
-{
-    static unsigned char hmac_key[16];
-    static unsigned char aes_key[16];
-    if (enc) {
-        memcpy(key_name, "akamai16akamai16", 16);
-        RAND_pseudo_bytes(iv, EVP_MAX_IV_LENGTH);
-        RAND_pseudo_bytes(hmac_key, sizeof(hmac_key));
-        RAND_pseudo_bytes(aes_key, sizeof(aes_key));
-        HMAC_Init_ex(hctx, hmac_key, sizeof(hmac_key), EVP_sha256(), NULL);
-        EVP_EncryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, aes_key, iv);
-    } else {
-        HMAC_Init_ex(hctx, hmac_key, sizeof(hmac_key), EVP_sha256(), NULL);
-        EVP_DecryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, aes_key, iv);
-    }
-    return 1;
-}
-
 static BIO *bio_err = NULL;
 static BIO *bio_stdout = NULL;
 
@@ -794,8 +751,6 @@ static void sv_usage(void)
     fprintf(stderr, " -alpn_server <string> - have server side offer ALPN\n");
     fprintf(stderr,
             " -alpn_expected <string> - the ALPN protocol that should be negotiated\n");
-    fprintf(stderr, " -ticket       - use session tickets\n");
-    fprintf(stderr, " -ticket-appdata - use session tickets with appdata\n");
 }
 
 static void print_details(SSL *c_ssl, const char *prefix)
@@ -968,8 +923,6 @@ int main(int argc, char *argv[])
     int fips_mode = 0;
 #endif
     int no_protocol = 0;
-    int use_tickets = 0;
-    int use_ticket_appdata = 0;
 
     verbose = 0;
     debug = 0;
@@ -1189,10 +1142,6 @@ int main(int argc, char *argv[])
             if (--argc < 1)
                 goto bad;
             alpn_expected = *(++argv);
-        } else if (strcmp(*argv,"-ticket") == 0) {
-            use_tickets = 1;
-        } else if (strcmp(*argv,"-ticket-appdata") == 0) {
-            use_ticket_appdata = 1;
         } else {
             fprintf(stderr, "unknown option %s\n", *argv);
             badop = 1;
@@ -1335,13 +1284,6 @@ int main(int argc, char *argv[])
         ERR_print_errors(bio_err);
         goto end;
     }
-
-    if (use_tickets)
-        SSL_CTX_set_tlsext_ticket_key_cb(s_ctx, session_ticket_key_cb);
-    else
-        SSL_CTX_set_options(s_ctx, SSL_OP_NO_TICKET);
-    if (use_ticket_appdata)
-        SSL_CTX_set_session_appdata_ticket_ext_cb(s_ctx, session_ticket_appdata_cb);
 
     if (cipher != NULL) {
         SSL_CTX_set_cipher_list(c_ctx, cipher);

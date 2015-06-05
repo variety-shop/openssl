@@ -1266,14 +1266,6 @@ struct ssl_ctx_st {
     unsigned char *tlsext_ellipticcurvelist;
 #   endif                       /* OPENSSL_NO_EC */
 #  endif
-
-#  ifndef OPENSSL_NO_AKAMAI
-    /* Callback to support adding addition data block after session ticket data */
-    int (*session_appdata_ticket_ext_cb)(SSL *ssl,
-                                         unsigned char **data_ptr,
-                                         int *data_len,
-                                         int send);
-#  endif /* OPENSSL_NO_AKAMAI */
 };
 
 # endif
@@ -2184,10 +2176,6 @@ DECLARE_PEM_rw(SSL_SESSION, SSL_SESSION)
 # define SSL_CTRL_CHECK_PROTO_VERSION            119
 # define DTLS_CTRL_SET_LINK_MTU                  120
 # define DTLS_CTRL_GET_LINK_MIN_MTU              121
-# ifndef OPENSSL_NO_AKAMAI
-/* put it out of range a bit */
-#  define SSL_CTRL_SET_SESSION_APPDATA_TICKET_EXT_CB 140
-# endif /* OPENSSL_NO_AKAMAI */
 # define SSL_CERT_SET_FIRST                      1
 # define SSL_CERT_SET_NEXT                       2
 # define SSL_CERT_SET_SERVER                     3

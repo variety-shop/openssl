@@ -3675,12 +3675,6 @@ int ssl3_send_newsession_ticket(SSL *s)
         HMAC_CTX_cleanup(&hctx);
 
         p += hlen;
-
-# ifndef OPENSSL_NO_AKAMAI
-        if (tctx->session_appdata_ticket_ext_cb)
-            tctx->session_appdata_ticket_ext_cb(s, &p, NULL, 1);
-# endif /* OPENSSL_NO_AKAMAI */
-
         /* Now write out lengths: p points to end of data written */
         /* Total length */
         len = p - ssl_handshake_start(s);
