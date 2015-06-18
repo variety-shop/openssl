@@ -193,7 +193,7 @@ int ssl23_write(SSL *s, const void *buf, int len)
 
 #ifndef OPENSSL_NO_IOVEC
 
-int ssl23_readv(SSL *s, ssl_bucket *buckets, int count)
+int ssl23_readv(SSL *s, const ssl_bucket *buckets, int count)
 {
     int n = ssl23_read_preflight(s);
     if (n > 0)

@@ -768,7 +768,7 @@ int dtls1_get_record(SSL *s)
  *     Application data protocol
  *             none of our business
  */
-int dtls1_readv_bytes(SSL *s, int type, ssl_bucket *buckets, int count, int peek)
+int dtls1_readv_bytes(SSL *s, int type, const ssl_bucket *buckets, int count, int peek)
 {
     int al, i, j, ret;
     unsigned int n;

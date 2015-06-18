@@ -747,7 +747,7 @@ static int ssl_mt_error(int n)
 
 # ifndef OPENSSL_NO_IOVEC
 
-int ssl2_readv(SSL *s, ssl_bucket *buckets, int count)
+int ssl2_readv(SSL *s, const ssl_bucket *buckets, int count)
 {
     return ssl2_read_internal(s, buckets, count, 0);
 }

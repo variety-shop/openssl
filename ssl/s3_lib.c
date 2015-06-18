@@ -4746,7 +4746,7 @@ long ssl_get_algorithm2(SSL *s)
 
 #ifndef OPENSSL_NO_IOVEC
 
-static int ssl3_readv_internal(SSL *s, ssl_bucket *buckets, int count, int peek)
+static int ssl3_readv_internal(SSL *s, const ssl_bucket *buckets, int count, int peek)
 {
     int ret;
 
@@ -4773,7 +4773,7 @@ static int ssl3_readv_internal(SSL *s, ssl_bucket *buckets, int count, int peek)
     return (ret);
 }
 
-int ssl3_readv(SSL *s, ssl_bucket *buckets, int count)
+int ssl3_readv(SSL *s, const ssl_bucket *buckets, int count)
 {
     return (ssl3_readv_internal(s, buckets, count, 0));
 }

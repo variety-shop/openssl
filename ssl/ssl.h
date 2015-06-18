@@ -473,7 +473,7 @@ struct ssl_method_st {
                            int peek);
     int (*ssl_write_bytes) (SSL *s, int type, const void *buf_, int len);
 # ifndef OPENSSL_NO_IOVEC
-    int (*ssl_readv)(SSL *s, ssl_bucket *buckets, int count);
+    int (*ssl_readv)(SSL *s, const ssl_bucket *buckets, int count);
     int (*ssl_writev)(SSL *s, const ssl_bucket *buckets, int count);
     int (*ssl_readv_bytes)(SSL *s, int type, ssl_bucket *buckets,
                            int count, int peek);
@@ -2559,7 +2559,7 @@ int SSL_read(SSL *ssl, void *buf, int num);
 int SSL_peek(SSL *ssl, void *buf, int num);
 int SSL_write(SSL *ssl, const void *buf, int num);
 # ifndef OPENSSL_NO_IOVEC
-int SSL_readv(SSL *ssl, ssl_bucket *buckets, int count);
+int SSL_readv(SSL *ssl, const ssl_bucket *buckets, int count);
 int SSL_writev(SSL *ssl, const ssl_bucket *buckets, int count);
 #endif /* !OPENSSL_NO_IOVEC */
 long SSL_ctrl(SSL *ssl, int cmd, long larg, void *parg);

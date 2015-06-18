@@ -1208,7 +1208,7 @@ int ssl3_writev_pending(SSL *s, int type, const ssl_bucket *buckets,
  *     Application data protocol
  *             none of our business
  */
-int ssl3_readv_bytes(SSL *s, int type, ssl_bucket *buckets,
+int ssl3_readv_bytes(SSL *s, int type, const ssl_bucket *buckets,
                      int count, int peek)
 {
     int al, i, j, ret;

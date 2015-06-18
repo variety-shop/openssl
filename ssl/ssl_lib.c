@@ -1090,7 +1090,7 @@ int SSL_write(SSL *s, const void *buf, int num)
 
 #ifndef OPENSSL_NO_IOVEC
 
-int SSL_readv(SSL *s, ssl_bucket *buckets, int count)
+int SSL_readv(SSL *s, const ssl_bucket *buckets, int count)
 {
     if (s->handshake_func == 0) {
         SSLerr(SSL_F_SSL_READ, SSL_R_UNINITIALIZED);
