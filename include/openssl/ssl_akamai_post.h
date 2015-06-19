@@ -81,6 +81,20 @@ void SSL_CTX_set1_cert_store(SSL_CTX *, X509_STORE *);
 /* The int argument is 1 for read buffers, 0 for write buffers */
 void SSL_set_buffer_mem_functions(void* (*m)(int, size_t), void(*f)(int, size_t, void*));
 
+typedef int (*tlsext_ticket_appdata_size_cb_fn) (SSL *s, void *arg);
+typedef int (*tlsext_ticket_appdata_append_cb_fn) (SSL *s,
+                                                   unsigned char* data_ptr,
+                                                   int limit_size, void *arg);
+typedef int (*tlsext_ticket_appdata_parse_cb_fn) (SSL *s,
+                                                  const unsigned char* data_ptr,
+                                                  int size, void *arg);
+
+void SSL_CTX_tlsext_ticket_appdata_cbs(SSL_CTX *ctx,
+                                       tlsext_ticket_appdata_size_cb_fn size_cb,
+                                       tlsext_ticket_appdata_append_cb_fn append_cb,
+                                       tlsext_ticket_appdata_parse_cb_fn parse_cb,
+                                       void *arg);
+
 #  ifdef  __cplusplus
 }
 #  endif
