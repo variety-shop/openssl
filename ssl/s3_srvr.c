@@ -3758,6 +3758,9 @@ int ssl3_send_newsession_ticket(SSL *s)
         SSL_CTX *tctx = s->initial_ctx;
         unsigned char iv[EVP_MAX_IV_LENGTH];
         unsigned char key_name[16];
+#ifndef OPENSSL_NO_AKAMAI
+        int call_append = 0, app_size = 0;
+#endif
 
         /* get session encoding length */
         slen_full = i2d_SSL_SESSION(s->session, NULL);
@@ -3803,6 +3806,22 @@ int ssl3_send_newsession_ticket(SSL *s)
         }
         SSL_SESSION_free(sess);
 
+#ifndef OPENSSL_NO_AKAMAI
+        if (tctx->tlsext_ticket_appdata_size_cb) {
+            /*
+             *appending data will at least has 10 bytes:
+             *  8 bytes for magic number
+             *  2 bytes for data length.
+             */
+            int remain_size  = 0xFF00 - slen - APPDATA_MAG_LEN_BYTES;
+            int req_app_size = tctx->tlsext_ticket_appdata_size_cb(s, tctx->tlsext_ticket_appdata_arg);
+            if (req_app_size > 0) {
+                call_append = 1;
+                app_size = (req_app_size<remain_size ? req_app_size : remain_size) + APPDATA_MAG_LEN_BYTES;
+            }
+        }
+#endif /* OPENSSL_NO_AKAMAI */
+
         /*-
          * Grow buffer if need be: the length calculation is as
          * follows handshake_header_length +
@@ -3811,10 +3830,17 @@ int ssl3_send_newsession_ticket(SSL *s)
          * session_length + max_enc_block_size (max encrypted session
          * length) + max_md_size (HMAC).
          */
+#ifdef OPENSSL_NO_AKAMAI
         if (!BUF_MEM_grow(s->init_buf,
                           SSL_HM_HEADER_LENGTH(s) + 22 + EVP_MAX_IV_LENGTH +
                           EVP_MAX_BLOCK_LENGTH + EVP_MAX_MD_SIZE + slen))
             goto err;
+#else
+        if (!BUF_MEM_grow(s->init_buf,
+                          SSL_HM_HEADER_LENGTH(s) + 22 + EVP_MAX_IV_LENGTH +
+                          EVP_MAX_BLOCK_LENGTH + EVP_MAX_MD_SIZE + slen + app_size))
+            goto err;
+#endif
 
         p = ssl_handshake_start(s);
         /*
@@ -3884,6 +3910,29 @@ int ssl3_send_newsession_ticket(SSL *s)
         HMAC_CTX_cleanup(&hctx);
 
         p += hlen;
+
+#ifndef OPENSSL_NO_AKAMAI
+        if (call_append && tctx->tlsext_ticket_appdata_append_cb) {
+            /*
+             * the third argument(limit_size) in cb is size of bytes application layer can use.
+             * the return value(written_size) in cb is size of bytes application layer actually use.
+             * limit_size will always less than or equal to the size return from tlsext_ticket_appdata_size_cb.
+             * 1. limit_size might be zero. which indicates even no enough space for 8-bytes magic number and 2-bytes length.
+             *    In this case, application layer should realize openssl will throw away any data from application, also magic number and length.
+             * 2. limit_size is the upperbound of memory application level can use, application layer must not write more than limit_size.
+             */
+            /* no enough space for appending data or magic number and length, pass 0. */
+            int limit_size = (app_size < APPDATA_MAG_LEN_BYTES) ? 0 : (app_size - APPDATA_MAG_LEN_BYTES);
+            int written_size = tctx->tlsext_ticket_appdata_append_cb(s, p, limit_size, tctx->tlsext_ticket_appdata_arg);
+            if (written_size > 0) {
+                p += written_size;      /* move to the end of appending data */
+                s2n(written_size, p);   /* write out length and move to the end */
+                memcpy(p, APPDATA_MAGIC_NUMBER, APPDATA_MAG_BYTES);
+                p += APPDATA_MAG_BYTES; /* write out magic number and move to the end */
+            }
+        }
+#endif /* OPENSSL_NO_AKAMAI */
+
         /* Now write out lengths: p points to end of data written */
         /* Total length */
         len = p - ssl_handshake_start(s);
