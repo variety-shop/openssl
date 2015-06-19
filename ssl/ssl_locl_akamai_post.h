@@ -40,6 +40,12 @@ struct ssl_ctx_ex_data_akamai_st
 
     /* session list sharing */
     struct ssl_ctx_session_list_st *session_list;
+
+    /* Callbacks to support appending data after session ticket */
+    tlsext_ticket_appdata_size_cb_fn tlsext_ticket_appdata_size_cb;
+    tlsext_ticket_appdata_append_cb_fn tlsext_ticket_appdata_append_cb;
+    tlsext_ticket_appdata_parse_cb_fn tlsext_ticket_appdata_parse_cb;
+    void *tlsext_ticket_appdata_arg;
 };
 
 typedef struct ssl_ex_data_akamai_st SSL_EX_DATA_AKAMAI;
@@ -69,5 +75,11 @@ SSL_CTX_SESSION_LIST *SSL_CTX_SESSION_LIST_new(void);
 /* returns number of references, so 0 = freed */
 int SSL_CTX_SESSION_LIST_free(SSL_CTX_SESSION_LIST *l);
 int SSL_CTX_SESSION_LIST_up_ref(SSL_CTX_SESSION_LIST *l);
+
+/* session ticket append data */
+# define APPDATA_MAGIC_NUMBER           "xg1f5s3!"
+# define APPDATA_MAG_BYTES              (sizeof(APPDATA_MAGIC_NUMBER) - 1)
+# define APPDATA_LENGTH_BYTES           2
+# define APPDATA_MAG_LEN_BYTES          (APPDATA_MAG_BYTES + APPDATA_LENGTH_BYTES)
 
 #endif /* HEADER_SSL_LOCL_AKAMAI_POST_H */
