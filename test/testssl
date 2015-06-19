@@ -326,4 +326,26 @@ $ssltest -bio_pair -sn_client bob -sn_server1 alice -sn_server2 bob -s_ticket1 y
 
 $ssltest -bio_pair -s_ticket1 broken -c_ticket yes -ticket_expect no || exit 1
 
+echo Test reuse with tickets \(x4\)
+$ssltest -bio_pair -tls1 -reuse -num 4 || exit 1
+echo Test reuse with ticket appdata - no tickets \(x4\)
+$ssltest -bio_pair -tls1 -reuse -no_tickets -ticket-appdata 1 -num 4 || exit 1
+echo Test reuse with tickets and appdata \(x4\)
+$ssltest -bio_pair -tls1 -reuse -ticket-appdata 1 -num 4 || exit 1
+$ssltest -bio_pair -tls1 -reuse -ticket-appdata 2 -num 4 || exit 1
+$ssltest -bio_pair -tls1 -reuse -ticket-appdata 3 -num 4 || exit 1
+$ssltest -bio_pair -tls1 -reuse -ticket-appdata 4 -num 4 || exit 1
+$ssltest -bio_pair -tls1 -reuse -ticket-appdata 5 -num 4 || exit 1
+
+echo Test no-reuse with tickets \(x4\)
+$ssltest -bio_pair -tls1 -num 4 || exit 1
+echo Test no-reuse with ticket appdata - no tickets \(x4\)
+$ssltest -bio_pair -tls1 -no_tickets -ticket-appdata 1 -num 4 || exit 1
+echo Test no-reuse with tickets and appdata \(x4\)
+$ssltest -bio_pair -tls1 -ticket-appdata 1 -num 4 || exit 1
+$ssltest -bio_pair -tls1 -ticket-appdata 2 -num 4 || exit 1
+$ssltest -bio_pair -tls1 -ticket-appdata 3 -num 4 || exit 1
+$ssltest -bio_pair -tls1 -ticket-appdata 4 -num 4 || exit 1
+$ssltest -bio_pair -tls1 -ticket-appdata 5 -num 4 || exit 1
+
 exit 0

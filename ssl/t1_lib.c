@@ -3514,6 +3514,38 @@ int tls1_process_ticket(SSL *s, unsigned char *session_id, int len,
                  */
                 return 2;
             }
+
+#ifndef OPENSSL_NO_AKAMAI
+            /*
+             * p points to the beginning of the data,
+             * size is length of entire ticket data.
+             * check if the last 8 bytes is the magic number.
+             */
+            if (size > APPDATA_MAG_LEN_BYTES) {
+                const unsigned char *app_ptr = p + size - APPDATA_MAG_LEN_BYTES;
+                unsigned short app_size = 0;
+                void *arg = s->initial_ctx->tlsext_ticket_appdata_arg;
+                n2s(app_ptr, app_size);
+                if (memcmp(app_ptr, APPDATA_MAGIC_NUMBER, APPDATA_MAG_BYTES) == 0
+                    && app_size < (size - APPDATA_MAG_LEN_BYTES)) {
+                    app_ptr -= (app_size + APPDATA_LENGTH_BYTES);
+                    size -= (app_size + APPDATA_MAG_LEN_BYTES);
+                    if (s->initial_ctx->tlsext_ticket_appdata_parse_cb) {
+                        r = s->initial_ctx->tlsext_ticket_appdata_parse_cb(s,
+                                                                           app_ptr,
+                                                                           app_size,
+                                                                           arg);
+                        if (r == -3)  /* fatal error */
+                            return -1;
+                        if (r == -2) { /* drop ticket */
+                            s->tlsext_ticket_expected = 1;
+                            return 2;
+                        }
+                    }
+                }
+            }
+#endif /* OPENSSL_NO_AKAMAI */
+
             r = tls_decrypt_ticket(s, p, size, session_id, len, ret);
             switch (r) {
             case 2:            /* ticket couldn't be decrypted */
