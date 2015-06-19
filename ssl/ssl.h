@@ -408,6 +408,21 @@ typedef int (*tls_session_secret_cb_fn) (SSL *s, void *secret,
                                          STACK_OF(SSL_CIPHER) *peer_ciphers,
                                          SSL_CIPHER **cipher, void *arg);
 
+# ifndef OPENSSL_NO_AKAMAI
+typedef int (*tlsext_ticket_appdata_size_cb_fn) (SSL *s, void *arg);
+typedef int (*tlsext_ticket_appdata_append_cb_fn) (SSL *s,
+                                                   unsigned char* data_ptr,
+                                                   int limit_size, void *arg);
+typedef int (*tlsext_ticket_appdata_parse_cb_fn) (SSL *s,
+                                                  const unsigned char* data_ptr,
+                                                  int size, void *arg);
+/* session ticket append data */
+#  define APPDATA_MAGIC_NUMBER           "xg1f5s3!"
+#  define APPDATA_MAG_BYTES              (sizeof(APPDATA_MAGIC_NUMBER) - 1)
+#  define APPDATA_LENGTH_BYTES           2
+#  define APPDATA_MAG_LEN_BYTES          (APPDATA_MAG_BYTES + APPDATA_LENGTH_BYTES)
+# endif /* OPENSSL_NO_AKAMAI */
+
 # ifndef OPENSSL_NO_IOVEC
 typedef struct iovec ssl_bucket;
 # else  /* !OPENSSL_NO_IOVEC */
@@ -1265,6 +1280,16 @@ struct ssl_ctx_st {
     size_t tlsext_ellipticcurvelist_length;
     unsigned char *tlsext_ellipticcurvelist;
 #   endif                       /* OPENSSL_NO_EC */
+
+	/* Callbacks to support appending data after session ticket */
+#ifndef OPENSSL_NO_AKAMAI
+    tlsext_ticket_appdata_size_cb_fn tlsext_ticket_appdata_size_cb;
+    tlsext_ticket_appdata_append_cb_fn tlsext_ticket_appdata_append_cb;
+    tlsext_ticket_appdata_parse_cb_fn tlsext_ticket_appdata_parse_cb;
+    void *tlsext_ticket_appdata_arg;
+#endif /* OPENSSL_NO_AKAMAI */
+
+
 #  endif
 };
 
@@ -2339,7 +2364,12 @@ int SSL_CTX_set_preferred_cipher_list(SSL_CTX *ctx, const char *str);
 STACK_OF(SSL_CIPHER) *SSL_get_ssl2_ciphers(SSL *s);
 STACK_OF(SSL_CIPHER) *SSL_get_preferred_ciphers(SSL *s);
 void SSL_CTX_set_cert_store_ref(SSL_CTX *, X509_STORE *);
-#endif
+void SSL_CTX_tlsext_ticket_appdata_cbs(SSL_CTX *ctx,
+                                       tlsext_ticket_appdata_size_cb_fn size_cb,
+                                       tlsext_ticket_appdata_append_cb_fn append_cb,
+                                       tlsext_ticket_appdata_parse_cb_fn parse_cb,
+                                       void *arg);
+#endif /* OPENSSL_NO_AKAMAI */
 int SSL_want(const SSL *s);
 int SSL_signal_event_result(SSL *s, int event, int result, int errfunc, int errreason, const char *file, int line);
 # define SSL_signal_event(s, event, retcode) \
