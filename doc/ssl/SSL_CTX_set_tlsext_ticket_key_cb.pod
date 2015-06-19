@@ -187,6 +187,7 @@ L<SSL_CTX_add_session(3)|SSL_CTX_add_session(3)>,
 L<SSL_CTX_sess_number(3)|SSL_CTX_sess_number(3)>,
 L<SSL_CTX_sess_set_get_cb(3)|SSL_CTX_sess_set_get_cb(3)>,
 L<SSL_CTX_set_session_id_context(3)|SSL_CTX_set_session_id_context(3)>,
+L<SSL_CTX_tlsext_ticket_appdata_cbs(3)|SSL_CTX_tlsext_ticket_appdata_cbs(3)>
 
 =head1 HISTORY
 
