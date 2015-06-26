@@ -141,6 +141,8 @@ unsigned char *SSL_BUCKET_get_pointer(const SSL_BUCKET *buckets, int count,
 X509 *SSL_get0_peer_certificate(const SSL *s);
 # endif
 
+void SSL_CTX_share_session_cache(SSL_CTX *a, SSL_CTX *b);
+
 # ifdef  __cplusplus
 }
 # endif
