@@ -146,6 +146,12 @@ void SSL_CTX_share_session_cache(SSL_CTX *a, SSL_CTX *b);
 /* To get traffic counters */
 void SSL_get_byte_counters(SSL *s, size_t *w, size_t *r);
 
+void SSL_SESSION_set_verify_result(SSL *ssl, long arg);
+void SSL_set_cert_verify_callback(SSL *s,
+                                  int (*cb) (X509_STORE_CTX *, void *),
+                                  void *arg);
+void* SSL_get_cert_verify_arg(SSL *s);
+
 # ifdef  __cplusplus
 }
 # endif
