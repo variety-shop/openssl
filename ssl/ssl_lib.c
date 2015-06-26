@@ -1972,17 +1972,8 @@ SSL_CTX *SSL_CTX_new(const SSL_METHOD *meth)
     ret->cert_store = NULL;
     ret->session_cache_mode = SSL_SESS_CACHE_SERVER;
     ret->session_cache_size = SSL_SESSION_CACHE_MAX_SIZE_DEFAULT;
-#ifdef OPENSSL_NO_AKAMAI
     ret->session_cache_head = NULL;
     ret->session_cache_tail = NULL;
-#else
-    if (!(ret->session_list = OPENSSL_malloc(sizeof(SSL_CTX_SESSION_LIST))))
-        goto err;
-
-    ret->session_list->session_cache_head=NULL;
-    ret->session_list->session_cache_tail=NULL;
-    ret->session_list->session_ref_count = 1;
-#endif
     /* We take the system default */
     ret->session_timeout = meth->get_timeout();
 
@@ -2233,19 +2224,26 @@ void SSL_CTX_free(SSL_CTX *a)
     if (a->sessions != NULL)
         lh_SSL_SESSION_free(a->sessions);
 #else
-    i = CRYPTO_add(&a->session_list->session_ref_count, -1, CRYPTO_LOCK_SSL_CTX);
-    if (i == 0) {
-        if (a->sessions != NULL)
-            SSL_CTX_flush_sessions(a, 0);
-    }
+    {
+        SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(a);
+        SSL_CTX_SESSION_LIST* session_list = NULL;
+        if (ex_data != NULL) {
+            i = CRYPTO_add(&ex_data->session_list->references, -1,
+                           CRYPTO_LOCK_SSL_CTX);
+            if (i == 0) {
+                if (a->sessions != NULL)
+                    SSL_CTX_flush_sessions(a, 0);
+                session_list = ex_data->session_list;
+                ex_data->session_list = NULL;
+            }
+        }
 
-    CRYPTO_free_ex_data(CRYPTO_EX_INDEX_SSL_CTX, a, &a->ex_data);
+        CRYPTO_free_ex_data(CRYPTO_EX_INDEX_SSL_CTX, a, &a->ex_data);
 
-    if (i == 0) {
-        if (a->sessions != NULL)
+        if (i == 0) {
             lh_SSL_SESSION_free(a->sessions);
-        if (a->session_list)
-            OPENSSL_free(a->session_list);
+            OPENSSL_free(session_list);
+        }
     }
 #endif
 
@@ -3722,26 +3720,6 @@ int SSL_is_server(SSL *s)
 }
 
 #ifndef OPENSSL_NO_AKAMAI
-void SSL_CTX_share_session_cache(SSL_CTX *a, SSL_CTX *b)
-{
-    CRYPTO_w_lock(CRYPTO_LOCK_SSL_CTX);
-    b->session_list->session_ref_count--;
-
-    if (b->session_list->session_ref_count == 0) {
-        if (b->sessions) {
-            SSL_CTX_flush_sessions_lock(b, 0, 0); /* do not lock */
-            lh_SSL_SESSION_free(b->sessions);
-        }
-
-        if (b->session_list)
-            OPENSSL_free(b->session_list);
-    }
-
-    b->sessions     = a->sessions;
-    b->session_list = a->session_list;
-    a->session_list->session_ref_count++;
-    CRYPTO_w_unlock(CRYPTO_LOCK_SSL_CTX);
-}
 
 STACK_OF(SSL_CIPHER) *SSL_get_ssl2_ciphers(SSL *s)
 {
