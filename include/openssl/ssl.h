@@ -31,6 +31,10 @@
 # include <openssl/ct.h>
 # include <openssl/sslerr.h>
 
+# ifndef OPENSSL_NO_AKAMAI
+#  include <openssl/ssl_akamai_pre.h>
+# endif
+
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -2259,6 +2263,10 @@ __owur int SSL_alloc_buffers(SSL *ssl);
 extern const char SSL_version_str[];
 
 int ERR_load_SSL_strings(void);
+
+# ifndef OPENSSL_NO_AKAMAI
+#  include <openssl/ssl_akamai_post.h>
+# endif
 
 # ifdef  __cplusplus
 }
