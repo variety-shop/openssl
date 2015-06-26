@@ -50,6 +50,15 @@ struct ssl_async_task_st
 };
 # endif /* OPENSSL_NO_AKAMAI_ASYNC */
 
+typedef struct ssl_ctx_session_list_st SSL_CTX_SESSION_LIST;
+
+struct ssl_ctx_session_list_st
+{
+  struct ssl_session_st *session_cache_head;
+  struct ssl_session_st *session_cache_tail;
+  int references; /* number of SSL_CTX's holding a reference */
+};
+
 typedef struct ssl_ctx_ex_data_akamai_st SSL_CTX_EX_DATA_AKAMAI;
 
 struct ssl_ctx_ex_data_akamai_st
@@ -73,6 +82,9 @@ struct ssl_ctx_ex_data_akamai_st
      */
     int (*setup_cert_verify_cb)(SSL *s, void(*f)(SSL *s));
 # endif /* OPENSSL_NO_AKAMAI_ASYNC */
+
+    /* session list sharing */
+    SSL_CTX_SESSION_LIST * session_list;
 };
 
 typedef struct ssl_ex_data_akamai_st SSL_EX_DATA_AKAMAI;
@@ -109,4 +121,5 @@ int ssl3_do_vcompress(SSL *ssl, const SSL_BUCKET *buckets, int count,
 int ssl3_writev_pending(SSL *s, int type, const SSL_BUCKET *buckets, int count,
                         unsigned int len, int reset);
 
+SSL_CTX_SESSION_LIST *SSL_CTX_get_session_list(SSL_CTX* ctx);
 #endif /* HEADER_SSL_LOCL_AKAMAI_POST_H */
