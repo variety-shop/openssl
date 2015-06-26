@@ -1135,10 +1135,6 @@ EVP_PKEY *ssl_get_sign_pkey(SSL *s, const SSL_CIPHER *c, const EVP_MD **pmd);
 int ssl_cert_type(X509 *x, EVP_PKEY *pkey);
 void ssl_set_cert_masks(CERT *c, const SSL_CIPHER *cipher);
 STACK_OF(SSL_CIPHER) *ssl_get_ciphers_by_id(SSL *s);
-#ifndef OPENSSL_NO_AKAMAI
-STACK_OF(SSL_CIPHER) *ssl_get_ssl2_ciphers_by_id(SSL *s);
-STACK_OF(SSL_CIPHER) *ssl_get_preferred_ciphers_by_id(SSL *s);
-#endif
 int ssl_verify_alarm_type(long type);
 void ssl_load_ciphers(void);
 int ssl_fill_hello_random(SSL *s, int server, unsigned char *field, int len);

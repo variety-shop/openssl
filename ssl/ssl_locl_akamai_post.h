@@ -85,6 +85,17 @@ struct ssl_ctx_ex_data_akamai_st
 
     /* session list sharing */
     SSL_CTX_SESSION_LIST * session_list;
+
+    /*
+     * Bugzilla 38059.
+     * By default, OpenSSL selects ciphers based on the client's preferences.
+     * These allow us an override with a fallback to the original cipher_list
+     * defined on the top of this struct.
+     */
+    STACK_OF(SSL_CIPHER) *ssl2_cipher_list;
+    STACK_OF(SSL_CIPHER) *ssl2_cipher_list_by_id; /* sorted for lookup */
+    STACK_OF(SSL_CIPHER) *preferred_cipher_list;
+    STACK_OF(SSL_CIPHER) *preferred_cipher_list_by_id; /* sorted for lookup */
 };
 
 typedef struct ssl_ex_data_akamai_st SSL_EX_DATA_AKAMAI;
@@ -106,6 +117,9 @@ struct ssl_ex_data_akamai_st
 
     int (*app_verify_callback)(X509_STORE_CTX*, void*);
     void *app_verify_arg;
+
+    STACK_OF(SSL_CIPHER) *preferred_cipher_list;
+    STACK_OF(SSL_CIPHER) *preferred_cipher_list_by_id; /* sorted for lookup */
 };
 
 /* Used to initialize and get the akamai EX_DATA structures in one fell swoop */

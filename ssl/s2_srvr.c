@@ -743,7 +743,7 @@ static int get_client_hello(SSL *s)
 
 #ifndef OPENSSL_NO_AKAMAI
         /* tshort - not sure how this is different than SSL_OP_CIPHER_SERVER_PREFERENCE */
-        cl=ssl_get_ssl2_ciphers_by_id(s);
+        cl=SSL_get_ssl2_ciphers_by_id(s);
         if (cl) {
             /*
              * This is our preferred list. We order the ciphers
