@@ -325,6 +325,7 @@ my @dtls = qw(dtls1 dtls1_2);
 
 my @disablables = (
     "afalgeng",
+    "akamai",
     "aria",
     "asan",
     "asm",
@@ -425,6 +426,11 @@ my %deprecated_disablables = (
     "ripemd" => "rmd160",
     "ui" => "ui-console",
     );
+
+#Akamai adds %enabled to list enabled features
+my %enabled = ( # "what"                => "comment"
+                "akamai"                => "akamai-default",
+);
 
 # All of the following is disabled by default (RC5 was enabled before 0.9.8):
 
@@ -600,6 +606,7 @@ while (@argvcopy)
                         if ($1 eq "$proto-method")
                                 {
                                 $disabled{"$proto"} = "option($proto-method)";
+                                delete $enabled{"$proto"}; # Akamai
                                 last;
                                 }
                         }
@@ -608,6 +615,7 @@ while (@argvcopy)
                         foreach my $proto (@dtls)
                                 {
                                 $disabled{$proto} = "option(dtls)";
+                                delete $enabled{$proto}; # Akamai
                                 }
                         $disabled{"dtls"} = "option(dtls)";
                         }
@@ -615,6 +623,7 @@ while (@argvcopy)
                         {
                         # Last one of its kind
                         $disabled{"ssl3"} = "option(ssl)";
+                        delete $enabled{"ssl3"}; # Akamai
                         }
                 elsif ($1 eq "tls")
                         {
@@ -623,6 +632,7 @@ while (@argvcopy)
                         foreach my $proto (@tls)
                                 {
                                 $disabled{$proto} = "option(tls)";
+                                delete $enabled{$proto}; # Akamai
                                 }
                         }
                 elsif ($1 eq "static-engine")
@@ -644,6 +654,7 @@ while (@argvcopy)
                 else
                         {
                         $disabled{$1} = "option";
+                        delete $enabled{$1}; # Akamai
                         }
 		# No longer an automatic choice
 		$auto_threads = 0 if ($1 eq "threads");
@@ -664,6 +675,7 @@ while (@argvcopy)
                         }
 		my $algo = $1;
 		delete $disabled{$algo};
+                $enabled{$algo} = "option"; # Akamai
 
 		# No longer an automatic choice
 		$auto_threads = 0 if ($1 eq "threads");
@@ -920,6 +932,12 @@ foreach my $feature (@{$target{enable}}) {
         delete $disabled{$_};
     }
 }
+
+#Akamai
+foreach (sort (keys %enabled))
+        {
+        printf "    enable-%-8s %-10s\n", $_, "[$enabled{$_}]";
+        }
 
 foreach (sort (keys %disabled))
 	{

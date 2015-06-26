@@ -31,6 +31,10 @@
 # include <openssl/ct.h>
 # include <openssl/sslerr.h>
 
+# ifndef OPENSSL_NO_AKAMAI
+#  include <openssl/ssl_akamai_pre.h>
+# endif
+
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -2241,6 +2245,10 @@ __owur const struct openssl_ssl_test_functions *SSL_test_functions(void);
 extern const char SSL_version_str[];
 
 int ERR_load_SSL_strings(void);
+
+# ifndef OPENSSL_NO_AKAMAI
+#  include <openssl/ssl_akamai_post.h>
+# endif
 
 # ifdef  __cplusplus
 }
