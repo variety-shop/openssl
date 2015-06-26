@@ -143,6 +143,9 @@ X509 *SSL_get0_peer_certificate(const SSL *s);
 
 void SSL_CTX_share_session_cache(SSL_CTX *a, SSL_CTX *b);
 
+/* To get traffic counters */
+void SSL_get_byte_counters(SSL *s, size_t *w, size_t *r);
+
 # ifdef  __cplusplus
 }
 # endif
