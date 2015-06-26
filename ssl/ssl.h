@@ -166,6 +166,10 @@
 # include <openssl/safestack.h>
 # include <openssl/symhacks.h>
 
+# ifndef OPENSSL_NO_AKAMAI
+#  include <openssl/ssl_akamai_pre.h>
+# endif
+
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -511,6 +515,9 @@ struct ssl_method_st {
     long (*ssl_callback_ctrl) (SSL *s, int cb_id, void (*fp) (void));
     long (*ssl_ctx_callback_ctrl) (SSL_CTX *s, int cb_id, void (*fp) (void));
     int (*ssl_signal_event)(SSL *s, int event, int retcode);
+# ifndef OPENSSL_NO_AKAMAI
+    struct ssl_akamai_method_st akamai;
+# endif /* !OPENSSL_NO_AKAMAI */
 };
 
 /*-
@@ -3476,4 +3483,9 @@ void ERR_load_SSL_strings(void);
 #ifdef  __cplusplus
 }
 #endif
+
+# ifndef OPENSSL_NO_AKAMAI
+#  include <openssl/ssl_akamai_post.h>
+# endif
+
 #endif

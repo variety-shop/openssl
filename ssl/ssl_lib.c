@@ -428,7 +428,17 @@ SSL *SSL_new(SSL_CTX *ctx)
 
     SSL_clear(s);
 
+#ifdef OPENSSL_NO_AKAMAI
     CRYPTO_new_ex_data(CRYPTO_EX_INDEX_SSL, s, &s->ex_data);
+#else
+    if (!CRYPTO_new_ex_data(CRYPTO_EX_INDEX_SSL, s, &s->ex_data))
+        goto err;
+    else {
+        SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
+        SSL_CTX_EX_DATA_AKAMAI *ctx_data = SSL_CTX_get_ex_data_akamai(ctx);
+        ex_data->options = ctx_data->options;
+    }
+#endif
 
 #ifndef OPENSSL_NO_PSK
     s->psk_client_callback = ctx->psk_client_callback;
@@ -2004,6 +2014,15 @@ SSL_CTX *SSL_CTX_new(const SSL_METHOD *meth)
         SSLerr(SSL_F_SSL_CTX_NEW, SSL_R_X509_VERIFICATION_SETUP_PROBLEMS);
         goto err;
     }
+#ifndef OPENSSL_NO_AKAMAI
+    /* Generate our indexes here */
+    if (SSL_CTX_get_ex_data_akamai_idx() < 0) {
+        goto err;
+    }
+    if (SSL_get_ex_data_akamai_idx() < 0) {
+        goto err;
+    }
+#endif
     ret = (SSL_CTX *)OPENSSL_malloc(sizeof(SSL_CTX));
     if (ret == NULL)
         goto err;
@@ -2121,7 +2140,12 @@ SSL_CTX *SSL_CTX_new(const SSL_METHOD *meth)
     if ((ret->client_CA = sk_X509_NAME_new_null()) == NULL)
         goto err;
 
+#ifdef OPENSSL_NO_AKAMAI
     CRYPTO_new_ex_data(CRYPTO_EX_INDEX_SSL_CTX, ret, &ret->ex_data);
+#else
+    if (!CRYPTO_new_ex_data(CRYPTO_EX_INDEX_SSL_CTX, ret, &ret->ex_data))
+        goto err;
+#endif
 
     ret->extra_certs = NULL;
     /* No compression for DTLS */
