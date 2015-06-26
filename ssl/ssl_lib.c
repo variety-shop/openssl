@@ -3669,22 +3669,6 @@ int SSL_is_server(SSL *s)
     return s->server;
 }
 
-#ifndef OPENSSL_NO_AKAMAI
-
-void SSL_CTX_tlsext_ticket_appdata_cbs(SSL_CTX *ctx,
-                                       tlsext_ticket_appdata_size_cb_fn size_cb,
-                                       tlsext_ticket_appdata_append_cb_fn append_cb,
-                                       tlsext_ticket_appdata_parse_cb_fn parse_cb,
-                                       void *arg)
-{
-    ctx->tlsext_ticket_appdata_size_cb   = size_cb;
-    ctx->tlsext_ticket_appdata_append_cb = append_cb;
-    ctx->tlsext_ticket_appdata_parse_cb  = parse_cb;
-    ctx->tlsext_ticket_appdata_arg = arg;
-}
-
-#endif /* OPENSSL_NO_AKAMAI */
-
 #if defined(_WINDLL) && defined(OPENSSL_SYS_WIN16)
 # include "../crypto/bio/bss_file.c"
 #endif

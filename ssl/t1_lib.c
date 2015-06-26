@@ -3522,19 +3522,18 @@ int tls1_process_ticket(SSL *s, unsigned char *session_id, int len,
              * check if the last 8 bytes is the magic number.
              */
             if (size > APPDATA_MAG_LEN_BYTES) {
+                SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(s->initial_ctx);
                 const unsigned char *app_ptr = p + size - APPDATA_MAG_LEN_BYTES;
                 unsigned short app_size = 0;
-                void *arg = s->initial_ctx->tlsext_ticket_appdata_arg;
+                void *arg = ex_data->tlsext_ticket_appdata_arg;
                 n2s(app_ptr, app_size);
                 if (memcmp(app_ptr, APPDATA_MAGIC_NUMBER, APPDATA_MAG_BYTES) == 0
                     && app_size < (size - APPDATA_MAG_LEN_BYTES)) {
                     app_ptr -= (app_size + APPDATA_LENGTH_BYTES);
                     size -= (app_size + APPDATA_MAG_LEN_BYTES);
-                    if (s->initial_ctx->tlsext_ticket_appdata_parse_cb) {
-                        r = s->initial_ctx->tlsext_ticket_appdata_parse_cb(s,
-                                                                           app_ptr,
-                                                                           app_size,
-                                                                           arg);
+                    if (ex_data->tlsext_ticket_appdata_parse_cb) {
+                        r = ex_data->tlsext_ticket_appdata_parse_cb(s, app_ptr,
+                                                                    app_size, arg);
                         if (r == -3)  /* fatal error */
                             return -1;
                         if (r == -2) { /* drop ticket */

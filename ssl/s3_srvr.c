@@ -3837,17 +3837,20 @@ int ssl3_send_newsession_ticket(SSL *s)
         SSL_SESSION_free(sess);
 
 #ifndef OPENSSL_NO_AKAMAI
-        if (tctx->tlsext_ticket_appdata_size_cb) {
-            /*
-             *appending data will at least has 10 bytes:
-             *  8 bytes for magic number
-             *  2 bytes for data length.
-             */
-            int remain_size  = 0xFF00 - slen - APPDATA_MAG_LEN_BYTES;
-            int req_app_size = tctx->tlsext_ticket_appdata_size_cb(s, tctx->tlsext_ticket_appdata_arg);
-            if (req_app_size > 0) {
-                call_append = 1;
-                app_size = (req_app_size<remain_size ? req_app_size : remain_size) + APPDATA_MAG_LEN_BYTES;
+        {
+            SSL_CTX_EX_DATA_AKAMAI* ex_data = SSL_CTX_get_ex_data_akamai(tctx);
+            if (ex_data->tlsext_ticket_appdata_size_cb) {
+                /*
+                 * appending data will at least has 10 bytes:
+                 *  8 bytes for magic number
+                 *  2 bytes for data length.
+                 */
+                int remain_size  = 0xFF00 - slen - APPDATA_MAG_LEN_BYTES;
+                int req_app_size = ex_data->tlsext_ticket_appdata_size_cb(s, ex_data->tlsext_ticket_appdata_arg);
+                if (req_app_size > 0) {
+                    call_append = 1;
+                    app_size = (req_app_size < remain_size ? req_app_size : remain_size) + APPDATA_MAG_LEN_BYTES;
+                }
             }
         }
 #endif /* OPENSSL_NO_AKAMAI */
@@ -3951,23 +3954,35 @@ int ssl3_send_newsession_ticket(SSL *s)
         p += hlen;
 
 #ifndef OPENSSL_NO_AKAMAI
-        if (call_append && tctx->tlsext_ticket_appdata_append_cb) {
-            /*
-             * the third argument(limit_size) in cb is size of bytes application layer can use.
-             * the return value(written_size) in cb is size of bytes application layer actually use.
-             * limit_size will always less than or equal to the size return from tlsext_ticket_appdata_size_cb.
-             * 1. limit_size might be zero. which indicates even no enough space for 8-bytes magic number and 2-bytes length.
-             *    In this case, application layer should realize openssl will throw away any data from application, also magic number and length.
-             * 2. limit_size is the upperbound of memory application level can use, application layer must not write more than limit_size.
-             */
-            /* no enough space for appending data or magic number and length, pass 0. */
-            int limit_size = (app_size < APPDATA_MAG_LEN_BYTES) ? 0 : (app_size - APPDATA_MAG_LEN_BYTES);
-            int written_size = tctx->tlsext_ticket_appdata_append_cb(s, p, limit_size, tctx->tlsext_ticket_appdata_arg);
-            if (written_size > 0) {
-                p += written_size;      /* move to the end of appending data */
-                s2n(written_size, p);   /* write out length and move to the end */
-                memcpy(p, APPDATA_MAGIC_NUMBER, APPDATA_MAG_BYTES);
-                p += APPDATA_MAG_BYTES; /* write out magic number and move to the end */
+        if (call_append) {
+            SSL_CTX_EX_DATA_AKAMAI* ex_data = SSL_CTX_get_ex_data_akamai(tctx);
+            if (ex_data->tlsext_ticket_appdata_append_cb) {
+                /*
+                 * The third argument (limit_size) in cb is size of bytes application
+                 * layer can use.
+                 * The return value (written_size) in cb is size of bytes application
+                 * layer actually use.
+                 * limit_size will always less than or equal to the size return from
+                 * tlsext_ticket_appdata_size_cb.
+                 * 1. limit_size might be zero. which indicates even no enough space
+                 *    for 8-bytes magic number and 2-bytes length.
+                 *    In this case, application layer should realize openssl will
+                 *    throw away any data from application, also magic number and
+                 *    length.
+                 * 2. limit_size is the upperbound of memory application level can
+                 *    use, application layer must not write more than limit_size.
+                 */
+                /* not enough space for appending data or magic number and length, pass 0. */
+                int limit_size = (app_size < APPDATA_MAG_LEN_BYTES) ? 0 : (app_size - APPDATA_MAG_LEN_BYTES);
+                int written_size = ex_data->tlsext_ticket_appdata_append_cb(s, p,
+                                                                            limit_size,
+                                                                            ex_data->tlsext_ticket_appdata_arg);
+                if (written_size > 0) {
+                    p += written_size;      /* move to the end of appending data */
+                    s2n(written_size, p);   /* write out length and move to the end */
+                    memcpy(p, APPDATA_MAGIC_NUMBER, APPDATA_MAG_BYTES);
+                    p += APPDATA_MAG_BYTES; /* write out magic number and move to the end */
+                }
             }
         }
 #endif /* OPENSSL_NO_AKAMAI */

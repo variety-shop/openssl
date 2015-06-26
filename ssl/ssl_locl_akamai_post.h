@@ -96,6 +96,12 @@ struct ssl_ctx_ex_data_akamai_st
     STACK_OF(SSL_CIPHER) *ssl2_cipher_list_by_id; /* sorted for lookup */
     STACK_OF(SSL_CIPHER) *preferred_cipher_list;
     STACK_OF(SSL_CIPHER) *preferred_cipher_list_by_id; /* sorted for lookup */
+
+    /* Callbacks to support appending data after session ticket */
+    tlsext_ticket_appdata_size_cb_fn tlsext_ticket_appdata_size_cb;
+    tlsext_ticket_appdata_append_cb_fn tlsext_ticket_appdata_append_cb;
+    tlsext_ticket_appdata_parse_cb_fn tlsext_ticket_appdata_parse_cb;
+    void *tlsext_ticket_appdata_arg;
 };
 
 typedef struct ssl_ex_data_akamai_st SSL_EX_DATA_AKAMAI;
@@ -145,5 +151,11 @@ int ssl3_writev_pending(SSL *s, int type, const SSL_BUCKET *buckets, int count,
 SSL_CTX_SESSION_LIST *SSL_CTX_get_session_list(SSL_CTX* ctx);
 
 void SSL_CTX_flush_sessions_lock(SSL_CTX *ctx, long tm, int lock);
+
+/* session ticket append data */
+# define APPDATA_MAGIC_NUMBER           "xg1f5s3!"
+# define APPDATA_MAG_BYTES              (sizeof(APPDATA_MAGIC_NUMBER) - 1)
+# define APPDATA_LENGTH_BYTES           2
+# define APPDATA_MAG_LEN_BYTES          (APPDATA_MAG_BYTES + APPDATA_LENGTH_BYTES)
 
 #endif /* HEADER_SSL_LOCL_AKAMAI_POST_H */
