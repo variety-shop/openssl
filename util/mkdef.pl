@@ -130,6 +130,8 @@ my @known_algorithms = ( "RC2", "RC4", "RC5", "IDEA", "DES", "BF",
 			 # OCB mode
 			 "OCB",
 			 "CMAC",
+			 # Akamai stuff
+			 "AKAMAI",
                          # APPLINK (win build feature?)
                          "APPLINK"
                      );
@@ -241,6 +243,8 @@ $max_crypto = $max_num;
 my $ssl="include/openssl/ssl.h";
 $ssl.=" include/openssl/tls1.h";
 $ssl.=" include/openssl/srtp.h";
+$ssl.=" include/openssl/ssl_akamai_pre.h";
+$ssl.=" include/openssl/ssl_akamai_post.h";
 
 # We use headers found in include/openssl and include/internal only.
 # The latter is needed so libssl.so/.dll/.exe can link properly.
