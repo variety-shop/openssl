@@ -60,6 +60,10 @@
 # include <openssl/symhacks.h>
 # include <openssl/ct.h>
 
+# ifndef OPENSSL_NO_AKAMAI
+#  include <openssl/ssl_akamai_pre.h>
+# endif
+
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -2074,6 +2078,10 @@ __owur const struct openssl_ssl_test_functions *SSL_test_functions(void);
 # endif
 
 extern const char SSL_version_str[];
+
+# ifndef OPENSSL_NO_AKAMAI
+#  include <openssl/ssl_akamai_post.h>
+# endif
 
 /* BEGIN ERROR CODES */
 /*
