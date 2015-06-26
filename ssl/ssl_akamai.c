@@ -29,6 +29,13 @@ static int ssl_ctx_ex_data_akamai_new(void* parent, void* ptr,
     memset(ex_data, 0, sizeof(*ex_data));
 
     /* INITIALIZE HERE */
+    ex_data->session_list = OPENSSL_malloc(sizeof(*ex_data->session_list));
+    if (ex_data->session_list == NULL) {
+        free(ex_data);
+        return 0;
+    }
+    memset(ex_data->session_list, 0, sizeof(*ex_data->session_list));
+    ex_data->session_list->references = 1;
 
     return CRYPTO_set_ex_data(ad, idx, ex_data);
 }
@@ -41,6 +48,8 @@ static void ssl_ctx_ex_data_akamai_free(void* parent, void* ptr,
     if (ex_data != NULL) {
 
         /* FREE HERE */
+
+        /* NOTE: session_list freed separately */
 
         OPENSSL_free(ptr);
     }
@@ -58,6 +67,7 @@ static int ssl_ctx_ex_data_akamai_dup(CRYPTO_EX_DATA* to,
      **/
     SSL_CTX_EX_DATA_AKAMAI** orig = from_d;
     SSL_CTX_EX_DATA_AKAMAI* new = CRYPTO_get_ex_data(to, idx);
+    SSL_CTX_SESSION_LIST *session_list;
     int ok = 1;
     if (orig == NULL)
         return 0;
@@ -70,8 +80,17 @@ static int ssl_ctx_ex_data_akamai_dup(CRYPTO_EX_DATA* to,
 
     /* free any items in the new one - they will be overwritten */
 
+    /*
+     * no access to the SSL_CTX, so we can't flush the session_list
+     * Instead, just leave the original value
+     */
+    session_list = new->session_list;
+
     /* copy values/pointers over */
     memcpy(new, *orig, sizeof(*new));
+
+    /* restore */
+    new->session_list = session_list;
 
     /* make duplicates of pointer-based items */
 
@@ -585,6 +604,39 @@ X509 *SSL_get0_peer_certificate(const SSL *s)
     return (r);
 }
 # endif
+
+/* Makes 'b' use 'a's session cache */
+void SSL_CTX_share_session_cache(SSL_CTX *a, SSL_CTX *b)
+{
+    SSL_CTX_EX_DATA_AKAMAI *ex_a;
+    SSL_CTX_EX_DATA_AKAMAI *ex_b;
+
+    CRYPTO_w_lock(CRYPTO_LOCK_SSL_CTX);
+    ex_a = SSL_CTX_get_ex_data_akamai(a);
+    ex_b = SSL_CTX_get_ex_data_akamai(b);
+
+    ex_b->session_list->references--;
+
+    if (ex_b->session_list->references == 0) {
+        if (b->sessions != NULL) {
+            SSL_CTX_flush_sessions_lock(b, 0, 0); /* do not lock */
+            lh_SSL_SESSION_free(b->sessions);
+        }
+        OPENSSL_free(ex_b->session_list);
+    }
+
+    b->sessions = a->sessions;
+    ex_b->session_list = ex_a->session_list;
+    ex_a->session_list->references++;
+
+    CRYPTO_w_unlock(CRYPTO_LOCK_SSL_CTX);
+}
+
+SSL_CTX_SESSION_LIST *SSL_CTX_get_session_list(SSL_CTX* ctx)
+{
+    SSL_CTX_EX_DATA_AKAMAI* ex_data = SSL_CTX_get_ex_data_akamai(ctx);
+    return ex_data->session_list;
+}
 
 #else /* OPENSSL_NO_AKAMAI */
 
