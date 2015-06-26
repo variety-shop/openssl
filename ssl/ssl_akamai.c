@@ -908,6 +908,19 @@ int SSL_set_preferred_cipher_list(SSL *s, const char *str)
     return ((sk == NULL) ? 0 : 1);
 }
 
+void SSL_CTX_tlsext_ticket_appdata_cbs(SSL_CTX *ctx,
+                                       tlsext_ticket_appdata_size_cb_fn size_cb,
+                                       tlsext_ticket_appdata_append_cb_fn append_cb,
+                                       tlsext_ticket_appdata_parse_cb_fn parse_cb,
+                                       void *arg)
+{
+    SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(ctx);
+    ex_data->tlsext_ticket_appdata_size_cb   = size_cb;
+    ex_data->tlsext_ticket_appdata_append_cb = append_cb;
+    ex_data->tlsext_ticket_appdata_parse_cb  = parse_cb;
+    ex_data->tlsext_ticket_appdata_arg = arg;
+}
+
 #else /* OPENSSL_NO_AKAMAI */
 
 # if PEDANTIC
