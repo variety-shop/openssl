@@ -498,3 +498,9 @@ SSL_CTX_get_recv_max_early_data         498	1_1_1	EXIST::FUNCTION:
 SSL_CTX_set_recv_max_early_data         499	1_1_1	EXIST::FUNCTION:
 SSL_CTX_set_post_handshake_auth         500	1_1_1	EXIST::FUNCTION:
 SSL_get_signature_type_nid              501	1_1_1a	EXIST::FUNCTION:
+SSL_CTX_akamai_opt_set                  10000	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_CTX_akamai_opt_get                  10001	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_akamai_opt_set                      10002	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_akamai_opt_clear                    10003	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_akamai_opt_get                      10004	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_CTX_akamai_opt_clear                10005	1_1_0	EXIST::FUNCTION:AKAMAI

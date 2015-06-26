@@ -229,6 +229,8 @@ my $ssl="include/openssl/ssl.h";
 $ssl.=" include/openssl/sslerr.h";
 $ssl.=" include/openssl/tls1.h";
 $ssl.=" include/openssl/srtp.h";
+$ssl.=" include/openssl/ssl_akamai_pre.h";
+$ssl.=" include/openssl/ssl_akamai_post.h";
 
 # When scanning include/openssl, skip all SSL files and some internal ones.
 my %skipthese;

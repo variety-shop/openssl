@@ -31,6 +31,10 @@
 # include <openssl/ct.h>
 # include <openssl/sslerr.h>
 
+# ifndef OPENSSL_NO_AKAMAI
+#  include <openssl/ssl_akamai_pre.h>
+# endif
+
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -2423,7 +2427,6 @@ typedef unsigned int (*DTLS_timer_cb)(SSL *s, unsigned int timer_us);
 
 void DTLS_set_timer_cb(SSL *s, DTLS_timer_cb cb);
 
-
 typedef int (*SSL_allow_early_data_cb_fn)(SSL *s, void *arg);
 void SSL_CTX_set_allow_early_data_cb(SSL_CTX *ctx,
                                      SSL_allow_early_data_cb_fn cb,
@@ -2431,6 +2434,10 @@ void SSL_CTX_set_allow_early_data_cb(SSL_CTX *ctx,
 void SSL_set_allow_early_data_cb(SSL *s,
                                  SSL_allow_early_data_cb_fn cb,
                                  void *arg);
+
+# ifndef OPENSSL_NO_AKAMAI
+#  include <openssl/ssl_akamai_post.h>
+# endif
 
 # ifdef  __cplusplus
 }
