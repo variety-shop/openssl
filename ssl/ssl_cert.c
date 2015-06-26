@@ -713,6 +713,9 @@ int ssl_verify_cert_chain(SSL *s, STACK_OF(X509) *sk)
     int i;
     X509_STORE *verify_store;
     X509_STORE_CTX ctx;
+#ifndef OPENSSL_NO_AKAMAI
+    SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
+#endif
 
     if (s->cert->verify_store)
         verify_store = s->cert->verify_store;
@@ -758,8 +761,8 @@ int ssl_verify_cert_chain(SSL *s, STACK_OF(X509) *sk)
         i = s->ctx->app_verify_callback(&ctx); /* should pass app_verify_arg */
 #endif
 #else /* OPENSSL_NO_AKAMAI */
-    if (s->app_verify_callback != NULL)
-        i = s->app_verify_callback(&ctx, s->app_verify_arg);
+    if (ex_data->app_verify_callback != NULL)
+        i = ex_data->app_verify_callback(&ctx, ex_data->app_verify_arg);
 #endif /* OPENSSL_NO_AKAMAI */
     else {
 #ifndef OPENSSL_NO_X509_VERIFY
