@@ -31,6 +31,10 @@
 # include <openssl/ct.h>
 # include <openssl/sslerr.h>
 
+# ifndef OPENSSL_NO_AKAMAI
+#  include <openssl/ssl_akamai_pre.h>
+# endif
+
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -2293,11 +2297,13 @@ __owur int SSL_alloc_buffers(SSL *ssl);
 extern const char SSL_version_str[];
 
 
-
 typedef unsigned int (*DTLS_timer_cb)(SSL *s, unsigned int timer_us);
 
 void DTLS_set_timer_cb(SSL *s, DTLS_timer_cb cb);
 
+# ifndef OPENSSL_NO_AKAMAI
+#  include <openssl/ssl_akamai_post.h>
+# endif
 
 # ifdef  __cplusplus
 }

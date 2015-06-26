@@ -34,6 +34,8 @@
 # include "internal/dane.h"
 # include "internal/refcount.h"
 
+# include "ssl_locl_akamai_pre.h"
+
 # ifdef OPENSSL_BUILD_SHLIBSSL
 #  undef OPENSSL_EXTERN
 #  define OPENSSL_EXTERN OPENSSL_EXPORT
@@ -2586,4 +2588,9 @@ void ssl_comp_free_compression_methods_int(void);
 #  define ssl3_setup_buffers SSL_test_functions()->p_ssl3_setup_buffers
 
 # endif
+
+# ifndef OPENSSL_NO_AKAMAI
+#  include "ssl_locl_akamai_post.h"
+# endif
+
 #endif
