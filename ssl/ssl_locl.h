@@ -165,6 +165,8 @@
 # include <openssl/ssl.h>
 # include <openssl/symhacks.h>
 
+# include "ssl_locl_akamai_pre.h"
+
 # ifdef OPENSSL_BUILD_SHLIBSSL
 #  undef OPENSSL_EXTERN
 #  define OPENSSL_EXTERN OPENSSL_EXPORT
@@ -936,6 +938,7 @@ const SSL_METHOD *func_name(void)  \
                 ssl3_callback_ctrl, \
                 ssl3_ctx_callback_ctrl, \
                 ssl3_signal_event, \
+                OPENSSL_SSL3_AKAMAI_FNS \
         }; \
         return &func_name##_data; \
         }
@@ -975,6 +978,7 @@ const SSL_METHOD *func_name(void)  \
                 ssl3_callback_ctrl, \
                 ssl3_ctx_callback_ctrl, \
                 ssl3_signal_event, \
+                OPENSSL_SSL3_AKAMAI_FNS \
         }; \
         return &func_name##_data; \
         }
@@ -1014,6 +1018,7 @@ const SSL_METHOD *func_name(void)  \
         ssl3_callback_ctrl, \
         ssl3_ctx_callback_ctrl, \
         ssl3_signal_event, \
+        OPENSSL_SSL23_AKAMAI_FNS \
         }; \
         return &func_name##_data; \
         }
@@ -1052,6 +1057,8 @@ const SSL_METHOD *func_name(void)  \
                 ssl_undefined_void_function, \
                 ssl2_callback_ctrl,     /* local */ \
                 ssl2_ctx_callback_ctrl, /* local */ \
+                ssl2_signal_event, \
+                OPENSSL_SSL2_AKAMAI_FNS \
         }; \
         return &func_name##_data; \
         }
@@ -1092,6 +1099,7 @@ const SSL_METHOD *func_name(void)  \
                 ssl3_callback_ctrl, \
                 ssl3_ctx_callback_ctrl, \
                 ssl3_signal_event, \
+                OPENSSL_DTLS1_AKAMAI_FNS \
         }; \
         return &func_name##_data; \
         }
@@ -1561,4 +1569,9 @@ void custom_exts_free(custom_ext_methods *exts);
 #  define dtls1_process_heartbeat SSL_test_functions()->p_dtls1_process_heartbeat
 
 # endif
+
+# ifndef OPENSSL_NO_AKAMAI
+#  include "ssl_locl_akamai_post.h"
+# endif
+
 #endif
