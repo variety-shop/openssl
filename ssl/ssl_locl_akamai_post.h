@@ -99,6 +99,10 @@ struct ssl_ex_data_akamai_st
     SSL_ASYNC_EVENT event;
     SSL_ASYNC_TASK task;
 # endif /* OPENSSL_NO_AKAMAI_ASYNC */
+
+    /* Keep track of bytes passed through SSL */
+    size_t bytes_written;
+    size_t bytes_read;
 };
 
 /* Used to initialize and get the akamai EX_DATA structures in one fell swoop */
