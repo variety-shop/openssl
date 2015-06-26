@@ -386,9 +386,6 @@ typedef struct ssl_cipher_st SSL_CIPHER;
 typedef struct ssl_session_st SSL_SESSION;
 typedef struct tls_sigalgs_st TLS_SIGALGS;
 typedef struct ssl_conf_ctx_st SSL_CONF_CTX;
-#ifndef OPENSSL_NO_AKAMAI
-typedef struct ssl_ctx_session_list_st SSL_CTX_SESSION_LIST;
-#endif
 
 
 DECLARE_STACK_OF(SSL_CIPHER)
@@ -963,15 +960,6 @@ struct ssl_comp_st {
 DECLARE_STACK_OF(SSL_COMP)
 DECLARE_LHASH_OF(SSL_SESSION);
 
-#ifndef OPENSSL_NO_AKAMAI
-struct ssl_ctx_session_list_st
-{
-  struct ssl_session_st *session_cache_head;
-  struct ssl_session_st *session_cache_tail;
-  int session_ref_count; /* number of SSL_CTX's holding a reference to this structure */
-};
-#endif
-
 struct ssl_ctx_st {
     const SSL_METHOD *method;
     STACK_OF(SSL_CIPHER) *cipher_list;
@@ -984,12 +972,8 @@ struct ssl_ctx_st {
      * SSL_SESSION_CACHE_MAX_SIZE_DEFAULT. 0 is unlimited.
      */
     unsigned long session_cache_size;
-#ifdef OPENSSL_NO_AKAMAI
     struct ssl_session_st *session_cache_head;
     struct ssl_session_st *session_cache_tail;
-#else
-    SSL_CTX_SESSION_LIST *session_list;
-#endif
     /*
      * This can have one of 2 values, ored together, SSL_SESS_CACHE_CLIENT,
      * SSL_SESS_CACHE_SERVER, Default is SSL_SESSION_CACHE_SERVER, which
@@ -2709,7 +2693,6 @@ int SSL_use_cert_and_key(SSL *ssl, X509 *x509, EVP_PKEY *privatekey,
                          STACK_OF(X509) *extra, int override);
 int SSL_CTX_use_cert_and_key(SSL_CTX *ctx, X509 *x509, EVP_PKEY *privatekey,
                              STACK_OF(X509) *extra, int override);
-void SSL_CTX_share_session_cache(SSL_CTX *a, SSL_CTX *b);
 /* SSL3 buffer allocation routine */
 /* The int argument is 1 for read buffers, 0 for write buffers */
 void ssl3_set_buffer_mem_functions(void* (*m)(int, size_t), void(*f)(int, size_t, void*));
