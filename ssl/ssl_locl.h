@@ -67,6 +67,8 @@
 # include "packet_locl.h"
 # include "internal/dane.h"
 
+# include "ssl_locl_akamai_pre.h"
+
 # ifdef OPENSSL_BUILD_SHLIBSSL
 #  undef OPENSSL_EXTERN
 #  define OPENSSL_EXTERN OPENSSL_EXPORT
@@ -2135,4 +2137,9 @@ void ssl_comp_free_compression_methods_int(void);
 #  define dtls1_process_heartbeat SSL_test_functions()->p_dtls1_process_heartbeat
 
 # endif
+
+# ifndef OPENSSL_NO_AKAMAI
+#  include "ssl_locl_akamai_post.h"
+# endif
+
 #endif
