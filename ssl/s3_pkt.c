@@ -344,7 +344,10 @@ static int ssl3_get_record(SSL *s)
         if (n <= 0)
             return (n);         /* error or non-blocking */
 #ifndef OPENSSL_NO_AKAMAI
-        s->bytes_read += n;
+        {
+            SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
+            ex_data->bytes_read += n;
+        }
 #endif
         s->rstate = SSL_ST_READ_BODY;
 
@@ -412,7 +415,10 @@ static int ssl3_get_record(SSL *s)
         if (n <= 0)
             return (n);         /* error or non-blocking io */
 #ifndef OPENSSL_NO_AKAMAI
-        s->bytes_read += n;
+        {
+            SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
+            ex_data->bytes_read += n;
+        }
 #endif
         /*
          * now n == rr->length, and s->packet_length == SSL3_RT_HEADER_LENGTH
@@ -878,7 +884,10 @@ int ssl3_writev_bytes(SSL *s, int type, const SSL_BUCKET *buckets,
             return i;
         }
 #ifndef OPENSSL_NO_AKAMAI
-        s->bytes_written += i;
+        {
+            SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
+            ex_data->bytes_written += i;
+        }
 #endif
 
         if ((i == (int)n) ||
