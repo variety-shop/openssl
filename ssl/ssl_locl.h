@@ -35,6 +35,8 @@
 # include "internal/refcount.h"
 # include "internal/tsan_assist.h"
 
+# include "ssl_locl_akamai_pre.h"
+
 # ifdef OPENSSL_BUILD_SHLIBSSL
 #  undef OPENSSL_EXTERN
 #  define OPENSSL_EXTERN OPENSSL_EXPORT
@@ -2651,4 +2653,9 @@ void ssl_ctx_system_config(SSL_CTX *ctx);
 #  define ssl3_setup_buffers SSL_test_functions()->p_ssl3_setup_buffers
 
 # endif
+
+# ifndef OPENSSL_NO_AKAMAI
+#  include "ssl_locl_akamai_post.h"
+# endif
+
 #endif
