@@ -604,7 +604,6 @@ int SSL_CTX_set_client_session_cache(SSL_CTX *ctx)
     if (SSL_SOCKADDR_IDX == -1) {
         CRYPTO_w_lock(CRYPTO_LOCK_SSL);
         if (SSL_SOCKADDR_IDX == -1) {
-            SSL_get_ex_new_index(0, NULL, NULL, NULL, NULL);
             SSL_SOCKADDR_IDX = SSL_get_ex_new_index(0, SSL_NAME,
                                                     ssl_sockaddr_new,
                                                     ssl_sockaddr_dup,
@@ -615,7 +614,6 @@ int SSL_CTX_set_client_session_cache(SSL_CTX *ctx)
     if (SSL_SESSION_SOCKADDR_IDX == -1) {
         CRYPTO_w_lock(CRYPTO_LOCK_SSL_SESSION);
         if (SSL_SESSION_SOCKADDR_IDX == -1) {
-            SSL_SESSION_get_ex_new_index(0, NULL, NULL, NULL, NULL);
             SSL_SESSION_SOCKADDR_IDX =
                 SSL_SESSION_get_ex_new_index(0, SSL_SESSION_NAME,
                                              ssl_sockaddr_new,

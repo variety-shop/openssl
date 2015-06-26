@@ -328,7 +328,11 @@ static EX_CLASS_ITEM *def_get_class(int class_index)
         gen = OPENSSL_malloc(sizeof(EX_CLASS_ITEM));
         if (gen) {
             gen->class_index = class_index;
+#ifdef OPENSSL_NO_AKAMAI
             gen->meth_num = 0;
+#else
+            gen->meth_num = 1;
+#endif
             gen->meth = sk_CRYPTO_EX_DATA_FUNCS_new_null();
             if (!gen->meth)
                 OPENSSL_free(gen);
