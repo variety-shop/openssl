@@ -225,6 +225,20 @@ int SSL_CTX_set_ssl2_cipher_list(SSL_CTX *ctx, const char *str);
 int SSL_CTX_set_preferred_cipher_list(SSL_CTX *ctx, const char *str);
 int SSL_set_preferred_cipher_list(SSL *s, const char *str);
 
+typedef int (*tlsext_ticket_appdata_size_cb_fn) (SSL *s, void *arg);
+typedef int (*tlsext_ticket_appdata_append_cb_fn) (SSL *s,
+                                                   unsigned char* data_ptr,
+                                                   int limit_size, void *arg);
+typedef int (*tlsext_ticket_appdata_parse_cb_fn) (SSL *s,
+                                                  const unsigned char* data_ptr,
+                                                  int size, void *arg);
+
+void SSL_CTX_tlsext_ticket_appdata_cbs(SSL_CTX *ctx,
+                                       tlsext_ticket_appdata_size_cb_fn size_cb,
+                                       tlsext_ticket_appdata_append_cb_fn append_cb,
+                                       tlsext_ticket_appdata_parse_cb_fn parse_cb,
+                                       void *arg);
+
 # ifdef  __cplusplus
 }
 # endif
