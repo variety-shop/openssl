@@ -369,11 +369,6 @@ SSL *SSL_new(SSL_CTX *ctx)
     s->quiet_shutdown = ctx->quiet_shutdown;
     s->max_send_fragment = ctx->max_send_fragment;
 
-#ifndef OPENSSL_NO_AKAMAI
-    s->app_verify_callback = ctx->app_verify_callback;
-    s->app_verify_arg = ctx->app_verify_arg;
-#endif
-
     CRYPTO_add(&ctx->references, 1, CRYPTO_LOCK_SSL_CTX);
     s->ctx = ctx;
 #ifndef OPENSSL_NO_TLSEXT
@@ -443,6 +438,8 @@ SSL *SSL_new(SSL_CTX *ctx)
         SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
         SSL_CTX_EX_DATA_AKAMAI *ctx_data = SSL_CTX_get_ex_data_akamai(ctx);
         ex_data->options = ctx_data->options;
+        ex_data->app_verify_callback = ctx->app_verify_callback;
+        ex_data->app_verify_arg = ctx->app_verify_arg;
     }
 #endif
 
@@ -3413,12 +3410,6 @@ int SSL_state(const SSL *ssl)
 void SSL_set_state(SSL *ssl, int state)
 {
     ssl->state = state;
-}
-
-void SSL_SESSION_set_verify_result(SSL *ssl, long arg)
-{
-    if (ssl->session)
-        ssl->session->verify_result = arg;
 }
 
 void SSL_set_verify_result(SSL *ssl, long arg)
