@@ -1756,10 +1756,6 @@ struct ssl_st {
 #ifndef OPENSSL_NO_AKAMAI
     int (*app_verify_callback)();
     char *app_verify_arg;
-    
-    /* Keep track of bytes passed through SSL */
-    size_t bytes_written;
-    size_t bytes_read;
 #endif
 };
 
