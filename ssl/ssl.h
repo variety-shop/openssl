@@ -1752,11 +1752,6 @@ struct ssl_st {
     unsigned char *alpn_client_proto_list;
     unsigned alpn_client_proto_list_len;
 #  endif                        /* OPENSSL_NO_TLSEXT */
-
-#ifndef OPENSSL_NO_AKAMAI
-    int (*app_verify_callback)();
-    char *app_verify_arg;
-#endif
 };
 
 # endif
@@ -2335,9 +2330,6 @@ int SSL_SESSION_print_fp(FILE *fp, const SSL_SESSION *ses);
 # ifndef OPENSSL_NO_BIO
 int SSL_SESSION_print(BIO *fp, const SSL_SESSION *ses);
 # endif
-#ifndef OPENSSL_NO_AKAMAI
-void SSL_SESSION_set_verify_result(SSL *ssl, long arg);
-#endif
 void SSL_SESSION_free(SSL_SESSION *ses);
 int i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp);
 int SSL_set_session(SSL *to, SSL_SESSION *session);

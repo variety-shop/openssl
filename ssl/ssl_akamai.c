@@ -650,6 +650,26 @@ void SSL_get_byte_counters(SSL *s, size_t *w, size_t *r)
         *r = ex_data->bytes_read;
 }
 
+void SSL_SESSION_set_verify_result(SSL *ssl, long arg)
+{
+    if (ssl->session)
+        ssl->session->verify_result = arg;
+}
+
+void SSL_set_cert_verify_callback(SSL *s,
+                                  int (*cb) (X509_STORE_CTX *, void *),
+                                  void *arg)
+{
+    SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
+    ex_data->app_verify_callback = cb;
+    ex_data->app_verify_arg = arg;
+}
+
+void* SSL_get_cert_verify_arg(SSL *s)
+{
+    return SSL_get_ex_data_akamai(s)->app_verify_arg;
+}
+
 #else /* OPENSSL_NO_AKAMAI */
 
 # if PEDANTIC
