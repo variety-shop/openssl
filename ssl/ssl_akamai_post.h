@@ -212,6 +212,19 @@ int SSL_INTERNAL_get_sigandhash(unsigned char *p, const EVP_PKEY *pk,
 
 # endif
 
+/* Akamai Cipher changes */
+STACK_OF(SSL_CIPHER) *SSL_get_ssl2_ciphers(SSL *s);
+STACK_OF(SSL_CIPHER) *SSL_get_ssl2_ciphers_by_id(SSL *s);
+STACK_OF(SSL_CIPHER) *SSL_CTX_get_ssl2_ciphers(SSL_CTX*);
+STACK_OF(SSL_CIPHER) *SSL_CTX_get_ssl2_ciphers_by_id(SSL_CTX*);
+STACK_OF(SSL_CIPHER) *SSL_get_preferred_ciphers(SSL *s);
+STACK_OF(SSL_CIPHER) *SSL_get_preferred_ciphers_by_id(SSL *s);
+STACK_OF(SSL_CIPHER) *SSL_CTX_get_preferred_ciphers(SSL_CTX*);
+STACK_OF(SSL_CIPHER) *SSL_CTX_get_preferred_ciphers_by_id(SSL_CTX*);
+int SSL_CTX_set_ssl2_cipher_list(SSL_CTX *ctx, const char *str);
+int SSL_CTX_set_preferred_cipher_list(SSL_CTX *ctx, const char *str);
+int SSL_set_preferred_cipher_list(SSL *s, const char *str);
+
 # ifdef  __cplusplus
 }
 # endif

@@ -14,7 +14,7 @@ SSL_CTX_set_ciphers_ex - choose list of available SSL_CIPHERs
 =head1 DESCRIPTION
 
 SSL_CTX_set_ciphers_ex() sets the list of available ciphers for B<ctx>
-using the control string B<str> and additionally setting the SSL options in 
+using the control string B<str> and additionally setting the SSL options in
 flags (as in SSL_CTX_set_options). SSL_CTX_set_preferred_ciphers is a defined
 call that sets the ciphers and the option SSL_OP_CIPHER_SERVER_PREFERENCE.
 
@@ -24,9 +24,9 @@ B<ssl> objects created from B<ctx>.
 
 =head1 NOTES
 
-Using SSL_CTX_set_preferred_ciphers() in a server context will make sure that 
+Using SSL_CTX_set_preferred_ciphers() in a server context will make sure that
 during negotiation ciphers are chosen from the given list in the order they appear
-until the server finds one that is also supported by the client. Client 
+until the server finds one that is also supported by the client. Client
 preferences or cipher orders are ignored.
 
 =head1 RETURN VALUES
