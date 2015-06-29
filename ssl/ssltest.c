@@ -279,12 +279,15 @@ int short_appdata_append_cb(SSL *s, unsigned char* data_ptr, int limit_size,
 int short_appdata_parse_cb(SSL *s, const unsigned char* data_ptr, int size,
                            void *arg)
 {
+    char *appdata;
     assert(size == SHORT_APPDATA_SIZE);
-    char appdata[size+1];
+    appdata = OPENSSL_malloc(size+1);
+    assert(appdata);
     memcpy(appdata, data_ptr, size);
     appdata[size] = '\0';
     assert(memcmp(appdata, SHORT_APPDATA, size) == 0);
     printf("short_appdata_parse_cb: successful\n");
+    OPENSSL_free(appdata);
     return 0;
 }
 
@@ -319,7 +322,7 @@ int long_appdata_parse_cb(SSL *s, const unsigned char* data_ptr, int size,
 {
     char *appdata;
     int i = 0;
-    const unsigned char* ptr = (const unsigned char*)appdata;
+    const unsigned char* ptr;
     assert(size == LONG_APPDATA_SIZE*LOOPS);
     appdata = OPENSSL_malloc(size+1);
     assert(appdata);
