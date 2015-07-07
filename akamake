@@ -397,11 +397,11 @@ $(shell chmod +w $P/include/openssl/opensslconf.h)
 
 $P/CONFIGURE_PREREQUISITES := $P/Configure $P/Makefile.org $P/akamake $P/util/mk1mf.pl $P/util/mkfiles.pl $P/ms/do_aka_nt.bat
 ifdef INTERIX
-$P/% : CONFIGURE_STEP = cd $P && perl Configure $($P/VCFG) && runwin32 'ms\do_aka_nt.bat' $(CONFIGFLAGS) $($P/VC) && $(NMAKE) -f ms/nt.mak headers
+$P/% : CONFIGURE_STEP = cd $P && perl Configure $($P/VCFG) $(CONFIGFLAGS) && runwin32 'ms\do_aka_nt.bat' $(CONFIGFLAGS) $($P/VC) && $(NMAKE) -f ms/nt.mak headers
 else
-$P/% : CONFIGURE_STEP = cd $P && perl Configure $($P/VCFG) && ms/do_aka_nt.bat $(CONFIGFLAGS) $($P/VC) && $(NMAKE) -f ms/nt.mak headers
+$P/% : CONFIGURE_STEP = cd $P && perl Configure $($P/VCFG) $(CONFIGFLAGS) && ms/do_aka_nt.bat $(CONFIGFLAGS) $($P/VC) && $(NMAKE) -f ms/nt.mak headers
 endif
-$P/% : MAKE_STEP := cd $P && $(NMAKE) -f ms/nt.mak $(OPENSSL-TARGET) && $(NMAKE) -f ms/ntdll_lib.mak $(OPENSSL-TARGET)
+$P/% : MAKE_STEP := cd $P && $(NMAKE) -f ms/nt.mak && $(NMAKE) -f ms/ntdll_lib.mak
 $P/% : EXTRA_STEP := \
  cp $P/lib32/libeay32.lib $P/libcrypto.lib && \
  cp $P/lib32/ssleay32.lib $P/libopenssl.lib && \
