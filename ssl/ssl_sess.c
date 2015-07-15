@@ -1138,6 +1138,7 @@ static void timeout_doall_arg(SSL_SESSION *s, TIMEOUT_PARAM *p)
 
 static IMPLEMENT_LHASH_DOALL_ARG_FN(timeout, SSL_SESSION, TIMEOUT_PARAM)
 
+#ifdef OPENSSL_NO_AKAMAI
 void SSL_CTX_flush_sessions(SSL_CTX *s, long t)
 {
     unsigned long i;
@@ -1156,6 +1157,33 @@ void SSL_CTX_flush_sessions(SSL_CTX *s, long t)
     CHECKED_LHASH_OF(SSL_SESSION, tp.cache)->down_load = i;
     CRYPTO_w_unlock(CRYPTO_LOCK_SSL_CTX);
 }
+#else /* OPENSSL_NO_AKAMAI */
+void SSL_CTX_flush_sessions_lock(SSL_CTX *s, long t, int lock)
+{
+    unsigned long i;
+    TIMEOUT_PARAM tp;
+
+    tp.ctx = s;
+    tp.cache = s->sessions;
+    if (tp.cache == NULL)
+        return;
+    tp.time = t;
+    if (lock)
+        CRYPTO_w_lock(CRYPTO_LOCK_SSL_CTX);
+    i = CHECKED_LHASH_OF(SSL_SESSION, tp.cache)->down_load;
+    CHECKED_LHASH_OF(SSL_SESSION, tp.cache)->down_load = 0;
+    lh_SSL_SESSION_doall_arg(tp.cache, LHASH_DOALL_ARG_FN(timeout),
+                             TIMEOUT_PARAM, &tp);
+    CHECKED_LHASH_OF(SSL_SESSION, tp.cache)->down_load = i;
+    if (lock)
+        CRYPTO_w_unlock(CRYPTO_LOCK_SSL_CTX);
+}
+
+void SSL_CTX_flush_sessions(SSL_CTX *s, long t)
+{
+    SSL_CTX_flush_sessions_lock(s, t, 1); /* lock */
+}
+#endif /* OPENSSL_NO_AKAMAI */
 
 int ssl_clear_bad_session(SSL *s)
 {

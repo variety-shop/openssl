@@ -2381,7 +2381,9 @@ int SSL_clear(SSL *s);
 int SSL_CTX_set_ciphers_ex(SSL_CTX *,const char *str, unsigned long flags);
 # define SSL_CTX_set_preferred_ciphers(ctx,str) \
         SSL_CTX_set_ciphers_ex(ctx,str,SSL_OP_CIPHER_SERVER_PREFERENCE)
-
+#ifndef OPENSSL_NO_AKAMAI
+void SSL_CTX_flush_sessions_lock(SSL_CTX *ctx, long tm, int lock);
+#endif
 void SSL_CTX_flush_sessions(SSL_CTX *ctx, long tm);
 
 const SSL_CIPHER *SSL_get_current_cipher(const SSL *s);

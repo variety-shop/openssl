@@ -3828,7 +3828,7 @@ void SSL_CTX_share_session_cache(SSL_CTX *a, SSL_CTX *b)
 
     if (b->session_list->session_ref_count == 0) {
         if (b->sessions) {
-            SSL_CTX_flush_sessions(b,0);
+            SSL_CTX_flush_sessions_lock(b, 0, 0); /* do not lock */
             lh_SSL_SESSION_free(b->sessions);
         }
 
