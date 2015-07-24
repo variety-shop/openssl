@@ -56,7 +56,9 @@ OPENSSL-CRYPTO-ONLY := $(call get-component-path,openssl-crypto-only)
 
 ifndef MASTER
 
+ifndef ATTR_ONLY
 $(info Compiling OpenSSL in standalone mode)
+endif
 # only enable TLSv1, keep DTLSv1/SSLv3/v2 disabled
 $P/configure.ts : CONFIGFLAGS := $(filter-out no-tls1,$(CONFIGFLAGS))
 $P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) enable-tls1
@@ -65,7 +67,9 @@ OPENSSL_OPTIONS := STANDALONE
 
 else
 
+ifndef ATTR_ONLY
 $(info Compiling OpenSSL as a component)
+endif
 OPENSSL-TARGET := build_crypto
 OPENSSL_OPTIONS :=
 OPENSSL-CRYPTO-ONLY-IN-USE := 0
@@ -99,7 +103,9 @@ CONFIGFLAGS := $(CONFIGFLAGS) -ftest-coverage -fprofile-arcs
 endif
 
 ifdef OPENSSL-OPTIONS
+ifndef ATTR_ONLY
 $(info Compiling OpenSSL with $(OPENSSL-OPTIONS))
+endif
 endif
 
 # NOTE: changes to compiler options (CFLAGS & CXXFLAGS) and
@@ -368,6 +374,10 @@ $P/% : CONFIGURE_STEP = cd $P && (./config $(CONFIGFLAGS) $(FIPSFLAGS)) && ($(SY
 else
 $P/% : MAKE_STEP = cd $P && $(SYSTEM_MAKE) $(OPENSSL_MFLAGS) CC="$(CC)" $(OPENSSL-TARGET)
 $P/% : CONFIGURE_STEP = cd $P && (./config $(CONFIGFLAGS) $(FIPSFLAGS)) && ($(SYSTEM_MAKE) CC="$(CC)" depend)
+endif
+# some versions of Mac OS X do not have makedepend, so skip it ('make depend' not needed if it's a clean build)
+ifdef AKAMAKE-DARWIN-BUILD
+$P/% : CONFIGURE_STEP = cd $P && (./config $(CONFIGFLAGS) $(FIPSFLAGS))
 endif
 $P/% : EXTRA_STEP := 
 $P/% : TEST_STEP = cd $P && $(SYSTEM_MAKE) CC="$(CC)" test
