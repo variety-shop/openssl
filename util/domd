@@ -11,7 +11,8 @@ if [ "$1" = "-MD" ]; then
 fi
 if [ "$MAKEDEPEND" = "" ]; then MAKEDEPEND=makedepend; fi
 
-cp Makefile Makefile.save
+# force the copy in case of read-only source control (Perforce)
+cp -f Makefile Makefile.save
 # fake the presence of Kerberos
 touch $TOP/krb5.h
 if expr "$MAKEDEPEND" : '.*gcc$' > /dev/null; then
@@ -27,6 +28,8 @@ if expr "$MAKEDEPEND" : '.*gcc$' > /dev/null; then
     RC=$?
     rm -f Makefile.tmp
 else
+    # makedepend on OS X is in /usr/X11/bin
+    export PATH="${PATH}:/usr/X11/bin"
     ${MAKEDEPEND} -D OPENSSL_DOING_MAKEDEPEND $@ && \
     ${PERL} $TOP/util/clean-depend.pl < Makefile > Makefile.new
     RC=$?

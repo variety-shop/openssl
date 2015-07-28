@@ -375,10 +375,6 @@ else
 $P/% : MAKE_STEP = cd $P && $(SYSTEM_MAKE) $(OPENSSL_MFLAGS) CC="$(CC)" $(OPENSSL-TARGET)
 $P/% : CONFIGURE_STEP = cd $P && (./config $(CONFIGFLAGS) $(FIPSFLAGS)) && ($(SYSTEM_MAKE) CC="$(CC)" depend)
 endif
-# some versions of Mac OS X do not have makedepend, so skip it ('make depend' not needed if it's a clean build)
-ifdef AKAMAKE-DARWIN-BUILD
-$P/% : CONFIGURE_STEP = cd $P && (./config $(CONFIGFLAGS) $(FIPSFLAGS))
-endif
 $P/% : EXTRA_STEP := 
 $P/% : TEST_STEP = cd $P && $(SYSTEM_MAKE) CC="$(CC)" test
 else 
