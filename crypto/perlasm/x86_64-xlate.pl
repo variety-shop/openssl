@@ -194,7 +194,7 @@ my %globals;
     }
     sub myoct {
         my $v = shift;
-	return $v if ($v =~ /^0x/); # if hex leave as-is
+	return $v if ($v =~ /^0x[0-9a-f]{9,16}/i); # if 64-bit hex leave as-is
         use integer;
         return oct($v);
     }
