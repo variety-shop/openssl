@@ -22,13 +22,15 @@ LIBSRC=	x509_def.c x509_d2.c x509_r2x.c x509_cmp.c \
 	x509_set.c x509cset.c x509rset.c x509_err.c \
 	x509name.c x509_v3.c x509_ext.c x509_att.c \
 	x509type.c x509_lu.c x_all.c x509_txt.c \
-	x509_trs.c by_file.c by_dir.c x509_vpm.c
+	x509_trs.c by_file.c by_dir.c x509_vpm.c \
+	by_mem.c
 LIBOBJ= x509_def.o x509_d2.o x509_r2x.o x509_cmp.o \
 	x509_obj.o x509_req.o x509spki.o x509_vfy.o \
 	x509_set.o x509cset.o x509rset.o x509_err.o \
 	x509name.o x509_v3.o x509_ext.o x509_att.o \
 	x509type.o x509_lu.o x_all.o x509_txt.o \
-	x509_trs.o by_file.o by_dir.o x509_vpm.o
+	x509_trs.o by_file.o by_dir.o x509_vpm.o \
+	by_mem.o
 
 SRC= $(LIBSRC)
 
@@ -112,6 +114,19 @@ by_file.o: ../../include/openssl/safestack.h ../../include/openssl/sha.h
 by_file.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
 by_file.o: ../../include/openssl/x509.h ../../include/openssl/x509_vfy.h
 by_file.o: ../cryptlib.h by_file.c
+by_mem.o: ../../include/openssl/asn1.h ../../include/openssl/bio.h
+by_mem.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
+by_mem.o: ../../include/openssl/e_os2.h ../../include/openssl/ec.h
+by_mem.o: ../../include/openssl/ecdh.h ../../include/openssl/ecdsa.h
+by_mem.o: ../../include/openssl/err.h ../../include/openssl/evp.h
+by_mem.o: ../../include/openssl/lhash.h ../../include/openssl/obj_mac.h
+by_mem.o: ../../include/openssl/objects.h ../../include/openssl/opensslconf.h
+by_mem.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+by_mem.o: ../../include/openssl/pem.h ../../include/openssl/pem2.h
+by_mem.o: ../../include/openssl/pkcs7.h ../../include/openssl/safestack.h
+by_mem.o: ../../include/openssl/sha.h ../../include/openssl/stack.h
+by_mem.o: ../../include/openssl/symhacks.h ../../include/openssl/x509.h
+by_mem.o: ../../include/openssl/x509_vfy.h by_mem.c
 x509_att.o: ../../e_os.h ../../include/openssl/asn1.h
 x509_att.o: ../../include/openssl/bio.h ../../include/openssl/buffer.h
 x509_att.o: ../../include/openssl/conf.h ../../include/openssl/crypto.h

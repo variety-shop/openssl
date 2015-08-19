@@ -2455,6 +2455,9 @@ int SSL_CTX_use_PrivateKey_file(SSL_CTX *ctx, const char *file, int type);
 int SSL_CTX_use_certificate_file(SSL_CTX *ctx, const char *file, int type);
 /* PEM type */
 int SSL_CTX_use_certificate_chain_file(SSL_CTX *ctx, const char *file);
+#  ifndef OPENSSL_NO_AKAMAKI
+int SSL_CTX_use_certificate_chain_mem(SSL_CTX *ctx, void *buf, int len);
+#  endif
 STACK_OF(X509_NAME) *SSL_load_client_CA_file(const char *file);
 int SSL_add_file_cert_subjects_to_stack(STACK_OF(X509_NAME) *stackCAs,
                                         const char *file);
@@ -2706,6 +2709,7 @@ int SSL_version(const SSL *ssl);
 int SSL_CTX_set_default_verify_paths(SSL_CTX *ctx);
 int SSL_CTX_load_verify_locations(SSL_CTX *ctx, const char *CAfile,
                                   const char *CApath);
+int SSL_CTX_load_verify_mem(SSL_CTX *ctx, void *buf, int len);
 # define SSL_get0_session SSL_get_session/* just peek at pointer */
 SSL_SESSION *SSL_get_session(const SSL *ssl);
 SSL_SESSION *SSL_get1_session(SSL *ssl); /* obtain a reference count */
