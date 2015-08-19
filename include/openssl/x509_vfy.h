@@ -621,6 +621,19 @@ STACK_OF(POLICYQUALINFO) *X509_policy_node_get0_qualifiers(const
 const X509_POLICY_NODE *X509_policy_node_get0_parent(const X509_POLICY_NODE
                                                      *node);
 
+# ifndef OPENSSL_NO_AKAMAI
+/* for/from by_mem.c - keep way above OpenSSL number-space */
+#  define X509_L_MEM             103
+
+#  define X509_LOOKUP_add_mem(x,iov,type) \
+		X509_LOOKUP_ctrl((x),X509_L_MEM,(const char *)(iov),\
+		(long)(type),NULL)
+
+X509_LOOKUP_METHOD *X509_LOOKUP_mem(void);
+int X509_STORE_load_mem(X509_STORE *ctx, void *buf, int len);
+# endif
+
+
 #ifdef  __cplusplus
 }
 #endif

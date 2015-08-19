@@ -1033,6 +1033,7 @@ int ERR_load_X509_strings(void);
 # define X509_F_BUILD_CHAIN                               106
 # define X509_F_BY_FILE_CTRL                              101
 # define X509_F_CHECK_NAME_CONSTRAINTS                    149
+# define X509_F_BY_MEM_CTRL                               4095
 # define X509_F_CHECK_POLICY                              145
 # define X509_F_DANE_I2D                                  107
 # define X509_F_DIR_CTRL                                  102
