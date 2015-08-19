@@ -423,4 +423,6 @@ SSL_set_remote_addr_ex                  10018	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMA
 SSL_get_remote_addr_ex                  10023	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_CLIENT_CACHE
 SSL_CTX_set_client_session_cache        10024	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_CLIENT_CACHE
 SSL_get_prev_client_session             10025	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_CLIENT_CACHE
+SSL_CTX_load_verify_mem                 10026	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_CTX_use_certificate_chain_mem       10027	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_CTX_akamai_session_stats_bio        10085	1_1_0e	EXIST::FUNCTION:AKAMAI
