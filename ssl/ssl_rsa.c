@@ -17,6 +17,7 @@
 
 static int ssl_set_cert(CERT *c, X509 *x509);
 static int ssl_set_pkey(CERT *c, EVP_PKEY *pkey);
+
 int SSL_use_certificate(SSL *ssl, X509 *x)
 {
     int rv;
