@@ -4209,3 +4209,5 @@ OCSP_RESPID_match                       4159	1_1_0a	EXIST::FUNCTION:OCSP
 DSO_pathbyaddr                          4170	1_1_0c	EXIST::FUNCTION:
 DSO_dsobyaddr                           4171	1_1_0c	EXIST::FUNCTION:
 ASN1_UTCTIME_get                        10000	1_1_0a	EXIST::FUNCTION:AKAMAI
+X509_LOOKUP_mem                         10001	1_1_0a	EXIST::FUNCTION:AKAMAI
+X509_STORE_load_mem                     10002	1_1_0a	EXIST::FUNCTION:AKAMAI
