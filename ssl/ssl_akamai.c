@@ -528,6 +528,104 @@ void ssl_akamai_fixup_ciphers(void)
     ssl_akamai_fixup_cipher_strength(0, SSL_NOT_DEFAULT, SSL_DEFAULT_CIPHER_LIST);
 }
 
+/* LIBTLS SUPPORT */
+
+int SSL_CTX_load_verify_mem(SSL_CTX *ctx, void *buf, int len)
+{
+    return (X509_STORE_load_mem(ctx->cert_store, buf, len));
+}
+
+/*
+ * Read a bio that contains our certificate in "PEM" format,
+ * possibly followed by a sequence of CA certificates that should be
+ * sent to the peer in the Certificate message.
+ */
+static int
+ssl_ctx_use_certificate_chain_bio(SSL_CTX *ctx, BIO *in)
+{
+    int ret = 0;
+    X509 *x = NULL;
+
+    ERR_clear_error(); /* clear error stack for SSL_CTX_use_certificate() */
+
+    x = PEM_read_bio_X509_AUX(in, NULL, ctx->default_passwd_callback,
+                              ctx->default_passwd_callback_userdata);
+    if (x == NULL) {
+        SSLerr(SSL_F_SSL_CTX_USE_CERTIFICATE_CHAIN_BIO, ERR_R_PEM_LIB);
+        goto end;
+    }
+
+    ret = SSL_CTX_use_certificate(ctx, x);
+
+    if (ERR_peek_error() != 0)
+        ret = 0;
+    /* Key/certificate mismatch doesn't imply ret==0 ... */
+    if (ret) {
+        /*
+         * If we could set up our certificate, now proceed to
+         * the CA certificates.
+         */
+        X509 *ca;
+        int r;
+        unsigned long err;
+
+        if (ctx->extra_certs != NULL) {
+            sk_X509_pop_free(ctx->extra_certs, X509_free);
+            ctx->extra_certs = NULL;
+        }
+
+        while ((ca = PEM_read_bio_X509(in, NULL,
+                                       ctx->default_passwd_callback,
+                                       ctx->default_passwd_callback_userdata)) != NULL) {
+            r = SSL_CTX_add_extra_chain_cert(ctx, ca);
+            if (!r) {
+                X509_free(ca);
+                ret = 0;
+                goto end;
+            }
+            /*
+             * Note that we must not free r if it was successfully
+             * added to the chain (while we must free the main
+             * certificate, since its reference count is increased
+             * by SSL_CTX_use_certificate).
+             */
+        }
+
+        /* When the while loop ends, it's usually just EOF. */
+        err = ERR_peek_last_error();
+        if (ERR_GET_LIB(err) == ERR_LIB_PEM &&
+            ERR_GET_REASON(err) == PEM_R_NO_START_LINE)
+            ERR_clear_error();
+        else
+            ret = 0; /* some real error */
+    }
+
+ end:
+    if (x != NULL)
+        X509_free(x);
+    return (ret);
+}
+
+
+int
+SSL_CTX_use_certificate_chain_mem(SSL_CTX *ctx, void *buf, int len)
+{
+    BIO *in;
+    int ret = 0;
+
+    in = BIO_new_mem_buf(buf, len);
+    if (in == NULL) {
+        SSLerr(SSL_F_SSL_CTX_USE_CERTIFICATE_CHAIN_MEM, ERR_R_BUF_LIB);
+        goto end;
+    }
+
+    ret = ssl_ctx_use_certificate_chain_bio(ctx, in);
+
+ end:
+    BIO_free(in);
+    return (ret);
+}
+
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b)
 {
     SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(ctx);
