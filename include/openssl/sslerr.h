@@ -165,6 +165,8 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_SSL_CTX_SET_TLSEXT_MAX_FRAGMENT_LENGTH     551
 # define SSL_F_SSL_CTX_USE_CERTIFICATE                    171
 # define SSL_F_SSL_CTX_USE_CERTIFICATE_ASN1               172
+# define SSL_F_SSL_CTX_USE_CERTIFICATE_CHAIN_BIO         4087
+# define SSL_F_SSL_CTX_USE_CERTIFICATE_CHAIN_MEM         4086
 # define SSL_F_SSL_CTX_USE_CERTIFICATE_FILE               173
 # define SSL_F_SSL_CTX_USE_PRIVATEKEY                     174
 # define SSL_F_SSL_CTX_USE_PRIVATEKEY_ASN1                175
