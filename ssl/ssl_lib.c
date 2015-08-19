@@ -3357,6 +3357,12 @@ int SSL_CTX_load_verify_locations(SSL_CTX *ctx, const char *CAfile,
 }
 #endif
 
+int
+SSL_CTX_load_verify_mem(SSL_CTX *ctx, void *buf, int len)
+{
+	return (X509_STORE_load_mem(ctx->cert_store, buf, len));
+}
+
 void SSL_set_info_callback(SSL *ssl,
                            void (*cb) (const SSL *ssl, int type, int val))
 {
