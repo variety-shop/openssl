@@ -4432,6 +4432,7 @@ EVP_PKEY_meth_get_cleanup               4786	EXIST::FUNCTION:
 EVP_PKEY_meth_get_encrypt               4787	EXIST::FUNCTION:
 EVP_PKEY_meth_get_copy                  4788	EXIST::FUNCTION:
 CRYPTO_set_secure_mem_ex_functions      884776	EXIST::FUNCTION:SECURE_HEAP
+X509_LOOKUP_mem                         884777	EXIST::FUNCTION:AKAMAI
 CRYPTO_get_secure_mem_functions         884778	EXIST::FUNCTION:SECURE_HEAP
 CRYPTO_secure_malloc                    884779	EXIST::FUNCTION:SECURE_HEAP
 CRYPTO_secure_malloc_done               884781	EXIST::FUNCTION:SECURE_HEAP
@@ -4448,6 +4449,7 @@ CRYPTO_set_secure_mem_functions         884793	EXIST::FUNCTION:SECURE_HEAP
 BUF_MEM_new_ex                          884797	EXIST::FUNCTION:
 EVP_PKEY_security_bits                  884799	EXIST::FUNCTION:
 CRYPTO_secure_realloc                   884801	EXIST::FUNCTION:SECURE_HEAP
+X509_STORE_load_mem                     884802	EXIST::FUNCTION:AKAMAI
 EVP_PKEY_asn1_set_security_bits         884804	EXIST::FUNCTION:
 CRYPTO_get_secure_mem_ex_functions      884805	EXIST::FUNCTION:SECURE_HEAP
 DH_security_bits                        884808	EXIST::FUNCTION:DH
