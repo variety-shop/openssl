@@ -130,6 +130,10 @@ long SSL_SESSION_set_timeout_update_cache(const SSL *s, long t);
 int SSL_CTX_set_client_session_cache(SSL_CTX *ctx);
 #  endif /* OPENSSL_NO_AKAMAI_CLIENT_CACHE */
 
+/* LIBTLS support */
+int SSL_CTX_use_certificate_chain_mem(SSL_CTX *ctx, void *buf, int len);
+int SSL_CTX_load_verify_mem(SSL_CTX *ctx, void *buf, int len);
+
 #  ifdef  __cplusplus
 }
 #  endif
