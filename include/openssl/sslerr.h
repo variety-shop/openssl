@@ -132,6 +132,8 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_SSL_CTX_SET_SSL_VERSION                    170
 # define SSL_F_SSL_CTX_USE_CERTIFICATE                    171
 # define SSL_F_SSL_CTX_USE_CERTIFICATE_ASN1               172
+# define SSL_F_SSL_CTX_USE_CERTIFICATE_CHAIN_BIO          548
+# define SSL_F_SSL_CTX_USE_CERTIFICATE_CHAIN_MEM          549
 # define SSL_F_SSL_CTX_USE_CERTIFICATE_FILE               173
 # define SSL_F_SSL_CTX_USE_PRIVATEKEY                     174
 # define SSL_F_SSL_CTX_USE_PRIVATEKEY_ASN1                175
