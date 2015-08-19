@@ -4234,3 +4234,5 @@ CRYPTO_secure_clear_free                4315	1_1_0g	EXIST::FUNCTION:
 EVP_PKEY_set1_engine                    4347	1_1_0g	EXIST::FUNCTION:ENGINE
 OCSP_resp_get0_signer                   4374	1_1_0h	EXIST::FUNCTION:OCSP
 X509_get0_authority_key_id              4448	1_1_0h	EXIST::FUNCTION:
+X509_LOOKUP_mem                         10001	1_1_0a	EXIST::FUNCTION:AKAMAI
+X509_STORE_load_mem                     10002	1_1_0a	EXIST::FUNCTION:AKAMAI
