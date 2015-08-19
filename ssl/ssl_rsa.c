@@ -66,6 +66,10 @@
 
 static int ssl_set_cert(CERT *c, X509 *x509);
 static int ssl_set_pkey(CERT *c, EVP_PKEY *pkey);
+#ifndef OPENSSL_NO_AKAMAI
+static int ssl_ctx_use_certificate_chain_bio(SSL_CTX *, BIO *);
+#endif
+
 int SSL_use_certificate(SSL *ssl, X509 *x)
 {
     if (x == NULL) {
@@ -755,6 +759,99 @@ int SSL_CTX_use_certificate_chain_file(SSL_CTX *ctx, const char *file)
         X509_free(x);
     if (in != NULL)
         BIO_free(in);
+    return (ret);
+}
+#endif
+
+#ifndef OPENSSL_NO_AKAMAI
+/*
+ * Read a bio that contains our certificate in "PEM" format,
+ * possibly followed by a sequence of CA certificates that should be
+ * sent to the peer in the Certificate message.
+ */
+static int
+ssl_ctx_use_certificate_chain_bio(SSL_CTX *ctx, BIO *in)
+{
+    int ret = 0;
+    X509 *x = NULL;
+
+    ERR_clear_error(); /* clear error stack for SSL_CTX_use_certificate() */
+
+    x = PEM_read_bio_X509_AUX(in, NULL, ctx->default_passwd_callback,
+                              ctx->default_passwd_callback_userdata);
+    if (x == NULL) {
+        SSLerr(SSL_F_SSL_CTX_USE_CERTIFICATE_CHAIN_FILE, ERR_R_PEM_LIB);
+        goto end;
+    }
+
+    ret = SSL_CTX_use_certificate(ctx, x);
+
+    if (ERR_peek_error() != 0)
+        ret = 0;
+    /* Key/certificate mismatch doesn't imply ret==0 ... */
+    if (ret) {
+        /*
+         * If we could set up our certificate, now proceed to
+         * the CA certificates.
+         */
+        X509 *ca;
+        int r;
+        unsigned long err;
+
+        if (ctx->extra_certs != NULL) {
+            sk_X509_pop_free(ctx->extra_certs, X509_free);
+            ctx->extra_certs = NULL;
+        }
+
+        while ((ca = PEM_read_bio_X509(in, NULL,
+                                       ctx->default_passwd_callback,
+                                       ctx->default_passwd_callback_userdata)) != NULL) {
+            r = SSL_CTX_add_extra_chain_cert(ctx, ca);
+            if (!r) {
+                X509_free(ca);
+                ret = 0;
+                goto end;
+            }
+            /*
+             * Note that we must not free r if it was successfully
+             * added to the chain (while we must free the main
+             * certificate, since its reference count is increased
+             * by SSL_CTX_use_certificate).
+             */
+        }
+
+        /* When the while loop ends, it's usually just EOF. */
+        err = ERR_peek_last_error();
+        if (ERR_GET_LIB(err) == ERR_LIB_PEM &&
+            ERR_GET_REASON(err) == PEM_R_NO_START_LINE)
+            ERR_clear_error();
+        else
+            ret = 0; /* some real error */
+    }
+
+ end:
+    if (x != NULL)
+        X509_free(x);
+    return (ret);
+}
+
+
+int
+SSL_CTX_use_certificate_chain_mem(SSL_CTX *ctx, void *buf, int len)
+{
+    BIO *in;
+    int ret = 0;
+
+    in = BIO_new_mem_buf(buf, len);
+    if (in == NULL) {
+        SSLerr(SSL_F_SSL_CTX_USE_CERTIFICATE_CHAIN_FILE, ERR_R_BUF_LIB);
+        goto end;
+    }
+
+    ret = ssl_ctx_use_certificate_chain_bio(ctx, in);
+
+ end:
+    BIO_free(in);
     return (ret);
 }
 #endif
