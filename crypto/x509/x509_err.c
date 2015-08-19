@@ -17,6 +17,7 @@ static const ERR_STRING_DATA X509_str_functs[] = {
     {ERR_PACK(ERR_LIB_X509, X509_F_ADD_CERT_DIR, 0), "add_cert_dir"},
     {ERR_PACK(ERR_LIB_X509, X509_F_BUILD_CHAIN, 0), "build_chain"},
     {ERR_PACK(ERR_LIB_X509, X509_F_BY_FILE_CTRL, 0), "by_file_ctrl"},
+    {ERR_PACK(ERR_LIB_X509, X509_F_BY_MEM_CTRL, 0), "by_mem_ctrl"},
     {ERR_PACK(ERR_LIB_X509, X509_F_CHECK_NAME_CONSTRAINTS, 0),
      "check_name_constraints"},
     {ERR_PACK(ERR_LIB_X509, X509_F_CHECK_POLICY, 0), "check_policy"},
