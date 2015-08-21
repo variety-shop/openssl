@@ -512,14 +512,15 @@ int ssl3_accept(SSL *s)
             break;
 
         case SSL3_ST_SW_KEY_EXCH_A:
-        case SSL3_ST_SW_KEY_EXCH_B:
-            alg_k = s->s3->tmp.new_cipher->algorithm_mkey;
-
             /*
              * clear this, it may get reset by
              * send_server_key_exchange
              */
+            /* only cleared for SSL3_ST_SW_KEY_EXCH_A */
             s->s3->tmp.use_rsa_tmp = 0;
+            /* FALLTHRU */
+        case SSL3_ST_SW_KEY_EXCH_B:
+            alg_k = s->s3->tmp.new_cipher->algorithm_mkey;
 
             /*
              * only send if a DH key exchange, fortezza or RSA but we have a

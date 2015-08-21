@@ -584,12 +584,6 @@ static int process_client_master_key(SSL *s)
     }
 
     /*
-     * decryption result is either the decrypted number of bytes or a
-     * negative value if decryption failed.
-     */
-    key_length = s->task.ctx.rsa_decrypt.dest_len;
-
-    /*
      * We must not leak whether a decryption failure occurs because of
      * Bleichenbacher's attack on PKCS #1 v1.5 RSA padding (see RFC 2246,
      * section 7.4.7.1). The code follows that advice of the TLS RFC and
@@ -608,8 +602,10 @@ static int process_client_master_key(SSL *s)
     /*
      * If a bad decrypt, continue with protocol but with a random master
      * secret (Bleichenbacher attack)
+     * decryption result is either the decrypted number of bytes or a
+     * negative value if decryption failed.
      */
-    decrypt_good = constant_time_eq_int_8(key_length, (int)num_encrypted_key_bytes);
+    decrypt_good = constant_time_eq_int_8(s->task.ctx.rsa_decrypt.dest_len, (int)num_encrypted_key_bytes);
     for (j = 0; j < num_encrypted_key_bytes; j++) {
         p[s->s2->tmp.clear + j] =
             constant_time_select_8(decrypt_good, p[s->s2->tmp.clear + j],
