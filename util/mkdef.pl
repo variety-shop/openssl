@@ -88,7 +88,7 @@ my @known_algorithms = ( "RC2", "RC4", "RC5", "IDEA", "DES", "BF",
 			 "EVP", "X509", "ASN1_TYPEDEFS",
 			 # Helper "algorithms"
 			 "BIO", "COMP", "BUFFER", "LHASH", "STACK", "ERR",
-			 "LOCKING",
+			 "LOCKING", "DSO",
 			 # External "algorithms"
 			 "FP_API", "STDIO", "SOCK", "DGRAM",
                          "CRYPTO_MDEBUG",
