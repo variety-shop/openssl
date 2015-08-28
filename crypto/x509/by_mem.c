@@ -56,13 +56,13 @@
  * [including the GNU Public Licence.]
  */
 
-#ifndef WIN32
-# include <sys/uio.h>
-#endif
 #include <errno.h>
 #include <stdio.h>
 #include <time.h>
-#include <unistd.h>
+#ifndef WIN32
+# include <sys/uio.h>
+# include <unistd.h>
+#endif
 
 #include <openssl/buffer.h>
 #include <openssl/err.h>
@@ -75,16 +75,16 @@
 static int by_mem_ctrl(X509_LOOKUP *, int, const char *, long, char **);
 
 static X509_LOOKUP_METHOD x509_mem_lookup = {
-    .name = "Load cert from memory",
-    .new_item = NULL,
-    .free = NULL,
-    .init = NULL,
-    .shutdown = NULL,
-    .ctrl = by_mem_ctrl,
-    .get_by_subject = NULL,
-    .get_by_issuer_serial = NULL,
-    .get_by_fingerprint = NULL,
-    .get_by_alias = NULL,
+    "Load cert from memory",
+    NULL,                       /* new */
+    NULL,                       /* free */
+    NULL,                       /* init */
+    NULL,                       /* shutdown */
+    by_mem_ctrl,                /* ctrl */
+    NULL,                       /* get_by_subject */
+    NULL,                       /* get_by_issuer_serial */
+    NULL,                       /* get_by_fingerprint */
+    NULL,                       /* get_by_alias */
 };
 
 X509_LOOKUP_METHOD *
