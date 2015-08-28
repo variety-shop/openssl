@@ -60,8 +60,10 @@
 #include "cryptlib.h"
 #include <openssl/crypto.h>
 #include <openssl/x509.h>
-#ifndef WIN32
-# include <sys/uio.h>
+#ifndef OPENSSL_NO_AKAMAI
+# ifndef WIN32
+#  include <sys/uio.h>
+# endif
 #endif
 
 #ifndef OPENSSL_NO_STDIO
@@ -111,9 +113,10 @@ int X509_STORE_load_locations(X509_STORE *ctx, const char *file,
 
 #endif
 
+#ifndef OPENSSL_NO_AKAMAI
 int X509_STORE_load_mem(X509_STORE *ctx, void *buf, int len)
 {
-#ifdef HAVE_STRUCT_IOVEC
+# ifdef HAVE_STRUCT_IOVEC
     X509_LOOKUP *lookup;
     struct iovec iov;
 
@@ -128,7 +131,8 @@ int X509_STORE_load_mem(X509_STORE *ctx, void *buf, int len)
         return (0);
 
     return (1);
-#else
+# else
     return (0);
-#endif
+# endif
 }
+#endif

@@ -2312,10 +2312,6 @@ DECLARE_PEM_rw(SSL_SESSION, SSL_SESSION)
         SSL_ctrl(ctx,SSL_CTRL_SET_CURVES_LIST,0,(char *)s)
 # define SSL_get_shared_curve(s, n) \
         SSL_ctrl(s,SSL_CTRL_GET_SHARED_CURVE,n,NULL)
-# define SSL_CTX_set_dh_auto(ctx, onoff) \
-        SSL_CTX_ctrl(ctx,SSL_CTRL_SET_DH_AUTO,onoff,NULL)
-# define SSL_set_dh_auto(s, onoff) \
-        SSL_ctrl(s,SSL_CTRL_SET_DH_AUTO,onoff,NULL)
 # define SSL_CTX_set_ecdh_auto(ctx, onoff) \
         SSL_CTX_ctrl(ctx,SSL_CTRL_SET_ECDH_AUTO,onoff,NULL)
 # define SSL_set_ecdh_auto(s, onoff) \
@@ -2459,7 +2455,9 @@ int SSL_CTX_use_PrivateKey_file(SSL_CTX *ctx, const char *file, int type);
 int SSL_CTX_use_certificate_file(SSL_CTX *ctx, const char *file, int type);
 /* PEM type */
 int SSL_CTX_use_certificate_chain_file(SSL_CTX *ctx, const char *file);
+#  ifndef OPENSSL_NO_AKAMAKI
 int SSL_CTX_use_certificate_chain_mem(SSL_CTX *ctx, void *buf, int len);
+#  endif
 STACK_OF(X509_NAME) *SSL_load_client_CA_file(const char *file);
 int SSL_add_file_cert_subjects_to_stack(STACK_OF(X509_NAME) *stackCAs,
                                         const char *file);

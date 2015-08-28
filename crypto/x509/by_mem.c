@@ -56,7 +56,9 @@
  * [including the GNU Public Licence.]
  */
 
-#include <sys/uio.h>
+#ifndef WIN32
+# include <sys/uio.h>
+#endif
 #include <errno.h>
 #include <stdio.h>
 #include <time.h>
@@ -67,6 +69,8 @@
 #include <openssl/pem.h>
 #include <openssl/lhash.h>
 #include <openssl/x509.h>
+
+#ifndef OPENSSL_NO_AKAMAI
 
 static int by_mem_ctrl(X509_LOOKUP *, int, const char *, long, char **);
 
@@ -93,6 +97,7 @@ static int
 by_mem_ctrl(X509_LOOKUP *lu, int cmd, const char *buf,
             long type, char **ret)
 {
+# ifdef HAVE_STRUCT_IOVEC
     STACK_OF(X509_INFO)	*inf = NULL;
     const struct iovec	*iov;
     X509_INFO		*itmp;
@@ -135,4 +140,9 @@ by_mem_ctrl(X509_LOOKUP *lu, int cmd, const char *buf,
     if (in != NULL)
         BIO_free(in);
     return (ok);
+# else
+    return (0);
+# endif
 }
+
+#endif /* OPENSSL_NO_AKAMAI */

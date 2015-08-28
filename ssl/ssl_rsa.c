@@ -71,7 +71,9 @@
 
 static int ssl_set_cert(CERT *c, X509 *x509);
 static int ssl_set_pkey(CERT *c, EVP_PKEY *pkey);
+#ifndef OPENSSL_NO_AKAMAI
 static int ssl_ctx_use_certificate_chain_bio(SSL_CTX *, BIO *);
+#endif
 
 int SSL_use_certificate(SSL *ssl, X509 *x)
 {
@@ -788,6 +790,7 @@ int SSL_CTX_use_certificate_chain_file(SSL_CTX *ctx, const char *file)
 }
 #endif
 
+#ifndef OPENSSL_NO_AKAMAI
 /*
  * Read a bio that contains our certificate in "PEM" format,
  * possibly followed by a sequence of CA certificates that should be
@@ -878,6 +881,7 @@ SSL_CTX_use_certificate_chain_mem(SSL_CTX *ctx, void *buf, int len)
     BIO_free(in);
     return (ret);
 }
+#endif
 
 #ifndef OPENSSL_NO_TLSEXT
 static int serverinfo_find_extension(const unsigned char *serverinfo,
