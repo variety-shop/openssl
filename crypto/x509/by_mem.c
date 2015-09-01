@@ -61,6 +61,9 @@
 #include <time.h>
 #ifndef WIN32
 # include <sys/uio.h>
+# ifndef HAVE_STRUCT_IOVEC
+#  define HAVE_STRUCT_IOVEC
+# endif
 # include <unistd.h>
 #endif
 

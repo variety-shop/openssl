@@ -63,6 +63,9 @@
 #ifndef OPENSSL_NO_AKAMAI
 # ifndef WIN32
 #  include <sys/uio.h>
+#  ifndef HAVE_STRUCT_IOVEC
+#   define HAVE_STRUCT_IOVEC
+#  endif
 # endif
 #endif
 
