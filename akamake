@@ -2,7 +2,7 @@
 # -*- Makefile -*-
 magic_startup_code=a; cd `echo "$0" | sed 's@^[^/]*$@.@; s@/[^/]*$@@;'` && exec make -f `basename $0` ${1+"$@"}
 #
-# This file contains component specific dependency rules.  
+# This file contains component specific dependency rules.
 
 #
 # No operating system (environment) rules are contained here directly.
@@ -51,12 +51,12 @@ OPENSSL-CRYPTO-ONLY := $(call get-component-path,openssl-crypto-only)
 # Disable OpenSSL ciphers/prototools
 # See Configure script to see automatically disabled/enabled features
 # Note: no-rc2 breaks the CMS unittests
-# Note: no-bf, no-rc5, no-idea breaks ASCI 
+# Note: no-bf, no-rc5, no-idea breaks ASCI
 # Note: no-cast no-ripemd breaks keyagent
 
 ifndef MASTER
 
-$(info Compiling OpenSSL in standalone mode)
+# Compiling OpenSSL in standalone mode
 # only enable TLSv1, keep DTLSv1/SSLv3/v2 disabled
 $P/configure.ts : CONFIGFLAGS := $(filter-out no-tls1,$(CONFIGFLAGS))
 $P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) enable-tls1
@@ -69,13 +69,22 @@ OPENSSL-TARGET := $(OPENSSL-TARGET) build_crypto
 
 endif
 
+OPENSSL-MUSL := $(call get-component-path,musl)
+OPENSSL-MUSL-IN-USE := 0
+ifneq ($(OPENSSL-MUSL),)
+-include $(OPENSSL-MUSL)/akamake-pre.mak
+ifdef MUSL_CC
+OPENSSL-MUSL-IN-USE := 1
+endif
+endif
+
 ifeq ($(AKARELEASE_PLATFORM),btf-anaconda)
 AKAMAKE-OPENSSL-WITH-FPIC := 1
 endif
 
 ifdef AKAMAKE-LINUX-BUILD-64
 AKAMAKE-OPENSSL-WITH-FPIC := 1
-endif 
+endif
 
 ifdef AKAMAKE-OPENSSL-WITH-FPIC
 $P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) -fPIC
@@ -83,11 +92,12 @@ endif
 
 ifdef GCOV
 # enable coverage
-CONFIGFLAGS := $(CONFIGFLAGS) -ftest-coverage -fprofile-arcs
+$P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) -ftest-coverage -fprofile-arcs
 endif
 
-ifdef OPENSSL-OPTIONS
-$(info Compiling OpenSSL with $(OPENSSL-OPTIONS))
+ifeq ($(OPENSSL-MUSL-IN-USE),1)
+# enable individual data/function sections to make tiny executables
+$P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) -fdata-sections -ffunction-sections
 endif
 
 # NOTE: changes to compiler options (CFLAGS & CXXFLAGS) and
@@ -110,7 +120,7 @@ endif
 
 #********************************************************************
 #**** Section 3:  Exported Interface
-#****      TODO:  Fill in directory names and header/library files 
+#****      TODO:  Fill in directory names and header/library files
 #********************************************************************
 
 # REMINDER:  All variables, target, and prerequisites need $P prefix
@@ -123,17 +133,17 @@ $P/HEADERS-LOCAL-DIRECTORY := include/openssl
 $P/HEADERS-COMMON-DIRECTORY := openssl
 
 # $P/configure.ts-generated headers to be exported
-$P/CONFIG-GEN-HEADERS := 
+$P/CONFIG-GEN-HEADERS :=
 
 # Static headers to be exported
-$P/STATIC-HEADERS := 
+$P/STATIC-HEADERS :=
 
 # $P/HEADERS: List of export header files (relative to HEADERS_LOCAL_DIRECTORY)
 $P/HEADERS := $($P/CONFIG-GEN-HEADERS) $($P/STATIC-HEADERS)
 $P/HEADERS: $P/build.ts
 
 #     LIBS_LOCAL_DIRECTORY: relative directory of exported library files
-$P/LIBS-LOCAL-DIRECTORY := 
+$P/LIBS-LOCAL-DIRECTORY :=
 
 # $P/EXP-LIBS: List of exported library files (relative to LIBS_LOCAL_DICTORY)
 
@@ -157,14 +167,17 @@ $P/export_install.ts: $P/configure.ts
 #****             library files needed for this component's build
 #********************************************************************
 
-$P/DEP-COMPS := 
-$P/DEP-LIBS := 	
-$P/TARGETS := 
-$P/SRC := 
+$P/DEP-COMPS :=
+$P/DEP-LIBS :=
+$P/TARGETS :=
+$P/SRC :=
 
 #$(warning FIPSBUILD is '$(FIPSBUILD)')
 ifdef FIPSBUILD
 $P/DEP-COMPS := $($P/DEP-COMPS) fipscanister
+endif
+ifeq ($(OPENSSL-MUSL-IN-USE),1)
+$P/DEP-COMPS := $($P/DEP-COMPS) musl
 endif
 
 #
@@ -210,7 +223,7 @@ $P/distclean: $P/clean
 
 #
 # WARNING:  Do NOT assume that the make is running in the component's
-#           subdirectory.  Also do not use $P and $C within the 
+#           subdirectory.  Also do not use $P and $C within the
 #           commands for the rules.   The values are invalid by the
 #           time the rules execute.  Used Implied Rule variables.
 
@@ -241,7 +254,7 @@ ifeq ($(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER)),yes)
   $P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION := -no-fomit-frame-pointer
 else
   ifeq ($(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER)),no)
-    $P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION := 
+    $P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION :=
   else
     $(error Invalid $P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER: "$($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER)")
   endif
@@ -265,12 +278,12 @@ ifdef FIPSBUILD
 #### fipscanister has all the modules precompiled due to compliance reasons, so we'll have to specify which one ####
 #### we'll want to use here, this is the same environment detection used in the fipscanister akamake ####
 
-# XXX: First version is the "ALSI" version, right?                                                                     
+# XXX: First version is the "ALSI" version, right?
 $P/ALSI_VERSION := $(shell grep AKARELEASE_VERSION /etc/akamai-release | cut -d '=' -f 2 | head -c1)
 
 OSTYPE := alsi-invalid
 
-# We are not supporting alsi6-64                                                                                       
+# We are not supporting alsi6-64
 ifeq ($($P/ALSI_VERSION),6)
 OSTYPE := alsi6
 ARCH := i386
@@ -281,7 +294,7 @@ ifeq ($($P/ALSI_VERSION),7)
 ifeq ($(SYSTEM),i686)
 OSTYPE := alsi7-32
 ARCH := i386
-# XXX: OpenSSL cleans out the CFLAGS environment variable at build time.  This is a good enough hack...                
+# XXX: OpenSSL cleans out the CFLAGS environment variable at build time.  This is a good enough hack...
 CC="gcc -m32"
 endif
 
@@ -290,7 +303,7 @@ OSTYPE := alsi7
 ARCH := x86_64
 endif
 
-endif # ifeq ($($P/ALSI_VERSION),7)                                                                                    
+endif # ifeq ($($P/ALSI_VERSION),7)
 
 FIPS_LIBDIR=$P/module/$(OSTYPE)
 #### end fipscanister code ####
@@ -298,11 +311,11 @@ FIPS_LIBDIR=$P/module/$(OSTYPE)
 # [fshotton 07/01/2010] if FIPSBUILD is defined by Ghost akamake-defs.mak
 # then we build with FIPS support
 $P/% : FIPSFLAGS = fips --with-fipsdir=$P/../fipscanister/module/$(OSTYPE)/ --with-fipslibdir=$P/../fipscanister/module/$(OSTYPE)/lib/
-$P/buildenv.FIPS: 
+$P/buildenv.FIPS:
 	echo "FIPS build enabled" > $P/buildenv.FIPS
 else
-$P/% : FIPSFLAGS = 
-$P/buildenv.FIPS: 
+$P/% : FIPSFLAGS =
+$P/buildenv.FIPS:
 	echo "FIPS build disabled" > $P/buildenv.FIPS
 endif
 
@@ -332,19 +345,32 @@ ifeq ($(OPENSSL_MFLAGS),)
 OPENSSL_MFLAGS := -j1
 endif
 
-# Next line intentional "=" - krose, 12/10/2001
-$P/% : CONFIGURE_STEP = cd $P && (./config $(CONFIGFLAGS) $(FIPSFLAGS)) && ($(SYSTEM_MAKE) CC="$(CC)" depend)
-# FIPS requires their own linker to build correctly so we're doing that here - sverasch 7/24/14
+# Define the OPENSSL-CC as the compiler to use
+# Use '=' for assignements here
+OPENSSL-CC = CC="$(CC)"
+ifdef MUSL_CC
 ifdef FIPSBUILD
-$P/% : MAKE_STEP = cd $P && $(SYSTEM_MAKE) $(OPENSSL_MFLAGS) CC="$(COMMON)/bin/fipsld" FIPSLD_CC="$(CC)" $(OPENSSL-TARGET)
-$P/% : CONFIGURE_STEP = cd $P && (./config $(CONFIGFLAGS) $(FIPSFLAGS)) && ($(SYSTEM_MAKE) CC="$(COMMON)/bin/fipsld" FIPSLD_CC="$(CC)" depend)
+OPENSSL-CC = CC="$(COMMON)/bin/fipsld" FIPSLD_CC="$(MUSL_CC)"
 else
-$P/% : MAKE_STEP = cd $P && $(SYSTEM_MAKE) $(OPENSSL_MFLAGS) CC="$(CC)" $(OPENSSL-TARGET)
-$P/% : CONFIGURE_STEP = cd $P && (./config $(CONFIGFLAGS) $(FIPSFLAGS)) && ($(SYSTEM_MAKE) CC="$(CC)" depend)
+OPENSSL-CC = CC="$(MUSL_CC)"
 endif
-$P/% : EXTRA_STEP := 
-$P/% : TEST_STEP = cd $P && $(SYSTEM_MAKE) CC="$(CC)" test
-else 
+else
+ifdef FIPSBUILD
+# FIPS requires their own linker to build correctly so we're doing that here - sverasch 7/24/14
+OPENSSL-CC = CC="$(COMMON)/bin/fipsld" FIPSLD_CC="$(CC)"
+endif
+endif
+
+# Next line intentional "=" - krose, 12/10/2001
+$P/% : MAKE_STEP = cd $P && $(SYSTEM_MAKE) $(OPENSSL_MFLAGS) $(OPENSSL-CC) $(OPENSSL-TARGET)
+# configure the system for options
+$P/% : CONFIGURE_STEP = cd $P && (./config $(CONFIGFLAGS) $(FIPSFLAGS))
+# Make depend does not work with musl's configuration, as makedepend
+# is not found, so run it with $(CC) rather than whatever might be configured
+$P/% : DEPEND_STEP = cd $P && ($(SYSTEM_MAKE) CC="$(CC)" depend)
+$P/% : EXTRA_STEP :=
+$P/% : TEST_STEP = cd $P && $(SYSTEM_MAKE) $(OPENSSL-CC) test
+else
 
 #### WIN32 ####
 ifndef ATTR_ONLY
@@ -367,10 +393,11 @@ endif
 
 $P/CONFIGURE_PREREQUISITES := $P/Configure $P/Makefile.org $P/akamake $P/util/mk1mf.pl $P/util/mkfiles.pl $P/ms/do_aka_nt.bat
 ifdef INTERIX
-$P/% : CONFIGURE_STEP = cd $P && perl Configure $($P/VCFG) $(CONFIGFLAGS) && runwin32 'ms\do_aka_nt.bat' $(CONFIGFLAGS) $($P/VC) && $(NMAKE) -f ms/nt.mak headers
+$P/% : CONFIGURE_STEP = cd $P && perl Configure $($P/VCFG) $(CONFIGFLAGS) && runwin32 'ms\do_aka_nt.bat' $(CONFIGFLAGS) $($P/VC)
 else
-$P/% : CONFIGURE_STEP = cd $P && perl Configure $($P/VCFG) $(CONFIGFLAGS) && ms/do_aka_nt.bat $(CONFIGFLAGS) $($P/VC) && $(NMAKE) -f ms/nt.mak headers
+$P/% : CONFIGURE_STEP = cd $P && perl Configure $($P/VCFG) $(CONFIGFLAGS) && ms/do_aka_nt.bat $(CONFIGFLAGS) $($P/VC)
 endif
+$P/% : DEPEND_STEP := cd $P  && $(NMAKE) -f ms/nt.mak headers
 $P/% : MAKE_STEP := cd $P && $(NMAKE) -f ms/nt.mak && $(NMAKE) -f ms/ntdll_lib.mak
 $P/% : EXTRA_STEP := \
  cp $P/lib32/libeay32.lib $P/libcrypto.lib && \
@@ -379,7 +406,7 @@ $P/% : EXTRA_STEP := \
  cp $P/dll_lib32/ssleay32.dll_lib $P/libopenssl.dll_lib
 $P/% : TEST_STEP := cd $P && $(NMAKE) -f ms/nt.mak test && $(NMAKE) -f ms/ntdll_lib.mak test
 
-endif 
+endif
 
 #### COMMON ####
 $P/third-party: $P/build.ts
@@ -387,7 +414,8 @@ $P/third-party: $P/build.ts
 # ./config step
 $P/configure.ts: $($P/CONFIGURE_PREREQUISITES)
 	$(CONFIGURE_STEP) 
-	@echo $(CONFIGGLAGS) > $@
+	$(DEPEND_STEP)
+	@echo $(CONFIGFLAGS) > $@
 
 
 $P/static-build-deps.mak : $P/component-configure
@@ -449,8 +477,8 @@ $P/BUILDENV.linux.FILE_OFFSET_BITS-master := 32
 $P/BUILDENV.linux.FILE_OFFSET_BITS-supported := 32 64
 
 #********************************************************************
-#**** Section 7:  Include of master rules, and recursive load of 
-#****             other components' and .d file make rules.  Also 
+#**** Section 7:  Include of master rules, and recursive load of
+#****             other components' and .d file make rules.  Also
 #****             set up build and unit test automation targets.
 #********************************************************************
 
