@@ -713,7 +713,7 @@ static int get_client_hello(SSL *s)
         }
     } else {
         i = ssl_get_prev_session(s, &(p[s->s2->tmp.cipher_spec_length]),
-                                 s->s2->tmp.session_id_length, NULL);
+                                 s->s2->tmp.session_id_length, p + n);
         if (i == 1) {           /* previous session */
             s->hit = 1;
         } else if (i == -1) {
