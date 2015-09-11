@@ -65,6 +65,8 @@ example).
 The scheduling failed. The SSL object will treat this as an error. If this
 happens during handshake, for example, the handshake will fail.
 
+=back
+
 =head1 NOTES
 
 =head2 ASYNCHRONOUS HANDLING
@@ -100,6 +102,8 @@ for SSL. Not all tasks will occur during an SSL connection. Tasks vary by
 client, server, protocol version, renegotiation attempts and other things. Also,
 the list of tasks might vary with each release.
 
+=over 4
+
 =item B<SSL_EVENT_KEY_EXCH_DECRYPT_DONE>
 
 The task performs the decryption of the exchanged keys on the server side. 
@@ -112,6 +116,8 @@ The task signs the certificate verification message on the client side.
 =item B<SSL_EVENT_KEY_EXCH_MSG_SIGNED>
 
 The task signs the key verification message before it is sent to the client.
+
+=back
 
 =head1 SEE ALSO
 
