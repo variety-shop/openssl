@@ -418,9 +418,6 @@ $P/VC=VC7
 $P/VCFG=VC-WIN32
 endif
 
-# Make a file which will be overwritten by the build writable.
-$(shell chmod +w $P/include/openssl/opensslconf.h)
-
 $P/CONFIGURE_PREREQUISITES := $P/Configure $P/Makefile.org $P/akamake $P/util/mk1mf.pl $P/util/mkfiles.pl $P/ms/do_aka_nt.bat
 ifdef INTERIX
 $P/% : CONFIGURE_STEP = cd $P && perl Configure $($P/VCFG) $(CONFIGFLAGS) && runwin32 'ms\do_aka_nt.bat' $(CONFIGFLAGS) $($P/VC)
@@ -443,12 +440,8 @@ $P/third-party: $P/build.ts
 
 # ./config step
 $P/configure.ts: $($P/CONFIGURE_PREREQUISITES)
-	-find $P -name Makefile -print | xargs chmod 0666
 	$(CONFIGURE_STEP)
 	$(DEPEND_STEP)
-	-find $P -name Makefile -print | xargs chmod 0444
-	-chmod 0444 $P/crypto/opensslconf.h
-	-chmod 0555 $P/apps/CA.pl
 	@echo $(CONFIGFLAGS) > $@
 
 
