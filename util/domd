@@ -11,8 +11,7 @@ if [ "$1" = "-MD" ]; then
 fi
 if [ "$MAKEDEPEND" = "" ]; then MAKEDEPEND=makedepend; fi
 
-# force the copy in case of read-only source control (Perforce)
-cp -f Makefile Makefile.save
+cp Makefile Makefile.save
 # fake the presence of Kerberos
 touch $TOP/krb5.h
 if expr "$MAKEDEPEND" : '.*gcc$' > /dev/null; then
