@@ -468,8 +468,16 @@ ifndef ATTR_ONLY
 -include $P/static-build-deps.mak
 endif
 
-$(addprefix $(call get-libs-local-path)/,$($P/EXP-LIBS)) : $P/build.ts
+$P/libcrypto.a $P/libssl.a: $P/build.ts
 	@ar qc $@ || touch $@
+
+$P/libopenssl.a: $P/libcrypto.a $P/libssl.a
+	rm -f $P/libopenssl.a
+	rm -rf $P/libmake-tmp
+	mkdir $P/libmake-tmp
+	(cd $P/libmake-tmp && ar x $P/libcrypto.a && ar x $P/libssl.a && ar qc $P/libopenssl.a *)
+	rm -rf $P/libmake-tmp
+	ranlib $P/libopenssl.a
 
 else
 
