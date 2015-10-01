@@ -60,25 +60,13 @@ ifndef MASTER
 # only enable TLSv1, keep DTLSv1/SSLv3/v2 disabled
 $P/configure.ts : CONFIGFLAGS := $(filter-out no-tls1,$(CONFIGFLAGS))
 $P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) enable-tls1
-OPENSSL-TARGET := all
-OPENSSL_OPTIONS := STANDALONE
+OPENSSL-TARGET := $(OPENSSL-TARGET) all
 
 else
 
 # Compiling OpenSSL as a component
-OPENSSL-TARGET := build_crypto
-OPENSSL_OPTIONS :=
-OPENSSL-CRYPTO-ONLY-IN-USE := 0
-OPENSSL-TLSV1-IN-USE := 0
-OPENSSL-SSLV3-IN-USE := 0
-OPENSSL-SSLV2-IN-USE := 0
-OPENSSL-DTLSV1-IN-USE := 0
-# included in a particular order to generate errors!
--include $(OPENSSL-CRYPTO-ONLY)/akamake-pre.mak
--include $(OPENSSL-TLSV1)/akamake-pre.mak
--include $(OPENSSL-SSLV3)/akamake-pre.mak
--include $(OPENSSL-SSLV2)/akamake-pre.mak
--include $(OPENSSL-DTLSV1)/akamake-pre.mak
+OPENSSL-TARGET := $(OPENSSL-TARGET) build_crypto
+
 endif
 
 OPENSSL-MUSL := $(call get-component-path,musl)
@@ -188,22 +176,6 @@ $P/SRC :=
 ifdef FIPSBUILD
 $P/DEP-COMPS := $($P/DEP-COMPS) fipscanister
 endif
-
-ifeq ($(OPENSSL-SSLV2-IN-USE),1)
-$P/DEP-COMPS := $($P/DEP-COMPS) openssl-sslv2
-endif
-ifeq ($(OPENSSL-SSLV3-IN-USE),1)
-$P/DEP-COMPS := $($P/DEP-COMPS) openssl-sslv3
-endif
-ifeq ($(OPENSSL-TLSV1-IN-USE),1)
-$P/DEP-COMPS := $($P/DEP-COMPS) openssl-tlsv1
-endif
-ifeq ($(OPENSSL-DTLSV1-IN-USE),1)
-$P/DEP-COMPS := $($P/DEP-COMPS) openssl-dtlsv1
-endif
-ifeq ($(OPENSSL-CRYPTO-ONLY-IN-USE),1)
-$P/DEP-COMPS := $($P/DEP-COMPS) openssl-crypto-only
-endif
 ifeq ($(OPENSSL-MUSL-IN-USE),1)
 $P/DEP-COMPS := $($P/DEP-COMPS) musl
 endif
@@ -234,6 +206,7 @@ $P/distclean: $P/clean
 	$(DISTCLEAN-LOCAL)
 	$(DISTCLEAN-COMMON)
 	-cd $P && $(SYSTEM_MAKE) dclean
+	-rm -f $P/Makefile
 	-rm -f $P/include/openssl
 	-rm -f $P/ms/nt.mak $P/ms/ntdll_lib.mak
 
