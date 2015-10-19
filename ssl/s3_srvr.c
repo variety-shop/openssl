@@ -676,8 +676,13 @@ int ssl3_accept(SSL *s)
             if (!ssl_event_did_succeed(s, SSL_EVENT_KEY_EXCH_DECRYPT_DONE, &ret))
                 goto end;
 
-            ret=ssl3_process_client_key_exchange(s);
-#ifndef OPENSSL_NO_AKAMAI_ASYNC_RSALG
+#ifdef OPENSSL_NO_AKAMAI_ASYNC_RSALG
+            ret = ssl3_process_client_key_exchange(s);
+#else /* OPENSSL_NO_AKAMAI_ASYNC_RSALG */
+            if (s->state != SSL3_ST_SR_KEY_EXCH_ASYNC_RSALG)
+                ret = ssl3_process_client_key_exchange(s);
+            /* fall through */
+
         case SSL3_ST_SR_KEY_EXCH_ASYNC_RSALG:
             /*
              * PORT NOTE: May need to be re-evaluated with new SSL events
