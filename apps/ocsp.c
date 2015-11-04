@@ -1113,7 +1113,7 @@ static int make_ocsp_response(OCSP_RESPONSE **resp, OCSP_REQUEST *req,
 # else
         for (jj = 0; jj < sk_X509_num(ca) && !found; jj++) {
             X509 *ca_cert = sk_X509_value(ca, jj);
-            OCSP_CERTID *ca_id = OCSP_cert_to_id(EVP_sha1(), NULL, ca_cert);
+            OCSP_CERTID *ca_id = OCSP_cert_to_id(cert_id_md, NULL, ca_cert);
 
             if (OCSP_id_issuer_cmp(ca_id, cid) == 0)
                 found = 1;
