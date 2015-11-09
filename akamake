@@ -443,7 +443,7 @@ endif
 
 # if ar cq fails, force creation of an empty archive
 $P/libcrypto.a $P/libssl.a: $P/build.ts
-	@ar qc $@ || (ar qc $@ crypto/cversion.o && ar d $@ cversion.o)
+	@ar qc $@ || (ar qc $@ $P/crypto/cversion.o && ar d $@ cversion.o)
 
 $P/libopenssl.a: $P/libcrypto.a $P/libssl.a
 	rm -f $P/libopenssl.a
