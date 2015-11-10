@@ -329,7 +329,7 @@ SSL_SESSION *ssl_session_dup(SSL_SESSION *src, int ticket)
     }
 # endif
 
-# ifdef OPENSSL_NO_AKAMAI_CLIENT_CACHE
+# ifdef OPENSSL_NO_AKAMAI
     if (ticket != 0) {
         dest->tlsext_tick = BUF_memdup(src->tlsext_tick, src->tlsext_ticklen);
         if(dest->tlsext_tick == NULL)
@@ -338,7 +338,7 @@ SSL_SESSION *ssl_session_dup(SSL_SESSION *src, int ticket)
         dest->tlsext_tick_lifetime_hint = 0;
         dest->tlsext_ticklen = 0;
     }
-# else /* OPENSSL_NO_AKAMAI_CLIENT_CACHE */
+# else /* OPENSSL_NO_AKAMAI */
     if (ticket != 0 && src->tlsext_tick) {
         dest->tlsext_tick = BUF_memdup(src->tlsext_tick, src->tlsext_ticklen);
         if(dest->tlsext_tick == NULL)
@@ -347,7 +347,7 @@ SSL_SESSION *ssl_session_dup(SSL_SESSION *src, int ticket)
         dest->tlsext_tick_lifetime_hint = 0;
         dest->tlsext_ticklen = 0;
     }
-# endif /* OPENSSL_NO_AKAMAI_CLIENT_CACHE */
+# endif /* OPENSSL_NO_AKAMAI */
 #endif
 
 #ifndef OPENSSL_NO_SRP
