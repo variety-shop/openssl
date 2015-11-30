@@ -1,10 +1,10 @@
 /**
  * @file   ssl/ssl_client_cache.c
  * @brief  This file contains client-cache-specific changes to OpenSSL
- * 
+ *
  * Copyright (C) 2015 Akamai Technologies
  * All rights reserved.
- * 
+ *
  * This file includes Akamai-specific changes to OpenSSL. These
  * changes were originally spread in various OpenSSL files, such
  * as ssl_lib.c and ssl_sess.c.
@@ -16,14 +16,14 @@
 #include <openssl/lhash.h>
 #include <openssl/rand.h>
 #ifndef OPENSSL_NO_ENGINE
-#include <openssl/engine.h>
+# include <openssl/engine.h>
 #endif
 #include "ssl_locl.h"
 #ifndef OPENSSL_SYS_WINDOWS
-#include <netinet/in.h>
+# include <netinet/in.h>
 #endif
 
-#ifndef OPENSSL_NO_AKAMAI
+#ifndef OPENSSL_NO_AKAMAI_CLIENT_CACHE
 
 static volatile int SSL_SESSION_SOCKADDR_IDX = -1; /**< EX_DATA index for SSL_SESSION sockaddr data */
 static volatile int SSL_SOCKADDR_IDX = -1;         /**< EX_DATA index for SSL sockaddr data */
@@ -43,8 +43,8 @@ static volatile int SSL_SOCKADDR_IDX = -1;         /**< EX_DATA index for SSL so
  * @param @c argp pointer value passed to CRYPTO_get_ex_new_index
  * @return 1 on success, 0 on failure
  */
-int ssl_sockaddr_new(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
-                     int idx, long argl, void* argp)
+static int ssl_sockaddr_new(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
+                            int idx, long argl, void* argp)
 {
     struct sockaddr_storage* saddr = OPENSSL_malloc(sizeof(*saddr));
 #ifdef AKAMAI_DEBUG_SOCKADDR
@@ -72,13 +72,13 @@ int ssl_sockaddr_new(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
  * @param @c argp pointer value passed to CRYPTO_get_ex_new_index
  * @return @c void
  */
-void ssl_sockaddr_free(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
-                       int idx, long arlg, void* argp)
+static void ssl_sockaddr_free(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
+                              int idx, long arlg, void* argp)
 {
-#ifdef AKAMAI_DEBUG_SOCKADDR
+# ifdef AKAMAI_DEBUG_SOCKADDR
     if (argp)
         printf("%s(%s, parent=%p, ptr=%p)\n", __FUNCTION__, (char*)argp, parent, ptr);
-#endif
+# endif
     if (ptr)
         OPENSSL_free(ptr);
     CRYPTO_set_ex_data(ad, idx, NULL);
@@ -87,12 +87,12 @@ void ssl_sockaddr_free(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
 /**
  * @brief Duplicates sockaddr from EX_DATA
  * This function is used to duplicate data that is in an OpenSSL data-structure's EX_DATA
- * It is assigned via CRYPTO_get_ex_new_index. This function passes in the address of value 
+ * It is assigned via CRYPTO_get_ex_new_index. This function passes in the address of value
  * of the original EX_DATA (be it a pointer or integral type). The caller will take the value
  * from the @p from EX_DATA and assign it to the @p to EX_DATA. For integral types, nothing
  * really needs to be done. For pointers, we can't have two EX_DATA's pointing to the same
  * memory location. So, we need to get the new data, copy from the original data (@p from_d),
- * then assign the new data's address into @p from_d so that value is copied into the 
+ * then assign the new data's address into @p from_d so that value is copied into the
  * EX_DATA of @p to. It's a little convoluted, but it's how OpenSSL works.
  *
  * @see CRYPTO_get_ex_new_index
@@ -105,12 +105,12 @@ void ssl_sockaddr_free(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
  * @param @c argp pointer value passed to CRYPTO_get_ex_new_index
  * @return 1 on success, 0 on failure
  */
-int ssl_sockaddr_dup(CRYPTO_EX_DATA* to, CRYPTO_EX_DATA* from, void* from_d,
-                     int idx, long arlg, void* argp)
+static int ssl_sockaddr_dup(CRYPTO_EX_DATA* to, CRYPTO_EX_DATA* from, void* from_d,
+                            int idx, long arlg, void* argp)
 {
     /**
      * from_d is actually the address of the pointer put into the ex_data,
-     * we want a different pointer put into the destination 
+     * we want a different pointer put into the destination
      **/
     struct sockaddr_storage** orig = (struct sockaddr_storage**)from_d;
     struct sockaddr_storage* new = CRYPTO_get_ex_data(to, idx);
@@ -228,7 +228,7 @@ unsigned int SSL_get_remote_port(const SSL *s)
  * This function saves a copy of the given @p addr into the OpenSSL SSL @p s.
  * The byte-order doesn't matter; the get routines will return the value as
  * it was originally given. It is up to the caller to keep the byte-order
- * consistent. The @c ss_family field of @p addr must be assigned to either 
+ * consistent. The @c ss_family field of @p addr must be assigned to either
  * AF_INET or AF_INET6. If set to AF_INET, then a @c sockaddr_in structure
  * must be passed in. If set to AF_INET6, then a @c sockaddr_in6 structure
  * must be passed in. Both the address and the port are set in the same
@@ -351,7 +351,7 @@ int SSL_get_prev_client_session(SSL *s, int flags)
         memcpy(data.sid_ctx, s->sid_ctx, s->sid_ctx_length);
 
     /* we don't support get_session_cb() on the client side because that
-     * takes the session ID rather than the server address & port 
+     * takes the session ID rather than the server address & port
      * + we don't need it
      */
 
@@ -432,11 +432,11 @@ int SSL_get_prev_client_session(SSL *s, int flags)
  * last-used time of a session, just the session time-out.
  *
  * Note: if the session exists on the SSL, 1 is returned whether
- * or not the session is updated on the SSL_CTX cache. 
+ * or not the session is updated on the SSL_CTX cache.
  *
  * @param @c s SSL structure
  * @param @c t Timeout period in seconds.
- * @return @c int 1 = if session exists in SSL, 0 otherwise. 
+ * @return @c int 1 = if session exists in SSL, 0 otherwise.
  */
 int SSL_SESSION_set_timeout_update_cache(const SSL *s, long t)
 {
@@ -467,7 +467,7 @@ int SSL_SESSION_set_timeout_update_cache(const SSL *s, long t)
  * @brief Generate a hash from a client SSL_SESSION
  * Given an SSL_SESSION structure, this function generates
  * a hash of the address/port value for an lhash structure.
- * Used as a hash key generation callback for the client 
+ * Used as a hash key generation callback for the client
  * session cache.
  *
  * @see SSL_CTX_set_client_session_cache
@@ -475,7 +475,7 @@ int SSL_SESSION_set_timeout_update_cache(const SSL *s, long t)
  * @param @c data SSL_SESSION to hash
  * @return @<unsigned long@> hash value
  */
-unsigned long SSL_SESSION_client_hash(const void *data)
+static unsigned long SSL_SESSION_client_hash(const void *data)
 {
     unsigned long hash = 0;
     const SSL_SESSION *a = (const SSL_SESSION*)data;
@@ -492,22 +492,22 @@ unsigned long SSL_SESSION_client_hash(const void *data)
             hash ^= sin->sin_port;
         } else if (sstorage->ss_family == AF_INET6) {
             struct sockaddr_in6* sin6 = (struct sockaddr_in6*)sstorage;
-#if defined(OPENSSL_SYS_LINUX) || defined(OPENSSL_SYS_MACOSX)
-# ifdef OPENSSL_SYS_MACOSX
-#  define s6_addr32 __u6_addr.__u6_addr32
-# endif
+# if defined(OPENSSL_SYS_LINUX) || defined(OPENSSL_SYS_MACOSX)
+#  ifdef OPENSSL_SYS_MACOSX
+#   define s6_addr32 __u6_addr.__u6_addr32
+#  endif
             hash ^= sin6->sin6_addr.s6_addr32[0];
             hash ^= sin6->sin6_addr.s6_addr32[1];
             hash ^= sin6->sin6_addr.s6_addr32[2];
             hash ^= sin6->sin6_addr.s6_addr32[3];
-#else
+# else
             /* Windows, (and BSDs?) do not have s6_addr32 */
             int i;
             for (i = 0; i < 16; i++) {
                 /* take each byte and shift it over by a bit */
                 hash ^= sin6->sin6_addr.s6_addr[i] << i;
             }
-#endif
+# endif
             hash ^= sin6->sin6_port;
         }
     }
@@ -518,7 +518,7 @@ unsigned long SSL_SESSION_client_hash(const void *data)
  * @brief Compare two client SSL_SESSIONs
  * Given an SSL_SESSION structure, this function compares
  * the address/port value of two SSL_SESSION structures.
- * Used as a hash key compatiston callback for the client 
+ * Used as a hash key compatiston callback for the client
  * session cache.
  * Does not behave like strcmp/memcmp; only does equality.
  *
@@ -565,7 +565,7 @@ int SSL_SESSION_client_cmp(const void *data1, const void *data2)
 
     if (a->sid_ctx_length > 0 && memcmp(a->sid_ctx, b->sid_ctx, a->sid_ctx_length))
         return 1; /* they are not equal */
-    
+
     return 0; /* they are equal */
 }
 
@@ -579,7 +579,7 @@ int SSL_SESSION_client_cmp(const void *data1, const void *data2)
  * For debugging/testing purposes, the structure names may be
  * passed to CRYPTO_get_ex_new_index() to display allocation
  * and free information.
- * 
+ *
  * @param @c ctx SSL_CTX to update
  * @return @c int 1 on success, 0 on failure
  */
@@ -592,15 +592,15 @@ int SSL_CTX_set_client_session_cache(SSL_CTX *ctx)
      * something has already reserved 0, this will leave an
      * unused hole, oh well.
      */
-#ifdef AKAMAI_DEBUG_SOCKADDR
+# ifdef AKAMAI_DEBUG_SOCKADDR
 /* Setting "argp" to a string uses that string in debug output */
-#define SSL_NAME "SSL"
-#define SSL_SESSION_NAME "SSL_SESSION"
-#else
-#define SSL_NAME NULL
-#define SSL_SESSION_NAME NULL
-#endif 
-       
+#  define SSL_NAME "SSL"
+#  define SSL_SESSION_NAME "SSL_SESSION"
+# else
+#  define SSL_NAME NULL
+#  define SSL_SESSION_NAME NULL
+# endif
+
     if (SSL_SOCKADDR_IDX == -1) {
         CRYPTO_w_lock(CRYPTO_LOCK_SSL);
         if (SSL_SOCKADDR_IDX == -1) {
@@ -616,7 +616,7 @@ int SSL_CTX_set_client_session_cache(SSL_CTX *ctx)
         CRYPTO_w_lock(CRYPTO_LOCK_SSL_SESSION);
         if (SSL_SESSION_SOCKADDR_IDX == -1) {
             SSL_SESSION_get_ex_new_index(0, NULL, NULL, NULL, NULL);
-            SSL_SESSION_SOCKADDR_IDX = 
+            SSL_SESSION_SOCKADDR_IDX =
                 SSL_SESSION_get_ex_new_index(0, SSL_SESSION_NAME,
                                              ssl_sockaddr_new,
                                              ssl_sockaddr_dup,
@@ -642,6 +642,5 @@ int SSL_CTX_set_client_session_cache(SSL_CTX *ctx)
     SSLerr(SSL_F_SSL_CTX_NEW,ERR_R_MALLOC_FAILURE);
     return(0);
 }
-                                                                                                 
-#endif /* OPENSSL_NO_AKAMAI */
 
+#endif /* OPENSSL_NO_AKAMAI_CLIENT_CACHE */

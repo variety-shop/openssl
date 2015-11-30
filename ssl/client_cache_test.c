@@ -1,5 +1,5 @@
 /* ssl/client_cache_test.c */
-/* 
+/*
  * Copyright (C) 2015 Akamai Technologies
  * All rights reserved.
  *
@@ -61,6 +61,8 @@
 				     get screwed...
 				  */
 
+#ifndef OPENSSL_NO_AKAMAI_CLIENT_CACHE
+
 #ifdef OPENSSL_SYS_WINDOWS
 #include <winsock.h>
 #else
@@ -75,28 +77,29 @@ static BIO* bio_stdout = NULL;
 
 static const char rnd_seed[] = "string to make the random number generator think it has entropy";
 
-
+#if 0
+/* defined but not used, but we want to keep it, just-in-case */
 #ifndef HEXDUMP_COLS
 #define HEXDUMP_COLS 16
 #endif
 
-void hexdump(void *mem, size_t len)
+static void hexdump(void *mem, size_t len)
 {
     unsigned char* ptr = mem;
     size_t i, j;
-        
+
     for(i = 0; i < len + ((len % HEXDUMP_COLS) ? (HEXDUMP_COLS - len % HEXDUMP_COLS) : 0); i++) {
         /* print offset */
         if (i % HEXDUMP_COLS == 0)
             printf("0x%06x: ", (int)i);
- 
+
         /* print hex data */
         if (i < len)
             printf("%02x ", 0xFF & ptr[i]);
         else
             /* end of block, just aligning for ASCII dump */
             printf("   ");
-                
+
         /* print ASCII dump */
         if (i % HEXDUMP_COLS == (HEXDUMP_COLS - 1)) {
             for (j = i - (HEXDUMP_COLS - 1); j <= i; j++) {
@@ -105,7 +108,7 @@ void hexdump(void *mem, size_t len)
                     printf(" ");
                 } else if(isprint(ptr[j])) {
                     /* printable char */
-                    printf("%c", 0xFF & ptr[j]);        
+                    printf("%c", 0xFF & ptr[j]);
                 } else {
                     /* other char */
                     printf(".");
@@ -115,6 +118,7 @@ void hexdump(void *mem, size_t len)
         }
     }
 }
+#endif
 
 static void sv_usage(void)
 {
@@ -129,7 +133,7 @@ static void lock_dbg_cb(int mode, int type, const char *file, int line)
     static int modes[CRYPTO_NUM_LOCKS]; /* = {0, 0, ... } */
     const char *errstr = NULL;
     int rw;
-	
+
     rw = mode & (CRYPTO_READ|CRYPTO_WRITE);
     if (!((rw == CRYPTO_READ) || (rw == CRYPTO_WRITE))) {
         errstr = "invalid mode";
@@ -155,7 +159,7 @@ static void lock_dbg_cb(int mode, int type, const char *file, int line)
             errstr = "not locked";
             goto err;
         }
-		
+
         if (modes[type] != rw) {
             errstr = (rw == CRYPTO_READ) ?
                 "CRYPTO_r_unlock on write lock" :
@@ -178,7 +182,7 @@ static int check_session_count(SSL_CTX* ctx, long expected_count)
 {
     long sess_count = SSL_CTX_sess_number(ctx);
     if (sess_count != expected_count) {
-        printf("wrong number of sessions: %ld expected %ld\n", 
+        printf("wrong number of sessions: %ld expected %ld\n",
                    sess_count, expected_count);
         return 0;
     }
@@ -224,14 +228,14 @@ static int check_ip4(SSL* ssl, struct sockaddr_in* sin4, int expect_success)
 
     ip4_result = SSL_get_remote_addr(ssl);
     if (ip4_result != sin4->sin_addr.s_addr && expect_success) {
-        printf("SSL_get_remote_addr() failure: 0x%X expected 0x%X\n", 
+        printf("SSL_get_remote_addr() failure: 0x%X expected 0x%X\n",
                    ip4_result, sin4->sin_addr.s_addr);
         return 0;
     }
 
     port_result = SSL_get_remote_port(ssl);
     if (port_result != sin4->sin_port && expect_success) {
-        printf("SSL_get_remote_port() failure: %d expected %d\n", 
+        printf("SSL_get_remote_port() failure: %d expected %d\n",
                    port_result, sin4->sin_port);
         return 0;
     }
@@ -248,13 +252,13 @@ static int check_ip4(SSL* ssl, struct sockaddr_in* sin4, int expect_success)
     }
     ip4_result = ((struct sockaddr_in*)&sstorage)->sin_addr.s_addr;
     if (ip4_result != sin4->sin_addr.s_addr && expect_success) {
-        printf("SSL_get_remote_addr_ex() address failure: 0x%X expected 0x%X\n", 
+        printf("SSL_get_remote_addr_ex() address failure: 0x%X expected 0x%X\n",
                    ip4_result, sin4->sin_addr.s_addr);
         return 0;
     }
     port_result = ((struct sockaddr_in*)&sstorage)->sin_port;
     if (port_result != sin4->sin_port && expect_success) {
-        printf("SSL_get_remote_addr_ex() port failure: %d expected %d\n", 
+        printf("SSL_get_remote_addr_ex() port failure: %d expected %d\n",
                    port_result, sin4->sin_port);
         return 0;
     }
@@ -264,7 +268,7 @@ static int check_ip4(SSL* ssl, struct sockaddr_in* sin4, int expect_success)
 static void print_ip6(struct in6_addr* ip6)
 {
     int i;
-    for (i = 0; i < sizeof(struct in6_addr); i++) {
+    for (i = 0; (size_t)i < sizeof(struct in6_addr); i++) {
         if (i)
             printf(":");
         printf("%2.2X", (unsigned char)ip6->s6_addr[i]);
@@ -298,14 +302,14 @@ static int check_ip6(SSL* ssl, struct sockaddr_in6* sin6, int expect_success)
     }
     port_result = ((struct sockaddr_in6*)&sstorage)->sin6_port;
     if (port_result != sin6->sin6_port && expect_success) {
-        printf("SSL_get_remote_addr_ex() port failure: %d expected %d\n", 
+        printf("SSL_get_remote_addr_ex() port failure: %d expected %d\n",
                    port_result, sin6->sin6_port);
         return 0;
     }
     return 1;
 }
 
-int add_ip_to_cache(SSL_CTX* ctx, struct sockaddr_storage* sstorage)
+static int add_ip_to_cache(SSL_CTX* ctx, struct sockaddr_storage* sstorage)
 {
     int ret = 0;
     int err;
@@ -324,7 +328,7 @@ int add_ip_to_cache(SSL_CTX* ctx, struct sockaddr_storage* sstorage)
         printf("ssl_get_new_session() returned failure\n");
         goto end;
     }
-    
+
     if (ssl->tlsext_ticket_expected) {
         printf("tlsext_ticket_exptected is true\n");
         goto end;
@@ -341,7 +345,7 @@ int add_ip_to_cache(SSL_CTX* ctx, struct sockaddr_storage* sstorage)
     }
 
     if (ssl->session_ctx != ctx) {
-        printf("ssl->session_ctx=%p != ctx=%p\n", ssl->session_ctx, ctx);
+        printf("ssl->session_ctx=%p != ctx=%p\n", (void*)ssl->session_ctx, (void*)ctx);
         goto end;
     }
 
@@ -361,34 +365,34 @@ int add_ip_to_cache(SSL_CTX* ctx, struct sockaddr_storage* sstorage)
         printf("SSL_get_prev_client_session() error: %d\n", err);
         goto end;
     }
-    
+
     ret = 1;
  end:
     SSL_free(ssl);
     return ret;
 }
 
-void random_ip6(struct sockaddr_in6* sin6)
+static void random_ip6(struct sockaddr_in6* sin6)
 {
     RAND_bytes((void*)&sin6->sin6_addr, sizeof(sin6->sin6_addr));
     RAND_bytes((void*)&sin6->sin6_port, sizeof(sin6->sin6_port));
     sin6->sin6_family = AF_INET6;
 }
 
-void zero_ip6(struct sockaddr_in6* sin6)
+static void zero_ip6(struct sockaddr_in6* sin6)
 {
     memset(sin6, 0, sizeof(struct sockaddr_in6));
     sin6->sin6_family = AF_INET6;
 }
 
-void random_ip4(struct sockaddr_in* sin4)
+static void random_ip4(struct sockaddr_in* sin4)
 {
     RAND_bytes((void*)&sin4->sin_addr, sizeof(sin4->sin_addr));
     RAND_bytes((void*)&sin4->sin_port, sizeof(sin4->sin_port));
     sin4->sin_family = AF_INET;
 }
 
-void zero_ip4(struct sockaddr_in* sin4)
+static void zero_ip4(struct sockaddr_in* sin4)
 {
     memset(sin4, 0, sizeof(struct sockaddr_in));
     sin4->sin_family = AF_INET;
@@ -472,7 +476,7 @@ int main(int argc, char *argv[])
 
     if (!check_ip4(ssl, &sin4, 0))
         goto end;
-    
+
     if (!check_ip6(ssl, &sin6, 0))
         goto end;
 
@@ -485,7 +489,7 @@ int main(int argc, char *argv[])
 
     if (!check_ip4(ssl, &sin4, 1))
         goto end;
-    
+
     if (!check_ip6(ssl, &sin6, 0))
         goto end;
 
@@ -494,7 +498,7 @@ int main(int argc, char *argv[])
     zero_ip6(&sin6);
 
     SSL_set_remote_addr_ex(ssl, (struct sockaddr_storage*)&sin4);
- 
+
     if (!check_ip4(ssl, &sin4, 1))
         goto end;
 
@@ -506,7 +510,7 @@ int main(int argc, char *argv[])
     zero_ip4(&sin4);
 
     SSL_set_remote_addr_ex(ssl, (struct sockaddr_storage*)&sin6);
- 
+
     if (!check_ip4(ssl, &sin4, 0))
         goto end;
 
@@ -515,7 +519,7 @@ int main(int argc, char *argv[])
 
     /* Set the port on an IPv6 address using legacy */
     SSL_set_remote_port(ssl, sin4.sin_port);
-    
+
     if (!check_ip6(ssl, &sin6, 0))
         goto end;
 
@@ -545,7 +549,7 @@ int main(int argc, char *argv[])
     /* Added four sessions, so this should be four */
     if (!check_session_count(ctx, 4))
         goto end;
-    
+
     /* Check to see if those last two addresses are in the database */
 
     if (search_ip(ssl, (struct sockaddr_storage*)&sin6, "IPv6", MUST_COPY_SESSION, 1) == 0)
@@ -553,7 +557,7 @@ int main(int argc, char *argv[])
 
     if (search_ip(ssl, (struct sockaddr_storage*)&sin4, "IPv4", 0, 1) == 0)
         goto end;
-    
+
     /* Try to remove one of them and search for it */
     SSL_CTX_remove_session(ctx, SSL_get0_session(ssl));
 
@@ -563,7 +567,7 @@ int main(int argc, char *argv[])
     /* Deleted one, there should be three */
     if (!check_session_count(ctx, 3))
         goto end;
-    
+
     /* Try a random IPv6, which should not be found */
     random_ip6(&sin6a);
 
@@ -615,6 +619,11 @@ end:
     EXIT(ret);
     return ret;
 }
+#else /* OPENSSL_NO_AKAMAI_CLIENT_CACHE */
 
+int main(int argc, char *argv[])
+{
+    return 0;
+}
 
-
+#endif /* OPENSSL_NO_AKAMAI_CLIENT_CACHE */

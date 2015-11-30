@@ -2865,12 +2865,13 @@ void SSL_CTX_share_session_cache(SSL_CTX *a, SSL_CTX *b);
 /* The int argument is 1 for read buffers, 0 for write buffers */
 void ssl3_set_buffer_mem_functions(void* (*m)(int, size_t), void(*f)(int, size_t, void*));
 
+#  ifndef OPENSSL_NO_AKAMAI_CLIENT_CACHE
 /* Support for client cache */
-#ifdef OPENSSL_SYS_WINDOWS
-#include <winsock.h>
-#else
-#include <sys/socket.h>
-#endif
+#   ifdef OPENSSL_SYS_WINDOWS
+#    include <winsock.h>
+#   else
+#    include <sys/socket.h>
+#   endif
 
 /* IPv4 legacy functions */
 void SSL_set_remote_addr(SSL *s, unsigned int addr);
@@ -2886,14 +2887,14 @@ void SSL_SESSION_copy_remote_addr(SSL_SESSION*, SSL*);
 
 int    SSL_SESSION_client_cmp(const void *data1, const void *data2);
 
-#define MUST_HAVE_APP_DATA 0x1
-#define MUST_COPY_SESSION  0x2
+#   define MUST_HAVE_APP_DATA 0x1
+#   define MUST_COPY_SESSION  0x2
 int     SSL_get_prev_client_session(SSL *s, int flags);
 int     SSL_SESSION_set_timeout_update_cache(const SSL *s, long t);
 
 int     SSL_CTX_set_client_session_cache(SSL_CTX *ctx);
-
-# endif 
+#  endif /* OPENSSL_NO_AKAMAI_CLIENT_CACHE */
+# endif /* OPENSSL_NO_AKAMAI */
 
 /* BEGIN ERROR CODES */
 /*
