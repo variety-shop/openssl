@@ -261,7 +261,7 @@ SSL_SESSION *ssl_session_dup(SSL_SESSION *src, int ticket)
 #ifndef OPENSSL_NO_SRP
     dest->srp_username = NULL;
 #endif
-#ifdef OPENSSL_NO_AKAMAI
+#ifdef OPENSSL_NO_AKAMAI_CLIENT_CACHE
     memset(&dest->ex_data, 0, sizeof(dest->ex_data));
 #else
     CRYPTO_new_ex_data(CRYPTO_EX_INDEX_SSL_SESSION, dest, &dest->ex_data);
@@ -547,9 +547,9 @@ int ssl_get_new_session(SSL *s, int session)
         SSL_SESSION_free(ss);
         return 0;
     }
-#ifndef OPENSSL_NO_AKAMAI
+#ifndef OPENSSL_NO_AKAMAI_CLIENT_CACHE
     SSL_SESSION_copy_remote_addr(ss, s);
-#endif /* OPENSSL_NO_AKAMAI */
+#endif /* OPENSSL_NO_AKAMAI_CLIENT_CACHE */
     memcpy(ss->sid_ctx, s->sid_ctx, s->sid_ctx_length);
     ss->sid_ctx_length = s->sid_ctx_length;
     s->session = ss;
