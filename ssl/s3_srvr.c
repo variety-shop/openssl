@@ -1692,7 +1692,9 @@ int ssl3_send_server_hello(SSL *s)
         memcpy(p, s->s3->server_random, SSL3_RANDOM_SIZE);
 #else /* OPENSSL_NO_AKAMAI_ASYNC_RSALG */
         if ((SSL_get_options(s) & SSL_OP_RSALG) &&
-            (s->s3->tmp.new_cipher->algorithm_mkey & SSL_kRSA)) {
+            (s->s3->tmp.new_cipher->algorithm_mkey & SSL_kRSA) &&
+            /* Session resumption does not use the cryptoserver; skip hashing. */
+            s->hit == 0) {
             /* We are using RSALG, so we need to hash the server random. */
             RSALG_hash(s->s3->server_random, p, SSL3_RANDOM_SIZE);
         } else {
