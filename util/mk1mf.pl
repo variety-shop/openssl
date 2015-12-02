@@ -614,7 +614,7 @@ init: \$(TMP_D) \$(LIB_D) \$(INC_D) \$(INCO_D) \$(BIN_D) \$(TEST_D) headers
 
 #Akamai headers: \$(HEADER) \$(EXHEADER)
 \$(SRC_D)\\crypto\\bn\\bn_prime.h : \$(SRC_D)\\crypto\\bn\\bn_prime.pl
-	peral \$? > \$@
+	\$(PERL) \$? > \$@
 
 headers: \$(TMP_D) \$(INCO_D) \$(HEADER) \$(EXHEADER) \$(SRC_D)\\crypto\\bn\\bn_prime.h
 
