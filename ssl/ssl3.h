@@ -603,6 +603,7 @@ typedef struct ssl3_state_st {
         STACK_OF(SSL_CIPHER) *ciphers;
         unsigned char *q;
         int i;
+        int cookie_valid;
 #  endif /* OPENSSL_NO_AKAMAI */
     } tmp;
 
