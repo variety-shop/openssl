@@ -1001,7 +1001,11 @@ int ssl3_send_hello_request(SSL *s)
 
 int ssl3_get_client_hello(SSL *s)
 {
+#ifdef OPENSSL_NO_AKAMAI
     int i, j, ok, al = SSL_AD_INTERNAL_ERROR, ret = -1, cookie_valid = 0;
+#else
+    int i, j, ok, al = SSL_AD_INTERNAL_ERROR, ret = -1;
+#endif
     unsigned int cookie_len;
     long n;
     unsigned long id;
@@ -1019,6 +1023,7 @@ int ssl3_get_client_hello(SSL *s)
     if (s->state == SSL3_ST_SR_CLNT_HELLO_C && !s->first_packet)
         goto retry_cert;
 #else
+    s->s3->tmp.cookie_valid = 0;
     if (s->state == SSL3_ST_SR_CLNT_HELLO_C && !s->first_packet) {
         /* head over to post_app and goto retry_cert there */
         return ssl3_get_client_hello_post_app(s, 1);
@@ -1203,7 +1208,11 @@ int ssl3_get_client_hello(SSL *s)
                 SSLerr(SSL_F_SSL3_GET_CLIENT_HELLO, SSL_R_COOKIE_MISMATCH);
                 goto f_err;
             }
+#ifdef OPENSSL_NO_AKAMAI
             cookie_valid = 1;
+#else
+            s->s3->tmp.cookie_valid = 1;
+#endif
         }
 
         p += cookie_len;
@@ -1633,7 +1642,12 @@ int ssl3_get_client_hello_post_app(SSL *s, int retry_cert)
         }
     }
 
+#ifdef OPENSSL_NO_AKAMAI
     ret = cookie_valid ? 2 : 1;
+#else
+    ret = s->s3->tmp.cookie_valid ? 2 : 1;
+    s->s3->tmp.cookie_valid = 0;
+#endif
     if (0) {
  f_err:
         ssl3_send_alert(s, SSL3_AL_FATAL, al);
