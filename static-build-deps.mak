@@ -1015,14 +1015,6 @@ $P/build.ts: \
  $P/apps/pkcs8.c \
  $P/apps/pkeyparam.c \
  $P/apps/apps.c \
- $P/times/x86/rc4s.cpp \
- $P/times/x86/dess.cpp \
- $P/times/x86/md5s.cpp \
- $P/times/x86/sha1s.cpp \
- $P/times/x86/md4s.cpp \
- $P/times/x86/bfs.cpp \
- $P/times/x86/casts.cpp \
- $P/times/x86/des3s.cpp \
  $P/e_os.h \
  $P/ms/uplink.h \
  $P/ms/tlhelp32.h \
