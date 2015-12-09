@@ -103,6 +103,8 @@ WP_ASM_OBJ=
 CMLL_ENC=
 MODES_ASM_OBJ=
 ENGINES_ASM_OBJ=
+CHACHA_ENC= chacha_enc.o
+POLY1305_ASM_OBJ=
 PERLASM_SCHEME=
 
 # KRB5 stuff
@@ -144,8 +146,8 @@ SHLIBDIRS= crypto ssl
 # dirs in crypto to build
 SDIRS=  \
 	objects \
-	md2 md4 md5 sha mdc2 hmac ripemd whrlpool \
-	des aes rc2 rc4 rc5 idea bf cast camellia seed modes \
+	md2 md4 md5 sha mdc2 hmac ripemd whrlpool poly1305 \
+	des aes rc2 rc4 rc5 idea bf cast camellia seed chacha modes \
 	bn ec rsa dsa ecdsa dh ecdh dso engine \
 	buffer bio stack lhash rand err \
 	evp asn1 pem x509 x509v3 conf txt_db pkcs7 pkcs12 comp ocsp ui krb5 \
@@ -237,6 +239,8 @@ BUILDENV=	LC_ALL=C PLATFORM='$(PLATFORM)' PROCESSOR='$(PROCESSOR)'\
 		WP_ASM_OBJ='$(WP_ASM_OBJ)'			\
 		MODES_ASM_OBJ='$(MODES_ASM_OBJ)'		\
 		ENGINES_ASM_OBJ='$(ENGINES_ASM_OBJ)'		\
+		CHACHA_ENC='$(CHACHA_ENC)'			\
+		POLY1305_ASM_OBJ='$(POLY1305_ASM_OBJ)'		\
 		PERLASM_SCHEME='$(PERLASM_SCHEME)'		\
 		FIPSLIBDIR='${FIPSLIBDIR}'			\
 		FIPSDIR='${FIPSDIR}'				\
