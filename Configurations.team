@@ -5,7 +5,7 @@
 ## This file is interpolated by the Configure script.
 
 # Filler used for when there are no asm files.
-my $no_asm_filler="::::::::::::::::void";
+my $no_asm_filler="::::::::::::::::::void";
 
 %targets = (
 "purify",	"purify gcc:-g -DPURIFY -Wall::(unknown)::-lsocket -lnsl::::",
