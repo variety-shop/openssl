@@ -86,6 +86,7 @@ my @known_algorithms = ( "RC2", "RC4", "RC5", "IDEA", "DES", "BF",
 			 "SHA256", "SHA512", "RIPEMD",
 			 "MDC2", "WHIRLPOOL", "RSA", "DSA", "DH", "EC", "ECDH", "ECDSA", "EC2M",
 			 "HMAC", "AES", "CAMELLIA", "SEED", "GOST",
+                         "CHACHA", "POLY1305",
 			 # Akamai-specific
 			 "AKAMAI", "SECURE_HEAP",
 			 # EC_NISTP_64_GCC_128
@@ -145,6 +146,7 @@ my $no_cast; my $no_whirlpool; my $no_camellia; my $no_seed;
 my $no_md2; my $no_md4; my $no_md5; my $no_sha; my $no_ripemd; my $no_mdc2;
 my $no_rsa; my $no_dsa; my $no_dh; my $no_hmac=0; my $no_aes; my $no_krb5;
 my $no_ec; my $no_ecdsa; my $no_ecdh; my $no_engine; my $no_hw;
+my $no_chacha; my $no_poly1305;
 my $no_fp_api; my $no_static_engine=1; my $no_gmp; my $no_deprecated;
 my $no_rfc3779; my $no_psk; my $no_tlsext; my $no_cms; my $no_capieng;
 my $no_jpake; my $no_srp; my $no_ssl2; my $no_ec2m; my $no_nistp_gcc; 
@@ -224,6 +226,8 @@ foreach (@ARGV, split(/ /, $options))
 	elsif (/^no-aes$/)	{ $no_aes=1; }
 	elsif (/^no-camellia$/)	{ $no_camellia=1; }
 	elsif (/^no-seed$/)     { $no_seed=1; }
+	elsif (/^no-chacha$/)   { $no_chacha=1; }
+	elsif (/^no-poly1305$/) { $no_poly1305=1; }
 	elsif (/^no-evp$/)	{ $no_evp=1; }
 	elsif (/^no-lhash$/)	{ $no_lhash=1; }
 	elsif (/^no-stack$/)	{ $no_stack=1; }
@@ -293,6 +297,8 @@ $ssl.=" ssl/srtp.h";
 
 my $crypto ="crypto/crypto.h";
 $crypto.=" crypto/cryptlib.h";
+$crypto.=" crypto/chacha/chacha.h"; # unless $no_chacha;
+$crypto.=" crypto/poly1305/poly1305.h"; # unless $no_poly1305;
 $crypto.=" crypto/o_dir.h";
 $crypto.=" crypto/o_str.h";
 $crypto.=" crypto/o_time.h";
@@ -1197,6 +1203,8 @@ sub is_valid
 			if ($keyword eq "AES" && $no_aes) { return 0; }
 			if ($keyword eq "CAMELLIA" && $no_camellia) { return 0; }
 			if ($keyword eq "SEED" && $no_seed) { return 0; }
+			if ($keyword eq "CHACHA" && $no_chacha) { return 0; }
+			if ($keyword eq "POLY1305" && $no_poly1305) { return 0; }
 			if ($keyword eq "EVP" && $no_evp) { return 0; }
 			if ($keyword eq "LHASH" && $no_lhash) { return 0; }
 			if ($keyword eq "STACK" && $no_stack) { return 0; }

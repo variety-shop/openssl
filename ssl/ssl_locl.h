@@ -356,9 +356,12 @@
 # define SSL_SEED                0x00000800L
 # define SSL_AES128GCM           0x00001000L
 # define SSL_AES256GCM           0x00002000L
+# define SSL_CHACHA20POLY1305    0x00080000L
 
 # define SSL_AES                 (SSL_AES128|SSL_AES256|SSL_AES128GCM|SSL_AES256GCM)
+
 # define SSL_CAMELLIA            (SSL_CAMELLIA128|SSL_CAMELLIA256)
+# define SSL_CHACHA20            (SSL_CHACHA20POLY1305)
 
 /* Bits for algorithm_mac (symmetric authentication) */
 
