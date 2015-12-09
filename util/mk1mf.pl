@@ -312,6 +312,8 @@ $cflags.=" -DOPENSSL_NO_HEARTBEATS" if $no_heartbeats;
 $cflags.=" -DOPENSSL_NO_AKAMAI_ASYNC_RSALG" if $no_akamai_async_rsalg; #Akamai
 $cflags.=" -DOPENSSL_NO_AKAMAI_GHOST_HIGH" if $no_akamai_ghost_high; #Akamai
 $cflags.=" -DOPENSSL_NO_AKAMAI_CLIENT_CACHE" if $no_akamai_client_cache; #Akamai
+$cflags.=" -DOPENSSL_NO_CHACHA" if $no_chacha;
+$cflags.=" -DOPENSSL_NO_POLY1305" if $no_poly1305;
 $cflags.=" -DOPENSSL_PSK" if $no_psk;
 $cflags.=" -DZLIB" if $zlib_opt;
 $cflags.=" -DZLIB_SHARED" if $zlib_opt == 2;
@@ -1262,6 +1264,8 @@ sub read_options
 	        "no-akamai-async-rsalg" => \$no_akamai_async_rsalg, #Akamai
 	        "no-akamai-ghost-high" => \$no_akamai_ghost_high, #Akamai
 	        "no-akamai-client-cache" => \$no_akamai_client_cache, #Akamai
+	        "no-chacha" => \$no_chacha,
+	        "no-poly1305" => \$no_poly1305,
 	        "no-psk" => \$no_psk,
 		"no-rsax" => 0,
 		"just-ssl" =>
