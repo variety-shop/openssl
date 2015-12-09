@@ -4436,6 +4436,7 @@ CRYPTO_set_secure_mem_ex_functions      884776	EXIST::FUNCTION:SECURE_HEAP
 X509_LOOKUP_mem                         884777	EXIST::FUNCTION:AKAMAI
 CRYPTO_get_secure_mem_functions         884778	EXIST::FUNCTION:SECURE_HEAP
 CRYPTO_secure_malloc                    884779	EXIST::FUNCTION:SECURE_HEAP
+EVP_chacha20_poly1305                   884780	EXIST::FUNCTION:CHACHA,POLY1305
 CRYPTO_secure_malloc_done               884781	EXIST::FUNCTION:SECURE_HEAP
 CRYPTO_secure_malloc_initialized        884782	EXIST::FUNCTION:SECURE_HEAP
 CRYPTO_secure_allocated                 884784	EXIST::FUNCTION:SECURE_HEAP
@@ -4447,11 +4448,17 @@ RSA_security_bits                       884790	EXIST::FUNCTION:RSA
 BIO_s_secmem                            884791	EXIST::FUNCTION:
 CRYPTO_secure_actual_size               884792	EXIST::FUNCTION:SECURE_HEAP
 CRYPTO_set_secure_mem_functions         884793	EXIST::FUNCTION:SECURE_HEAP
+Poly1305_Update                         884794	EXIST::FUNCTION:POLY1305
+ChaCha20_ctr32                          884795	EXIST::FUNCTION:CHACHA
 BUF_MEM_new_ex                          884797	EXIST::FUNCTION:
+Poly1305_Final                          884798	EXIST::FUNCTION:POLY1305
 EVP_PKEY_security_bits                  884799	EXIST::FUNCTION:
+EVP_chacha20                            884800	EXIST::FUNCTION:CHACHA
 CRYPTO_secure_realloc                   884801	EXIST::FUNCTION:SECURE_HEAP
 X509_STORE_load_mem                     884802	EXIST::FUNCTION:AKAMAI
+Poly1305_ctx_size                       884803	EXIST::FUNCTION:POLY1305
 EVP_PKEY_asn1_set_security_bits         884804	EXIST::FUNCTION:
 CRYPTO_get_secure_mem_ex_functions      884805	EXIST::FUNCTION:SECURE_HEAP
 DH_security_bits                        884808	EXIST::FUNCTION:DH
+Poly1305_Init                           884809	EXIST::FUNCTION:POLY1305
 BN_security_bits                        884810	EXIST::FUNCTION:

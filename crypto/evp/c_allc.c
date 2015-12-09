@@ -238,4 +238,11 @@ void OpenSSL_add_all_ciphers(void)
     EVP_add_cipher_alias(SN_camellia_256_cbc, "CAMELLIA256");
     EVP_add_cipher_alias(SN_camellia_256_cbc, "camellia256");
 #endif
+
+#ifndef OPENSSL_NO_CHACHA
+    EVP_add_cipher(EVP_chacha20());
+# ifndef OPENSSL_NO_POLY1305
+    EVP_add_cipher(EVP_chacha20_poly1305());
+# endif
+#endif
 }

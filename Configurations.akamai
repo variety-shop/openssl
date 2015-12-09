@@ -2,7 +2,7 @@
 # Copyright (C) 2015 Akamai, All Rights Reserved
 
 # Filler used for when there are no asm files.
-my $no_asm_filler="::::::::::::::::void";
+my $no_asm_filler="::::::::::::::::::void";
 
 %targets = (
 "akamai-ccmalloc",     "gcc:-ggdb -O0 -Wall -DPURIFY::-D_REENTRANT::::${no_asm_filler}::::::::",
