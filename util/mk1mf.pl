@@ -883,6 +883,8 @@ sub var_add
 	return("") if $no_cms  && $dir =~ /\/cms/;
 	return("") if $no_jpake  && $dir =~ /\/jpake/;
 	return("") if $no_comp && $dir =~ /\/comp/;
+	return("") if $no_chacha && $dir =~ /\/chacha/;
+	return("") if $no_poly1305 && $dir =~ /\/poly1305/;
 	if ($no_des && $dir =~ /\/des/)
 		{
 		if ($val =~ /read_pwd/)
