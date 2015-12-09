@@ -252,23 +252,19 @@ e_cast.o: ../../include/openssl/lhash.h ../../include/openssl/opensslconf.h
 e_cast.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
 e_cast.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
 e_cast.o: ../../include/openssl/symhacks.h ../cryptlib.h e_cast.c
-e_chacha20_poly1305.o: ../../e_os.h ../../include/openssl/asn1.h
-e_chacha20_poly1305.o: ../../include/openssl/bio.h
+e_chacha20_poly1305.o: ../../e_os.h ../../include/openssl/bio.h
 e_chacha20_poly1305.o: ../../include/openssl/buffer.h
 e_chacha20_poly1305.o: ../../include/openssl/crypto.h
 e_chacha20_poly1305.o: ../../include/openssl/e_os2.h
-e_chacha20_poly1305.o: ../../include/openssl/err.h ../../include/openssl/evp.h
+e_chacha20_poly1305.o: ../../include/openssl/err.h
 e_chacha20_poly1305.o: ../../include/openssl/lhash.h
-e_chacha20_poly1305.o: ../../include/openssl/obj_mac.h
-e_chacha20_poly1305.o: ../../include/openssl/objects.h
 e_chacha20_poly1305.o: ../../include/openssl/opensslconf.h
 e_chacha20_poly1305.o: ../../include/openssl/opensslv.h
 e_chacha20_poly1305.o: ../../include/openssl/ossl_typ.h
 e_chacha20_poly1305.o: ../../include/openssl/safestack.h
 e_chacha20_poly1305.o: ../../include/openssl/stack.h
-e_chacha20_poly1305.o: ../../include/openssl/symhacks.h ../chacha/chacha.h
-e_chacha20_poly1305.o: ../cryptlib.h ../poly1305/poly1305.h
-e_chacha20_poly1305.o: e_chacha20_poly1305.c evp_locl.h
+e_chacha20_poly1305.o: ../../include/openssl/symhacks.h ../cryptlib.h
+e_chacha20_poly1305.o: e_chacha20_poly1305.c
 e_des.o: ../../e_os.h ../../include/openssl/asn1.h ../../include/openssl/bio.h
 e_des.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
 e_des.o: ../../include/openssl/des.h ../../include/openssl/des_old.h
