@@ -318,6 +318,7 @@ my %disabled = ( # "what"         => "comment" [or special keyword "experimental
 		 "buf-freelists"  => "akamai-default",
 		 "camellia"	  => "akamai-default",
 		 "cast"		  => "akamai-default",
+		 "chacha"	  => "akamai-default",
 		 "dtls1"	  => "akamai-default",
 		 "dynamic-engine" => "akamai-default",
 		 "ec_nistp_64_gcc_128" => "default",
@@ -333,6 +334,7 @@ my %disabled = ( # "what"         => "comment" [or special keyword "experimental
 		 "md2"            => "default",
 		 "md4"		  => "akamai-default",
 		 "mdc2"		  => "akamai-default",
+		 "poly1305"	  => "akamai-default",
 		 "psk"		  => "akamai-default",
 		 "rc2"            => "akamai-default",
 		 "rc4"		  => "akamai-default",
@@ -359,7 +361,7 @@ my @experimental = ();
 # This is what $depflags will look like with the above defaults
 # (we need this to see if we should advise the user to run "make depend"):
 #Akamai my $default_depflags = " -DOPENSSL_NO_EC_NISTP_64_GCC_128 -DOPENSSL_NO_GMP -DOPENSSL_NO_IOVEC -DOPENSSL_NO_JPAKE -DOPENSSL_NO_LIBUNBOUND -DOPENSSL_NO_MD2 -DOPENSSL_NO_RC5 -DOPENSSL_NO_RFC3779 -DOPENSSL_NO_SCTP -DOPENSSL_NO_SSL_TRACE -DOPENSSL_NO_SSL2 -DOPENSSL_NO_STORE -DOPENSSL_NO_UNIT_TEST -DOPENSSL_NO_WEAK_SSL_CIPHERS";
-my $default_depflags = " -DOPENSSL_NO_AKAMAI_ASYNC_RSALG -DOPENSSL_NO_AKAMAI_GHOST_HIGH -DOPENSSL_NO_BF -DOPENSSL_NO_BUF_FREELISTS -DOPENSSL_NO_CAMELLIA -DOPENSSL_NO_CAST -DOPENSSL_NO_DTLS1 -DOPENSSL_NO_DYNAMIC_ENGINE -DOPENSSL_NO_EC_NISTP_64_GCC_128 -DOPENSSL_NO_GMP -DOPENSSL_NO_GOST -DOPENSSL_NO_HEARTBEATS -DOPENSSL_NO_IDEA -DOPENSSL_NO_JPAKE -DOPENSSL_NO_LIBUNBOUND -DOPENSSL_NO_MD2 -DOPENSSL_NO_MD4 -DOPENSSL_NO_MDC2 -DOPENSSL_NO_PSK -DOPENSSL_NO_RC2 -DOPENSSL_NO_RC4 -DOPENSSL_NO_RC5 -DOPENSSL_NO_RFC3779 -DOPENSSL_NO_RIPEMD -DOPENSSL_NO_SCTP -DOPENSSL_NO_SEED -DOPENSSL_NO_SRP -DOPENSSL_NO_SRTP -DOPENSSL_NO_SSL_TRACE -DOPENSSL_NO_SSL2 -DOPENSSL_NO_SSL3 -DOPENSSL_NO_UNIT_TEST -DOPENSSL_NO_WEAK_SSL_CIPHERS -DOPENSSL_NO_WHIRLPOOL";
+my $default_depflags = " -DOPENSSL_NO_AKAMAI_ASYNC_RSALG -DOPENSSL_NO_AKAMAI_GHOST_HIGH -DOPENSSL_NO_BF -DOPENSSL_NO_BUF_FREELISTS -DOPENSSL_NO_CAMELLIA -DOPENSSL_NO_CAST -DOPENSSL_NO_CHACHA -DOPENSSL_NO_DTLS1 -DOPENSSL_NO_DYNAMIC_ENGINE -DOPENSSL_NO_EC_NISTP_64_GCC_128 -DOPENSSL_NO_GMP -DOPENSSL_NO_GOST -DOPENSSL_NO_HEARTBEATS -DOPENSSL_NO_IDEA -DOPENSSL_NO_JPAKE -DOPENSSL_NO_LIBUNBOUND -DOPENSSL_NO_MD2 -DOPENSSL_NO_MD4 -DOPENSSL_NO_MDC2 -DOPENSSL_NO_POLY1305 -DOPENSSL_NO_PSK -DOPENSSL_NO_RC2 -DOPENSSL_NO_RC4 -DOPENSSL_NO_RC5 -DOPENSSL_NO_RFC3779 -DOPENSSL_NO_RIPEMD -DOPENSSL_NO_SCTP -DOPENSSL_NO_SEED -DOPENSSL_NO_SRP -DOPENSSL_NO_SRTP -DOPENSSL_NO_SSL_TRACE -DOPENSSL_NO_SSL2 -DOPENSSL_NO_SSL3 -DOPENSSL_NO_UNIT_TEST -DOPENSSL_NO_WEAK_SSL_CIPHERS -DOPENSSL_NO_WHIRLPOOL";
 
 # Explicit "no-..." options will be collected in %disabled along with the defaults.
 # To remove something from %disabled, use "enable-foo" (unless it's experimental).
