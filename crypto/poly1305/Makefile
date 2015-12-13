@@ -38,6 +38,15 @@ lib:	$(LIBOBJ)
 	$(RANLIB) $(LIB) || echo Never mind.
 	@touch lib
 
+poly1305-sparcv9.S:	asm/poly1305-sparcv9.pl
+	$(PERL) asm/poly1305-sparcv9.pl > $@
+poly1305-x86.s:		asm/poly1305-x86.pl
+	$(PERL) asm/poly1305-x86.pl $(PERLASM_SCHEME) $(CFLAGS) $(PROCESSOR) > $@
+poly1305-x86_64.s:	asm/poly1305-x86_64.pl
+	$(PERL) asm/poly1305-x86_64.pl $(PERLASM_SCHEME) > $@
+
+poly1305-%.S:	asm/poly1305-%.pl;	$(PERL) $< $(PERLASM_SCHEME) $@
+
 files:
 	$(PERL) $(TOP)/util/files.pl Makefile >> $(TOP)/MINFO
 
