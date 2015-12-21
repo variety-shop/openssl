@@ -3584,6 +3584,31 @@ static int test_share_session_cache(void)
     SSL_CTX_free(a);
     return 1;
 }
+
+/* compile with mdebug options to find memory leaks */
+static int test_set_cipher_list(void)
+{
+    SSL_CTX *c = NULL;
+    SSL *s = NULL;
+    int ret = 1;
+
+    c = SSL_CTX_new(TLS_method());
+    if (c != NULL) {
+        ret &= SSL_CTX_akamai_set_cipher_list(c, "AES", "AESGCM");
+
+        s = SSL_new(c);
+        if (s != NULL)
+            ret &= SSL_akamai_set_cipher_list(s, "AES", "AESGCM");
+        else
+            ret = 0;
+    } else {
+        ret = 0;
+    }
+
+    SSL_free(s);
+    SSL_CTX_free(c);
+    return ret;
+}
 #endif
 
 static int clntaddoldcb = 0;
@@ -5470,6 +5495,7 @@ int setup_tests(void)
 #endif
 #ifndef OPENSSL_NO_AKAMAI
     ADD_TEST(test_share_session_cache);
+    ADD_TEST(test_set_cipher_list);
 #endif
 #ifndef OPENSSL_NO_TLS1_3
     ADD_ALL_TESTS(test_early_data_read_write, 3);
