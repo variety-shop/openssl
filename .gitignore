@@ -183,6 +183,7 @@ pod2htmd.tmp
 
 # test
 test/core
+test/gen
 
 # Akamake generated files
 *.ts
