@@ -3601,6 +3601,11 @@ const SSL_CIPHER *ssl3_choose_cipher(SSL *s, STACK_OF(SSL_CIPHER) *clnt,
     STACK_OF(SSL_CIPHER) *prio, *allow;
     int i, ii, ok;
     unsigned long alg_k, alg_a, mask_k, mask_a;
+#ifndef OPENSSL_NO_AKAMAI
+# ifndef OPENSSL_NO_CHACHA
+    STACK_OF(SSL_CIPHER) *new_chacha = NULL;
+# endif
+#endif
 
     /* Let's see which ciphers we can support */
 
@@ -3633,6 +3638,36 @@ const SSL_CIPHER *ssl3_choose_cipher(SSL *s, STACK_OF(SSL_CIPHER) *clnt,
     if (s->options & SSL_OP_CIPHER_SERVER_PREFERENCE || tls1_suiteb(s)) {
         prio = srvr;
         allow = clnt;
+#ifndef OPENSSL_NO_AKAMAI
+# ifndef OPENSSL_NO_CHACHA
+        /* If ChaCha is at the top of the client preference list,
+           temporarily prioritize ChaCha ciphers in the servers list. */
+        if (sk_SSL_CIPHER_num(clnt) > 0) {
+            c = sk_SSL_CIPHER_value(clnt, 0);
+            if (c->algorithm_enc == SSL_CHACHA20POLY1305) {
+                /* Is client preferred, reprioritize... */
+                new_chacha = sk_SSL_CIPHER_new_null();
+                if (new_chacha != NULL) {
+                    /* Put ChaCha at the top */
+                    for (i = 0; i < sk_SSL_CIPHER_num(srvr); i++) {
+                        c = sk_SSL_CIPHER_value(srvr, i);
+                        if (c->algorithm_enc == SSL_CHACHA20POLY1305) {
+                            sk_SSL_CIPHER_push(new_chacha, c);
+                        }
+                    }
+                    /* Pull in the rest */
+                    for (i = 0; i < sk_SSL_CIPHER_num(srvr); i++) {
+                        c = sk_SSL_CIPHER_value(srvr, i);
+                        if (c->algorithm_enc != SSL_CHACHA20POLY1305) {
+                            sk_SSL_CIPHER_push(new_chacha, c);
+                        }
+                    }
+                    prio = new_chacha;
+                } /* else use original ordering */
+            }
+        }
+# endif
+#endif
     } else {
         prio = clnt;
         allow = srvr;
@@ -3706,6 +3741,11 @@ const SSL_CIPHER *ssl3_choose_cipher(SSL *s, STACK_OF(SSL_CIPHER) *clnt,
             break;
         }
     }
+#ifndef OPENSSL_NO_AKAMAI
+# ifndef OPENSSL_NO_CHACHA
+    sk_SSL_CIPHER_free(new_chacha);
+# endif
+#endif
     return (ret);
 }
 
