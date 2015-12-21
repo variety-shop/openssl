@@ -190,6 +190,7 @@ doc-nits
 
 # test
 test/core
+test/gen
 
 # new stuff
 
