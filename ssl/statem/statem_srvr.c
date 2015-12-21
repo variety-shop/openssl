@@ -1938,6 +1938,13 @@ static int tls_early_post_process_client_hello(SSL *s)
             s->cipher_list = sk_SSL_CIPHER_dup(s->session->ciphers);
             sk_SSL_CIPHER_free(s->cipher_list_by_id);
             s->cipher_list_by_id = sk_SSL_CIPHER_dup(s->session->ciphers);
+#ifndef OPENSSL_NO_AKAMAI
+            /* OpenSSL bug? cipher_list_by_id not sorted? */
+            (void)sk_SSL_CIPHER_set_cmp_func(s->cipher_list_by_id, ssl_cipher_ptr_id_cmp);
+            sk_SSL_CIPHER_sort(s->cipher_list_by_id);
+
+            SSL_get_ex_data_akamai(s)->akamai_cipher_count = 0;
+#endif
         }
     }
 

@@ -517,5 +517,11 @@ SSL_CTX_set_client_session_cache        10024	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMA
 SSL_get_prev_client_session             10025	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_CLIENT_CACHE
 SSL_CTX_load_verify_mem                 10026	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_CTX_use_certificate_chain_mem       10027	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_akamai_fixup_cipher_strength_bits   10028	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_CTX_akamai_set_cipher_list          10029	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_akamai_set_cipher_list              10030	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_akamai_get_preferred_cipher_count   10031	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_akamai_fixup_cipher_strength        10032	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_CTX_akamai_get_preferred_cipher_count 10033	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_CTX_akamai_session_stats_bio        10085	1_1_0e	EXIST::FUNCTION:AKAMAI
 SSL_default_akamai_cipher_list          10086	1_1_1	EXIST::FUNCTION:AKAMAI
