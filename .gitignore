@@ -188,6 +188,7 @@ doc-nits
 
 # test
 test/core
+test/gen
 
 # Akamake generated files
 *.ts
