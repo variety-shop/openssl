@@ -1,0 +1,122 @@
+=pod
+
+=head1 NAME
+
+SSL_CTX_akamai_set_cipher_list,
+SSL_akamai_set_cipher_list,
+SSL_CTX_akamai_get_preferred_cipher_count,
+SSL_akamai_get_preferred_cipher_count,
+SSL_akamai_fixup_cipher_strength_bits,
+SSL_akamai_fixup_cipher_strength
+- Akamai cipher functions
+
+=head1 SYNOPSIS
+
+ #include <openssl/ssl.h>
+
+ int SSL_CTX_akamai_set_cipher_list(SSL_CTX *ctx, const char *pref, const char *must);
+ int SSL_akamai_set_cipher_list(SSL *ssl, const char *pref, const char *must);
+ int SSL_CTX_akamai_get_preferred_cipher_count(SSL_CTX *ctx);
+ int SSL_akamai_get_preferred_cipher_count(SSL *ssl);
+ int SSL_akamai_fixup_cipher_strength_bits(int bits, const char* ciphers);
+ int SSL_akamai_fixup_cipher_strength(const char* level, const char* ciphers);
+
+=head1 DESCRIPTION
+
+SSL_CTX_akamai_set_cipher_list() sets the list of available ciphers for B<ctx>
+using the control strings B<pref> and B<must>. Preferred ciphers are specified
+by B<pref>, and must-have ciphers are specified by B<must>. Ciphers found in both
+lists are considered to be a prefered cipher. Each string is evaluated separately
+and then combined and stored as the server cipher list.
+The length of the evaluated B<pref> ciphers is saved, and can
+be retreived via SSL_akamai_get_preferred_cipher_count().
+The format of the string is described
+in L<ciphers(1)>. The list of ciphers is inherited by all
+B<ssl> objects created from B<ctx>.
+
+SSL_akamai_set_cipher_list() sets the list of ciphers only for B<ssl>.
+
+SSL_CTX_akamai_get_preferred_cipher_count() returns the count of ciphers in the
+B<pref> list set via the above two functions. This value can be used to see
+if a preferred cipher has been selected by finding the selected cipher index
+in the cipher list from SSL_CTX_get_ciphers() and checking that the index is
+less than the preferred cipher count.
+
+SSL_akamai_get_preferred_cipher_count() gets the count of preferred ciphers from B<ssl>.
+
+SSL_akamai_fixup_cipher_strength_bits() modifies the reported cryptographic strength
+of cipher suites. It does not modify they key size.
+
+SSL_akamai_fixup_cipher_strength() modifies the cipher strength alias to include
+the ciphers given. The B<level> argument is the cipher alias, and may be one of
+"HIGH", "FIPS", "MEDIUM" or "LOW".
+
+=head1 NOTES
+
+The caveats on the cipher string from SSL_set_cipher_list() and
+SSL_CTX_set_cipher_list() apply to the B<pref> and B<must> arguments.
+
+The B<pref> argument represents a list of preferred ciphers, the count of
+which is retained and may be retrieved via SSL_akamai_get_preferred_cipher_count().
+If no preferred ciphers are desired, then the B<pref> argument may be
+empty or the regular cipher functions may be used.
+
+SSL_CTX_akamai_get_preferred_cipher_count() and SSL_akamai_get_preferred_cipher_count()
+return 0 when there are no preferred ciphers, which can happen when
+SSL_CTX_set_cipher_list() or SSL_set_cipher_list() is used after
+setting Akamai ciphers, or when the B<pref> argument is empty.
+The preferred cipher counts include TLSv1.3 ciphers, which are always at the head
+of the cipher list.
+
+SSL_akamai_fixup_cipher_strength_bits() is meant to restore the strength of
+3DES ciphers back to 168 bits (it defaults to 112 bits).
+
+Strength aliases should not be used in the B<ciphers> argument to
+SSL_akamai_fixup_cipher_strength().
+
+The use of SUITEB cipher aliases in SSL_akamai_fixup_cipher_strength() or
+SSL_akamai_fixup_cipher_strength_bits() will fail, as the alias requires a
+certificate and TLSv1.2-only configuration. Only the list of ciphers to be
+modified should be included in the B<ciphers> argument.
+
+=head1 RETURN VALUES
+
+SSL_CTX_akamai_set_cipher_list() and SSL_akamai_set_cipher_list() return 1 if any cipher
+could be selected and 0 on complete failure.
+
+SSL_CTX_akamai_get_preferred_cipher_count() returns the number of ciphers in SSL_CTX_get_cipher_list()
+that are preferred.
+
+SSL_akamai_get_preferred_cipher_count() returns the number of ciphers in SSL_get_cipher_list()
+that are preferred.
+
+SSL_akamai_fixup_cipher_strength_bits() returns the number of ciphers modified and 0 is returned
+on failure.
+
+SSL_akamai_fixup_cipher_strength() returns the number of ciphers modified and 0 is returned
+on failure.
+
+=head1 SEE ALSO
+
+L<ssl(3)>,
+L<SSL_get_ciphers(3)>,
+L<SSL_set_cipher_list(3)>,
+L<SSL_CTX_set_cipher_list(3)>,
+L<ciphers(1)>
+
+=head1 COPYRIGHT
+
+Copyright 2000-2016 The OpenSSL Project Authors. All Rights Reserved.
+
+Licensed under the OpenSSL license (the "License").  You may not use
+this file except in compliance with the License.  You can obtain a copy
+in the file LICENSE in the source distribution or at
+L<https://www.openssl.org/source/license.html>.
+
+Copyright (C) 2016 Akamai Technologies. ALL RIGHTS RESERVED.
+
+This code was originally developed by Akamai Technologies and
+contributed to the OpenSSL project under the terms of the Corporate
+Contributor License Agreement v1.0
+
+=cut
