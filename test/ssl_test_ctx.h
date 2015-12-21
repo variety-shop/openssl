@@ -200,6 +200,9 @@ typedef struct {
     STACK_OF(X509_NAME) *expected_client_ca_names;
     /* Whether to use SCTP for the transport */
     int use_sctp;
+#ifndef OPENSSL_NO_AKAMAI
+    char *expected_cipher;
+#endif
 } SSL_TEST_CTX;
 
 const char *ssl_test_result_name(ssl_test_result_t result);

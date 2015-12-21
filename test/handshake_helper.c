@@ -42,6 +42,9 @@ void HANDSHAKE_RESULT_free(HANDSHAKE_RESULT *result)
     OPENSSL_free(result->server_alpn_negotiated);
     sk_X509_NAME_pop_free(result->server_ca_names, X509_NAME_free);
     sk_X509_NAME_pop_free(result->client_ca_names, X509_NAME_free);
+#ifndef OPENSSL_NO_AKAMAI
+    OPENSSL_free(result->cipher);
+#endif
     OPENSSL_free(result);
 }
 
@@ -1310,6 +1313,9 @@ static HANDSHAKE_RESULT *do_handshake_internal(
     EVP_PKEY *tmp_key;
     const STACK_OF(X509_NAME) *names;
     time_t start;
+#ifndef OPENSSL_NO_AKAMAI
+    const char* cipher;
+#endif
 
     if (ret == NULL)
         return NULL;
@@ -1522,6 +1528,11 @@ static HANDSHAKE_RESULT *do_handshake_internal(
 
     ret->client_resumed = SSL_session_reused(client.ssl);
     ret->server_resumed = SSL_session_reused(server.ssl);
+
+#ifndef OPENSSL_NO_AKAMAI
+    cipher = SSL_CIPHER_get_name(SSL_get_current_cipher(client.ssl));
+    ret->cipher = dup_str((const unsigned char*)cipher, strlen(cipher));
+#endif
 
     if (session_out != NULL)
         *session_out = SSL_get1_session(client.ssl);
