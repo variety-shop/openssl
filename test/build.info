@@ -2,6 +2,7 @@ IF[{- !$disabled{tests} -}]
   PROGRAMS_NO_INST=\
           versions \
           client_cache_test \
+          ciphpreftest \
           aborttest \
           sanitytest rsa_complex exdatatest bntest \
           ectest ecdsatest gmdifftest pbelutest ideatest \
@@ -326,6 +327,10 @@ IF[{- !$disabled{tests} -}]
   SOURCE[clientcache2test]=clientcache2test.c
   INCLUDE[clientcache2test]=.. ../include
   DEPEND[clientcache2test]=../libcrypto ../libssl
+
+  SOURCE[ciphpreftest]=ciphpreftest.c
+  INCLUDE[ciphpreftest]=.. ../include
+  DEPEND[ciphpreftest]=../libcrypto ../libssl
 ENDIF
 
 {-

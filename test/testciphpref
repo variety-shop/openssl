@@ -1,0 +1,25 @@
+#!/bin/sh
+
+ciphpreftest="../util/shlib_wrap.sh ./ciphpreftest"
+
+#############################################################################
+
+echo Test server cipher pref
+cd $BLDTOP/test
+
+if [ ! -f gen_cert.sh ]; then
+    exit 0
+fi
+if [ ! -d gen ]; then
+    ./gen_cert.sh server
+fi
+
+# test effectiveness of server cipher preferences
+$ciphpreftest           || exit 1
+$ciphpreftest --tls     || exit 1
+$ciphpreftest --sslv3   || exit 1
+$ciphpreftest --tlsv1   || exit 1
+$ciphpreftest --tlsv1_1 || exit 1
+$ciphpreftest --tlsv1_2 || exit 1
+
+exit 0

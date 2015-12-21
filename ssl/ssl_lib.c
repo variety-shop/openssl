@@ -667,6 +667,9 @@ int SSL_CTX_set_ssl_version(SSL_CTX *ctx, const SSL_METHOD *meth)
         SSLerr(SSL_F_SSL_CTX_SET_SSL_VERSION, SSL_R_SSL_LIBRARY_HAS_NO_CIPHERS);
         return (0);
     }
+#ifndef OPENSSL_NO_AKAMAI
+    SSL_CTX_get_ex_data_akamai(ctx)->akamai_cipher_count = 0;
+#endif
     return (1);
 }
 
@@ -2236,6 +2239,9 @@ int SSL_CTX_set_cipher_list(SSL_CTX *ctx, const char *str)
         SSLerr(SSL_F_SSL_CTX_SET_CIPHER_LIST, SSL_R_NO_CIPHER_MATCH);
         return 0;
     }
+#ifndef OPENSSL_NO_AKAMAI
+    SSL_CTX_get_ex_data_akamai(ctx)->akamai_cipher_count = 0;
+#endif
     return 1;
 }
 
@@ -2253,6 +2259,9 @@ int SSL_set_cipher_list(SSL *s, const char *str)
         SSLerr(SSL_F_SSL_SET_CIPHER_LIST, SSL_R_NO_CIPHER_MATCH);
         return 0;
     }
+#ifndef OPENSSL_NO_AKAMAI
+    SSL_get_ex_data_akamai(s)->akamai_cipher_count = 0;
+#endif
     return 1;
 }
 
