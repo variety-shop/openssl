@@ -3660,6 +3660,186 @@ static int test_share_session_cache(void)
     SSL_CTX_free(a);
     return 1;
 }
+
+/* compile with mdebug options to find memory leaks */
+static int test_set_cipher_list(void)
+{
+    int ret = 0;
+    SSL_CTX *ctx = NULL;
+    SSL *s = NULL;
+#ifndef OPENSSL_NO_AES
+    STACK_OF(SSL_CIPHER) *ciphers = NULL;
+    int i;
+
+
+    /* Leak test */
+    if (!TEST_ptr((ctx = SSL_CTX_new(TLS_method()))))
+        goto end;
+    if (!TEST_true(SSL_CTX_akamai_set_cipher_list(ctx, "AES", "AESGCM")))
+        goto end;
+    if (!TEST_ptr((s = SSL_new(ctx))))
+        goto end;
+    if (!TEST_true(SSL_akamai_set_cipher_list(s, "AES", "AESGCM")))
+        goto end;
+    SSL_free(s);
+    s = NULL;
+    SSL_CTX_free(ctx);
+    ctx = NULL;
+
+# ifndef OPENSSL_NO_EC
+#  ifndef OPENSSL_NO_POLY1305
+#   ifndef OPENSSL_NO_CHACHA
+    /* Test the actual API: TLSv1.3 ciphers + TLSv1.2 ciphers */
+    if (!TEST_ptr((ctx = SSL_CTX_new(TLS_method()))))
+        goto end;
+    /* Add two preferred, and 1 must-have */
+    if (!TEST_true(SSL_CTX_akamai_set_cipher_list(ctx, "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305",
+                                                  "ECDHE-ECDSA-AES128-GCM-SHA256")))
+        goto end;
+    /* Preferred ciphers include TLSv1.3 ciphers */
+    if (!TEST_int_eq(SSL_CTX_akamai_get_preferred_cipher_count(ctx), 5))
+        goto end;
+    if (!TEST_ptr((ciphers = SSL_CTX_get_ciphers(ctx))))
+        goto end;
+    /* With 3 TLSv1.3 ciphers, and 3 TLSv1.2 ciphers, there should be 6 ciphers */
+    if (!TEST_int_eq(sk_SSL_CIPHER_num(ciphers), 6))
+        goto end;
+
+    for (i = 0; i < sk_SSL_CIPHER_num(ciphers); i++) {
+        const SSL_CIPHER *c = sk_SSL_CIPHER_value(ciphers, i);
+
+        switch (i) {
+            case 0:
+                if (!TEST_str_eq(SSL_CIPHER_get_name(c), "TLS_AES_256_GCM_SHA384"))
+                    goto end;
+                break;
+            case 1:
+                if (!TEST_str_eq(SSL_CIPHER_get_name(c), "TLS_CHACHA20_POLY1305_SHA256"))
+                    goto end;
+                break;
+            case 2:
+                if (!TEST_str_eq(SSL_CIPHER_get_name(c), "TLS_AES_128_GCM_SHA256"))
+                    goto end;
+                break;
+            case 3:
+                if (!TEST_str_eq(SSL_CIPHER_get_name(c), "ECDHE-ECDSA-AES256-GCM-SHA384"))
+                    goto end;
+                break;
+            case 4:
+                if (!TEST_str_eq(SSL_CIPHER_get_name(c), "ECDHE-ECDSA-CHACHA20-POLY1305"))
+                    goto end;
+                break;
+            case 5:
+                if (!TEST_str_eq(SSL_CIPHER_get_name(c), "ECDHE-ECDSA-AES128-GCM-SHA256"))
+                    goto end;
+                break;
+            default:
+                TEST_int_lt(i, 6);
+                goto end;
+        }
+    }
+    SSL_CTX_free(ctx);
+    ctx = NULL;
+#   endif /* OPENSSL_NO_CHACHA */
+#  endif /* OPENSSL_NO_POLY1305 */
+
+    /* Test the actual API: TLSv1.2 ciphers only */
+    if (!TEST_ptr((ctx = SSL_CTX_new(TLS_method()))))
+        goto end;
+    if (!TEST_true(SSL_CTX_set_ciphersuites(ctx, "")))
+        goto end;
+    /* Add two preferred, and 1 must-have */
+    if (!TEST_true(SSL_CTX_akamai_set_cipher_list(ctx, "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305",
+                                                  "ECDHE-ECDSA-AES128-GCM-SHA256")))
+        goto end;
+    if (!TEST_int_eq(SSL_CTX_akamai_get_preferred_cipher_count(ctx), 2))
+        goto end;
+    if (!TEST_ptr((ciphers = SSL_CTX_get_ciphers(ctx))))
+        goto end;
+    /* There should be 3 TLSv1.2 ciphers */
+    if (!TEST_int_eq(sk_SSL_CIPHER_num(ciphers), 3))
+        goto end;
+
+    for (i = 0; i < sk_SSL_CIPHER_num(ciphers); i++) {
+        const SSL_CIPHER *c = sk_SSL_CIPHER_value(ciphers, i);
+
+        switch (i) {
+            case 0:
+                if (!TEST_str_eq(SSL_CIPHER_get_name(c), "ECDHE-ECDSA-AES256-GCM-SHA384"))
+                    goto end;
+                break;
+            case 1:
+                if (!TEST_str_eq(SSL_CIPHER_get_name(c), "ECDHE-ECDSA-CHACHA20-POLY1305"))
+                    goto end;
+                break;
+            case 2:
+                if (!TEST_str_eq(SSL_CIPHER_get_name(c), "ECDHE-ECDSA-AES128-GCM-SHA256"))
+                    goto end;
+                break;
+            default:
+                TEST_int_lt(i, 3);
+                goto end;
+        }
+    }
+    SSL_CTX_free(ctx);
+    ctx = NULL;
+
+    /* Test the actual API: TLSv1.2 + TLSv1.3 ciphers set order */
+    if (!TEST_ptr((ctx = SSL_CTX_new(TLS_method()))))
+        goto end;
+    /* Add two preferred, and 1 must-have */
+    if (!TEST_true(SSL_CTX_akamai_set_cipher_list(ctx, "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305",
+                                                  "ECDHE-ECDSA-AES128-GCM-SHA256")))
+        goto end;
+    if (!TEST_true(SSL_CTX_set_ciphersuites(ctx, "TLS_AES_256_GCM_SHA384:TLS_AES_128_GCM_SHA256")))
+        goto end;
+    /* Preferred ciphers include TLSv1.3 ciphers */
+    if (!TEST_int_eq(SSL_CTX_akamai_get_preferred_cipher_count(ctx), 4))
+        goto end;
+    if (!TEST_ptr((ciphers = SSL_CTX_get_ciphers(ctx))))
+        goto end;
+    /* With 2 TLSv1.3 ciphers, and 3 TLSv1.2 ciphers, there should be 5 ciphers */
+    if (!TEST_int_eq(sk_SSL_CIPHER_num(ciphers), 5))
+        goto end;
+
+    for (i = 0; i < sk_SSL_CIPHER_num(ciphers); i++) {
+        const SSL_CIPHER *c = sk_SSL_CIPHER_value(ciphers, i);
+
+        switch (i) {
+            case 0:
+                if (!TEST_str_eq(SSL_CIPHER_get_name(c), "TLS_AES_256_GCM_SHA384"))
+                    goto end;
+                break;
+            case 1:
+                if (!TEST_str_eq(SSL_CIPHER_get_name(c), "TLS_AES_128_GCM_SHA256"))
+                    goto end;
+                break;
+            case 2:
+                if (!TEST_str_eq(SSL_CIPHER_get_name(c), "ECDHE-ECDSA-AES256-GCM-SHA384"))
+                    goto end;
+                break;
+            case 3:
+                if (!TEST_str_eq(SSL_CIPHER_get_name(c), "ECDHE-ECDSA-CHACHA20-POLY1305"))
+                    goto end;
+                break;
+            case 4:
+                if (!TEST_str_eq(SSL_CIPHER_get_name(c), "ECDHE-ECDSA-AES128-GCM-SHA256"))
+                    goto end;
+                break;
+            default:
+                TEST_int_lt(i, 5);
+                goto end;
+        }
+    }
+# endif /* OPENSSL_NO_EC */
+#endif /* OPENSSL_NO_AES */
+    ret = 1;
+ end:
+    SSL_free(s);
+    SSL_CTX_free(ctx);
+
+    return ret;
+}
 #endif
 
 static int clntaddoldcb = 0;
@@ -5580,6 +5760,7 @@ int setup_tests(void)
 #endif
 #ifndef OPENSSL_NO_AKAMAI
     ADD_TEST(test_share_session_cache);
+    ADD_TEST(test_set_cipher_list);
 #endif
 #ifndef OPENSSL_NO_TLS1_3
     ADD_ALL_TESTS(test_early_data_read_write, 3);

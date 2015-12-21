@@ -1373,6 +1373,7 @@ static int update_cipher_list(STACK_OF(SSL_CIPHER) **cipher_list,
 
 int SSL_CTX_set_ciphersuites(SSL_CTX *ctx, const char *str)
 {
+#ifdef OPENSSL_NO_AKAMAI
     int ret = set_ciphersuites(&(ctx->tls13_ciphersuites), str);
 
     if (ret && ctx->cipher_list != NULL) {
@@ -1382,10 +1383,35 @@ int SSL_CTX_set_ciphersuites(SSL_CTX *ctx, const char *str)
     }
 
     return ret;
+#else
+    int delta = 0;
+    int ret;
+
+    if (ctx->tls13_ciphersuites != NULL)
+        delta = sk_SSL_CIPHER_num(ctx->tls13_ciphersuites);
+
+    ret = set_ciphersuites(&(ctx->tls13_ciphersuites), str);
+
+    if (ctx->tls13_ciphersuites != NULL)
+        delta -= sk_SSL_CIPHER_num(ctx->tls13_ciphersuites);
+
+    if (ret && SSL_CTX_get_ex_data_akamai(ctx) != NULL &&
+        SSL_CTX_get_ex_data_akamai(ctx)->akamai_cipher_count != 0)
+        SSL_CTX_get_ex_data_akamai(ctx)->akamai_cipher_count -= delta;
+
+    if (ret && ctx->cipher_list != NULL) {
+        /* We already have a cipher_list, so we need to update it */
+        return update_cipher_list(&ctx->cipher_list, &ctx->cipher_list_by_id,
+                                  ctx->tls13_ciphersuites);
+    }
+
+    return ret;
+#endif
 }
 
 int SSL_set_ciphersuites(SSL *s, const char *str)
 {
+#ifdef OPENSSL_NO_AKAMAI
     int ret = set_ciphersuites(&(s->tls13_ciphersuites), str);
 
     if (ret && s->cipher_list != NULL) {
@@ -1395,6 +1421,30 @@ int SSL_set_ciphersuites(SSL *s, const char *str)
     }
 
     return ret;
+#else
+    int delta = 0;
+    int ret;
+
+    if (s->tls13_ciphersuites != NULL)
+        delta = sk_SSL_CIPHER_num(s->tls13_ciphersuites);
+
+    ret = set_ciphersuites(&(s->tls13_ciphersuites), str);
+
+    if (s->tls13_ciphersuites != NULL)
+        delta -= sk_SSL_CIPHER_num(s->tls13_ciphersuites);
+
+    if (ret && SSL_get_ex_data_akamai(s) != NULL &&
+        SSL_get_ex_data_akamai(s)->akamai_cipher_count != 0)
+        SSL_get_ex_data_akamai(s)->akamai_cipher_count -= delta;
+
+    if (ret && s->cipher_list != NULL) {
+        /* We already have a cipher_list, so we need to update it */
+        return update_cipher_list(&s->cipher_list, &s->cipher_list_by_id,
+                                  s->tls13_ciphersuites);
+    }
+
+    return ret;
+#endif
 }
 
 STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(const SSL_METHOD *ssl_method,
