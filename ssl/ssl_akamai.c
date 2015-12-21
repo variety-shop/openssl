@@ -509,13 +509,13 @@ void SSL_CTX_set1_cert_store(SSL_CTX *ctx, X509_STORE *store)
     SSL_CTX_set_cert_store(ctx, store);
 }
 
-static void ssl_akamai_fixup_cipher_strength(uint32_t on, uint32_t off, const char* ciphers)
+static int ssl_akamai_fixup_cipher_strength(uint32_t on, uint32_t off, const char* ciphers)
 {
     CERT *cert = NULL;
     STACK_OF(SSL_CIPHER)* sk = NULL;
     STACK_OF(SSL_CIPHER)* cipher_list = NULL;
     STACK_OF(SSL_CIPHER)* cipher_list_by_id = NULL;
-    int i;
+    int i = 0;
 
     if ((cert = ssl_cert_new()) == NULL)
         goto end;
@@ -534,6 +534,52 @@ static void ssl_akamai_fixup_cipher_strength(uint32_t on, uint32_t off, const ch
     sk_SSL_CIPHER_free(cipher_list);
     sk_SSL_CIPHER_free(cipher_list_by_id);
     ssl_cert_free(cert);
+    return i;
+}
+
+int SSL_akamai_fixup_cipher_strength(const char* level, const char* ciphers)
+{
+    uint32_t flag = 0;
+    if (!strcmp(level, "HIGH")) {
+        flag = SSL_HIGH;
+    } else if (!strcmp(level, "MEDIUM")) {
+        flag = SSL_MEDIUM;
+    } else if (!strcmp(level, "LOW")) {
+        flag = SSL_LOW;
+    } else if (!strcmp(level, "FIPS")) {
+        flag = SSL_FIPS;
+    }
+    /* Turn off the flag on ALL */
+    (void)ssl_akamai_fixup_cipher_strength(0, flag, "ALL:COMPLEMENTOFALL");
+    /* Turn on the flag on the passed-in ciphers */
+    return ssl_akamai_fixup_cipher_strength(flag, 0, ciphers);
+}
+
+int SSL_akamai_fixup_cipher_strength_bits(int bits, const char* ciphers)
+{
+    CERT *cert = NULL;
+    STACK_OF(SSL_CIPHER)* sk = NULL;
+    STACK_OF(SSL_CIPHER)* cipher_list = NULL;
+    STACK_OF(SSL_CIPHER)* cipher_list_by_id = NULL;
+    int i = 0;
+
+    if ((cert = ssl_cert_new()) == NULL)
+        goto end;
+
+    sk = ssl_create_cipher_list(TLS_method(),
+                                &cipher_list, &cipher_list_by_id,
+                                ciphers, cert);
+    if (sk == NULL)
+        goto end;
+    for (i = 0; i < sk_SSL_CIPHER_num(sk); i++) {
+        SSL_CIPHER *c = (SSL_CIPHER*)sk_SSL_CIPHER_value(sk, i);
+        c->strength_bits = bits;
+    }
+ end:
+    sk_SSL_CIPHER_free(cipher_list);
+    sk_SSL_CIPHER_free(cipher_list_by_id);
+    ssl_cert_free(cert);
+    return i;
 }
 
 void ssl_akamai_fixup_ciphers(void)
@@ -541,12 +587,12 @@ void ssl_akamai_fixup_ciphers(void)
     /*
      * Get ALL ciphers and mark as NOT_DEFAULT
      */
-    ssl_akamai_fixup_cipher_strength(SSL_NOT_DEFAULT, 0, "ALL:COMPLEMENTOFALL");
+    (void)ssl_akamai_fixup_cipher_strength(SSL_NOT_DEFAULT, 0, "ALL:COMPLEMENTOFALL");
 
     /*
      * Get the DEFAULT ciphers we want, and remove NOT_DEFAULT
      */
-    ssl_akamai_fixup_cipher_strength(0, SSL_NOT_DEFAULT, SSL_DEFAULT_CIPHER_LIST);
+    (void)ssl_akamai_fixup_cipher_strength(0, SSL_NOT_DEFAULT, SSL_DEFAULT_CIPHER_LIST);
 }
 
 /* LIBTLS SUPPORT */
@@ -645,6 +691,115 @@ SSL_CTX_use_certificate_chain_mem(SSL_CTX *ctx, void *buf, int len)
  end:
     BIO_free(in);
     return (ret);
+}
+
+int SSL_CTX_akamai_get_preferred_cipher_count(SSL_CTX *c)
+{
+    if (c != NULL && c->cipher_list != NULL)
+        return SSL_CTX_get_ex_data_akamai(c)->akamai_cipher_count;
+    return 0;
+}
+
+int SSL_akamai_get_preferred_cipher_count(SSL *s)
+{
+    if (s != NULL) {
+        if (s->cipher_list != NULL)
+            return SSL_get_ex_data_akamai(s)->akamai_cipher_count;
+        if (s->ctx != NULL && s->ctx->cipher_list != NULL)
+            return SSL_CTX_get_ex_data_akamai(s->ctx)->akamai_cipher_count;
+    }
+    return 0;
+}
+
+static int ssl_akamai_set_cipher_list_helper(SSL_CTX* ctx, const char* pref, const char* must,
+                                             STACK_OF(SSL_CIPHER)** sk_ret,
+                                             STACK_OF(SSL_CIPHER)** sk_by_id,
+                                             int *pref_len)
+{
+    int ret = 0;
+    STACK_OF(SSL_CIPHER) *sk;
+    STACK_OF(SSL_CIPHER) *sk_pref = NULL;
+    STACK_OF(SSL_CIPHER) *sk_tmp = NULL;
+    STACK_OF(SSL_CIPHER) *sk_must = NULL;
+    int sk_pref_len = 0;
+    int i;
+
+    /* CREATE THE PREFERRED LIST */
+    if (pref == NULL || *pref == 0) {
+        /* allow for an empty list */
+        sk_pref = sk_SSL_CIPHER_new_null();
+        if (sk_pref == NULL)
+            goto err;
+    } else {
+        sk = ssl_create_cipher_list(ctx->method, &sk_pref,
+                                    &sk_tmp, pref, ctx->cert);
+        if (sk == NULL)
+            goto err;
+        sk_SSL_CIPHER_free(sk_tmp);
+        sk_tmp = NULL;
+        sk_pref_len = sk_SSL_CIPHER_num(sk_pref);
+    }
+
+    /* CREATE THE MUST-HAVE LIST */
+    if (must == NULL || *must == 0) {
+        /* allow for an empty list */
+        sk_must = sk_SSL_CIPHER_new_null();
+        if (sk_must == NULL)
+            goto err;
+    } else {
+        sk = ssl_create_cipher_list(ctx->method, &sk_must,
+                                    &sk_tmp, must, ctx->cert);
+        if (sk == NULL)
+            goto err;
+        sk_SSL_CIPHER_free(sk_tmp);
+        sk_tmp = NULL;
+    }
+
+    /* APPEND non-dup must-have ciphers to the pref ciphers */
+    for (i = 0; i < sk_SSL_CIPHER_num(sk_must); i++) {
+        const SSL_CIPHER* c = sk_SSL_CIPHER_value(sk_must, i);
+        if (sk_SSL_CIPHER_find(sk_pref, c) < 0)
+            sk_SSL_CIPHER_push(sk_pref, c);
+    }
+
+    /* SORT the LIST */
+    sk_tmp = sk_SSL_CIPHER_dup(sk_pref);
+    if (sk_tmp == NULL)
+        goto err;
+    (void)sk_SSL_CIPHER_set_cmp_func(sk_tmp, ssl_cipher_ptr_id_cmp);
+    sk_SSL_CIPHER_sort(sk_tmp);
+
+    *pref_len = sk_pref_len;
+    *sk_ret = sk_pref;
+    sk_pref = NULL;
+    *sk_by_id = sk_tmp;
+    sk_tmp = NULL;
+
+    ret = 1;
+
+ err:
+    sk_SSL_CIPHER_free(sk_pref);
+    sk_SSL_CIPHER_free(sk_tmp);
+    sk_SSL_CIPHER_free(sk_must);
+    return ret;
+}
+
+int SSL_akamai_set_cipher_list(SSL *s, const char *pref, const char* must)
+{
+    SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
+    return ssl_akamai_set_cipher_list_helper(s->ctx, pref, must,
+                                             &s->cipher_list,
+                                             &s->cipher_list_by_id,
+                                             &ex_data->akamai_cipher_count);
+}
+
+int SSL_CTX_akamai_set_cipher_list(SSL_CTX *ctx, const char *pref, const char* must)
+{
+    SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(ctx);
+    return ssl_akamai_set_cipher_list_helper(ctx, pref, must,
+                                             &ctx->cipher_list,
+                                             &ctx->cipher_list_by_id,
+                                             &ex_data->akamai_cipher_count);
 }
 
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b)

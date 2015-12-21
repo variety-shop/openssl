@@ -109,6 +109,16 @@ int SSL_CTX_set_client_session_cache(SSL_CTX *ctx);
 int SSL_CTX_use_certificate_chain_mem(SSL_CTX *ctx, void *buf, int len);
 int SSL_CTX_load_verify_mem(SSL_CTX *ctx, void *buf, int len);
 
+/*
+ * Akamai Cipher changes
+ */
+int SSL_akamai_fixup_cipher_strength_bits(int bits, const char* ciphers);
+int SSL_CTX_akamai_get_preferred_cipher_count(SSL_CTX *c);
+int SSL_akamai_get_preferred_cipher_count(SSL *s);
+int SSL_CTX_akamai_set_cipher_list(SSL_CTX *ctx, const char *pref, const char *must);
+int SSL_akamai_set_cipher_list(SSL *s, const char *pref, const char *must);
+int SSL_akamai_fixup_cipher_strength(const char* level, const char* ciphers);
+
 /* Replaces SSL_CTX_sessions() and OPENSSL_LH_stats_bio() for shared session cache. */
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b);
 
