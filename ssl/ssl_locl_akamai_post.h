@@ -46,6 +46,9 @@ struct ssl_ctx_ex_data_akamai_st
     tlsext_ticket_appdata_append_cb_fn tlsext_ticket_appdata_append_cb;
     tlsext_ticket_appdata_parse_cb_fn tlsext_ticket_appdata_parse_cb;
     void *tlsext_ticket_appdata_arg;
+
+    /* count of preferred ciphers */
+    int akamai_cipher_count;
 };
 
 typedef struct ssl_ex_data_akamai_st SSL_EX_DATA_AKAMAI;
@@ -62,6 +65,9 @@ struct ssl_ex_data_akamai_st
     /* Used in place of SSL_CTX if present */
     int (*app_verify_callback)(X509_STORE_CTX*, void*);
     void *app_verify_arg;
+
+    /* count of preferred ciphers */
+    int akamai_cipher_count;
 };
 
 /* Used to initialize and get the akamai EX_DATA structures in one fell swoop */
