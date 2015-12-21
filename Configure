@@ -418,7 +418,7 @@ foreach my $proto ((@tls, @dtls))
 	}
 
 # do this in one place
-my @akamai = qw(akamai-client-cache);
+my @akamai = qw(akamai-client-cache akamai-ghost);
 foreach my $proto ((@akamai))
         {
         push(@disablables, $proto);
@@ -440,6 +440,7 @@ my %enabled = ( # "what"                => "comment"
 
 our %disabled = ( # "what"         => "comment"
 		  "afalgeng"            => "akamai-default",
+		  "akamai-ghost"        => "akamai-default",
                   "asan"		=> "default",
 		  "bf"                  => "akamai-default",
 		  "camellia"	        => "akamai-default",
