@@ -62,6 +62,9 @@ typedef struct handshake_result {
     int client_sign_type;
     /* Client CA names */
     STACK_OF(X509_NAME) *client_ca_names;
+#ifndef OPENSSL_NO_AKAMAI
+    char *cipher;
+#endif
 } HANDSHAKE_RESULT;
 
 HANDSHAKE_RESULT *HANDSHAKE_RESULT_new(void);

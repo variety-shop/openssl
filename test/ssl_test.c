@@ -305,6 +305,20 @@ static int check_client_ca_names(HANDSHAKE_RESULT *result,
                           result->client_ca_names);
 }
 
+#ifndef OPENSSL_NO_AKAMAI
+static int check_cipher(HANDSHAKE_RESULT *result, SSL_TEST_CTX *test_ctx)
+{
+    if (test_ctx->expected_cipher == NULL)
+        return 1;
+    if (!TEST_ptr(result->cipher))
+        return 0;
+    if (!TEST_str_eq(test_ctx->expected_cipher,
+                     result->cipher))
+        return 0;
+    return 1;
+}
+#endif
+
 /*
  * This could be further simplified by constructing an expected
  * HANDSHAKE_RESULT, and implementing comparison methods for
@@ -323,6 +337,9 @@ static int check_test(HANDSHAKE_RESULT *result, SSL_TEST_CTX *test_ctx)
         ret &= (result->session_ticket_do_not_call == 0);
 #ifndef OPENSSL_NO_NEXTPROTONEG
         ret &= check_npn(result, test_ctx);
+#endif
+#ifndef OPENSSL_NO_AKAMAI
+        ret &= check_cipher(result, test_ctx);
 #endif
         ret &= check_alpn(result, test_ctx);
         ret &= check_resumption(result, test_ctx);
