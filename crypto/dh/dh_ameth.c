@@ -525,7 +525,7 @@ static int dh_copy_parameters(EVP_PKEY *to, const EVP_PKEY *from)
 
 static int dh_missing_parameters(const EVP_PKEY *a)
 {
-    if (!a->pkey.dh->p || !a->pkey.dh->g)
+    if (a->pkey.dh == NULL || !a->pkey.dh->p || !a->pkey.dh->g)
         return 1;
     return 0;
 }
