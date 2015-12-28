@@ -2187,6 +2187,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_SSL_CTX_USE_CERTIFICATE_CHAIN_FILE         4093
 # define SSL_F_SSL_CTX_USE_CERTIFICATE_CHAIN_MEM          4094
 # define SSL_F_SSL_CTX_USE_CERTIFICATE_FILE               173
+# define SSL_F_SSL_CTX_USE_CERT_AND_KEY                   4091
 # define SSL_F_SSL_CTX_USE_PRIVATEKEY                     174
 # define SSL_F_SSL_CTX_USE_PRIVATEKEY_ASN1                175
 # define SSL_F_SSL_CTX_USE_PRIVATEKEY_FILE                176
@@ -2246,6 +2247,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_SSL_USE_CERTIFICATE                        198
 # define SSL_F_SSL_USE_CERTIFICATE_ASN1                   199
 # define SSL_F_SSL_USE_CERTIFICATE_FILE                   200
+# define SSL_F_SSL_USE_CERT_AND_KEY                       4090
 # define SSL_F_SSL_USE_PRIVATEKEY                         201
 # define SSL_F_SSL_USE_PRIVATEKEY_ASN1                    202
 # define SSL_F_SSL_USE_PRIVATEKEY_FILE                    203
