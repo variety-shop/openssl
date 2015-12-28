@@ -415,6 +415,8 @@ session instead of a context.
 
 =item int B<SSL_CTX_use_PrivateKey>(SSL_CTX *ctx, EVP_PKEY *pkey);
 
+=item int B<SSL_CTX_use_no_PrivateKey>(SSL_CTX *ctx);
+
 =item int B<SSL_CTX_use_PrivateKey_ASN1>(int type, SSL_CTX *ctx, unsigned char *d, long len);
 
 =item int B<SSL_CTX_use_PrivateKey_file>(SSL_CTX *ctx, char *file, int type);
@@ -693,6 +695,8 @@ connection defined in the B<SSL> structure.
 =item long B<SSL_total_renegotiations>(SSL *ssl);
 
 =item int B<SSL_use_PrivateKey>(SSL *ssl, EVP_PKEY *pkey);
+
+=item int B<SSL_use_no_PrivateKey>(SSL *ssl);
 
 =item int B<SSL_use_PrivateKey_ASN1>(int type, SSL *ssl, unsigned char *d, long len);
 
