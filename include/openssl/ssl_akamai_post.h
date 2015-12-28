@@ -119,6 +119,12 @@ int SSL_CTX_akamai_set_cipher_list(SSL_CTX *ctx, const char *pref, const char *m
 int SSL_akamai_set_cipher_list(SSL *s, const char *pref, const char *must);
 int SSL_akamai_fixup_cipher_strength(const char* level, const char* ciphers);
 
+/* No privatekey support */
+int SSL_use_cert_and_key(SSL *ssl, X509 *x509, EVP_PKEY *privatekey,
+                         STACK_OF(X509) *extra, int override);
+int SSL_CTX_use_cert_and_key(SSL_CTX *ctx, X509 *x509, EVP_PKEY *privatekey,
+                             STACK_OF(X509) *extra, int override);
+
 /* Replaces SSL_CTX_sessions() and OPENSSL_LH_stats_bio() for shared session cache. */
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b);
 
