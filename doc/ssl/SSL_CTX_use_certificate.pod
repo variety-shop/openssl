@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-SSL_CTX_use_certificate, SSL_CTX_use_certificate_ASN1, SSL_CTX_use_certificate_file, SSL_use_certificate, SSL_use_certificate_ASN1, SSL_use_certificate_file, SSL_CTX_use_certificate_chain_file, SSL_CTX_use_PrivateKey, SSL_CTX_use_PrivateKey_ASN1, SSL_CTX_use_PrivateKey_file, SSL_CTX_use_RSAPrivateKey, SSL_CTX_use_RSAPrivateKey_ASN1, SSL_CTX_use_RSAPrivateKey_file, SSL_use_PrivateKey_file, SSL_use_PrivateKey_ASN1, SSL_use_PrivateKey, SSL_use_RSAPrivateKey, SSL_use_RSAPrivateKey_ASN1, SSL_use_RSAPrivateKey_file, SSL_CTX_check_private_key, SSL_check_private_key - load certificate and key data
+SSL_CTX_use_certificate, SSL_CTX_use_certificate_ASN1, SSL_CTX_use_certificate_file, SSL_use_certificate, SSL_use_certificate_ASN1, SSL_use_certificate_file, SSL_CTX_use_certificate_chain_file, SSL_CTX_use_PrivateKey, SSL_CTX_use_no_PrivateKey, SSL_CTX_use_PrivateKey_ASN1, SSL_CTX_use_PrivateKey_file, SSL_CTX_use_RSAPrivateKey, SSL_CTX_use_RSAPrivateKey_ASN1, SSL_CTX_use_RSAPrivateKey_file, SSL_use_PrivateKey_file, SSL_use_PrivateKey_ASN1, SSL_use_PrivateKey, SSL_use_no_PrivateKey, SSL_use_RSAPrivateKey, SSL_use_RSAPrivateKey_ASN1, SSL_use_RSAPrivateKey_file, SSL_CTX_check_private_key, SSL_check_private_key - load certificate and key data
 
 =head1 SYNOPSIS
 
@@ -18,6 +18,7 @@ SSL_CTX_use_certificate, SSL_CTX_use_certificate_ASN1, SSL_CTX_use_certificate_f
  int SSL_CTX_use_certificate_chain_file(SSL_CTX *ctx, const char *file);
 
  int SSL_CTX_use_PrivateKey(SSL_CTX *ctx, EVP_PKEY *pkey);
+ int SSL_CTX_use_no_PrivateKey(SSL_CTX *ctx);
  int SSL_CTX_use_PrivateKey_ASN1(int pk, SSL_CTX *ctx, unsigned char *d,
 				 long len);
  int SSL_CTX_use_PrivateKey_file(SSL_CTX *ctx, const char *file, int type);
@@ -25,6 +26,7 @@ SSL_CTX_use_certificate, SSL_CTX_use_certificate_ASN1, SSL_CTX_use_certificate_f
  int SSL_CTX_use_RSAPrivateKey_ASN1(SSL_CTX *ctx, unsigned char *d, long len);
  int SSL_CTX_use_RSAPrivateKey_file(SSL_CTX *ctx, const char *file, int type);
  int SSL_use_PrivateKey(SSL *ssl, EVP_PKEY *pkey);
+ int SSL_use_no_PrivateKey(SSL *ssl);
  int SSL_use_PrivateKey_ASN1(int pk,SSL *ssl, unsigned char *d, long len);
  int SSL_use_PrivateKey_file(SSL *ssl, const char *file, int type);
  int SSL_use_RSAPrivateKey(SSL *ssl, RSA *rsa);
@@ -83,6 +85,15 @@ key pair the new certificate needs to be set with SSL_use_certificate()
 or SSL_CTX_use_certificate() before setting the private key with
 SSL_CTX_use_PrivateKey() or SSL_use_PrivateKey(). 
 
+SSL_CTX_use_no_PrivateKey() assigns the public key of the just assigned
+cert as the private key to B<ctx>.  SSL_use_no_PrivateKey() assigns the
+public key of the just assigned cert as the private key to B<ssl>. This
+is intended to be used with hardware (via the ENGINE inteface) that stores
+the private key securely, such that it cannot be accessed by OpenSSL. The
+reference count of the public key is incremented; it is not copied nor
+duplicated. This allows all private key validations checks to succeed
+without an actual private key being assigned via SSL_CTX_use_PrivateKey(),
+etc. These calls needs to be done on both the SSL_CTX and SSL objects.
 
 SSL_CTX_use_PrivateKey_ASN1() adds the private key of type B<pk>
 stored at memory location B<d> (length B<len>) to B<ctx>.

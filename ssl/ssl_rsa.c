@@ -1170,3 +1170,64 @@ int SSL_CTX_use_serverinfo_file(SSL_CTX *ctx, const char *file)
 }
 # endif                         /* OPENSSL_NO_STDIO */
 #endif                          /* OPENSSL_NO_TLSEXT */
+
+#ifndef OPENSSL_NO_AKAMAI
+
+static int ssl_use_no_PrivateKey_internal(CERT* cert, int type)
+{
+    EVP_PKEY *pub = NULL;
+    CERT_PKEY *cp = NULL;
+    int ret = 0;
+    int line;
+
+    cp = &cert->pkeys[type];
+    if (cp->x509 == NULL)
+        return 1; /* not an error */
+
+    /* make sure we have a public key,
+       this also increments the references,
+       so we need to free it when done */
+    pub = X509_get_pubkey(cp->x509);
+    if (pub == NULL)
+        return 0;
+
+    if (ssl_set_pkey(cert, pub))
+        ret = 1;
+
+    EVP_PKEY_free(pub);
+    return ret;
+}
+
+int SSL_use_no_PrivateKey(SSL *ssl)
+{
+    int i;
+    int ret = 1;
+
+    if (!ssl_cert_inst(&ssl->cert)) {
+        /* should be SSL_F_SSL_USE_NO_PRIVATEKEY */
+        SSLerr(SSL_F_SSL_USE_PRIVATEKEY, ERR_R_MALLOC_FAILURE);
+        return (0);
+    }
+    for (i = 0; i < SSL_PKEY_NUM; i++) {
+        ret = ret && ssl_use_no_PrivateKey_internal(ssl->cert, i);
+    }
+    return ret;
+}
+
+int SSL_CTX_use_no_PrivateKey(SSL_CTX *ctx)
+{
+    int i;
+    int ret = 1;
+
+    if (!ssl_cert_inst(&ctx->cert)) {
+        /* should be SSL_F_SSL_CTX_USE_NO_PRIVATEKEY */
+        SSLerr(SSL_F_SSL_CTX_USE_PRIVATEKEY, ERR_R_MALLOC_FAILURE);
+        return (0);
+    }
+    for (i = 0; i < SSL_PKEY_NUM; i++) {
+        ret = ret && ssl_use_no_PrivateKey_internal(ctx->cert, i);
+    }
+    return ret;
+}
+
+#endif /* OPENSSL_NO_AKAMAI */
