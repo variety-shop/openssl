@@ -63,11 +63,6 @@
 #include <openssl/evp.h>
 #include <openssl/x509.h>
 #include <openssl/pem.h>
-#ifndef OPENSSL_NO_AKAMAI
-# ifndef OPENSSL_NO_EC
-#  include <openssl/ec.h>
-# endif
-#endif
 
 static int ssl_set_cert(CERT *c, X509 *x509);
 static int ssl_set_pkey(CERT *c, EVP_PKEY *pkey);
@@ -220,7 +215,6 @@ static int ssl_set_pkey(CERT *c, EVP_PKEY *pkey)
         EVP_PKEY_free(pktmp);
         ERR_clear_error();
 
-#ifdef OPENSSL_NO_AKAMAI
 #ifndef OPENSSL_NO_RSA
         /*
          * Don't check the public/private key, this is mostly for smart
@@ -230,25 +224,6 @@ static int ssl_set_pkey(CERT *c, EVP_PKEY *pkey)
             (RSA_flags(pkey->pkey.rsa) & RSA_METHOD_FLAG_NO_CHECK)) ;
         else
 #endif
-#else /* OPENSSL_NO_AKAMAI */
-#ifndef OPENSSL_NO_RSA
-        /*
-         * Don't check the public/private key, this is mostly for smart
-         * cards.
-         */
-        if ((pkey->type == EVP_PKEY_RSA) &&
-            ((RSA_flags(pkey->pkey.rsa) & RSA_METHOD_FLAG_NO_CHECK) ||
-             (pkey->pkey.rsa->flags & RSA_FLAG_EXT_PKEY)))
-            /* no-op */ ;
-        else
-#endif
-#ifndef OPENSSL_NO_EC
-        if ((pkey->type == EVP_PKEY_EC) &&
-            (EC_KEY_get_flags(pkey->pkey.ec) & EC_FLAG_EXT_PKEY))
-            /* no-op */ ;
-        else
-#endif
-#endif /* OPENSSL_NO_AKAMAI */
         if (!X509_check_private_key(c->pkeys[i].x509, pkey)) {
             X509_free(c->pkeys[i].x509);
             c->pkeys[i].x509 = NULL;
@@ -444,7 +419,6 @@ static int ssl_set_cert(CERT *c, X509 *x)
         EVP_PKEY_copy_parameters(pkey, c->pkeys[i].privatekey);
         ERR_clear_error();
 
-#ifdef OPENSSL_NO_AKAMAI
 #ifndef OPENSSL_NO_RSA
         /*
          * Don't check the public/private key, this is mostly for smart
@@ -455,26 +429,6 @@ static int ssl_set_cert(CERT *c, X509 *x)
              RSA_METHOD_FLAG_NO_CHECK)) ;
         else
 #endif                          /* OPENSSL_NO_RSA */
-#else /* OPENSSL_NO_AKAMAI */
-#ifndef OPENSSL_NO_RSA
-        /*
-         * Don't check the public/private key, this is mostly for smart
-         * cards.
-         */
-        if ((c->pkeys[i].privatekey->type == EVP_PKEY_RSA) &&
-            ((RSA_flags(c->pkeys[i].privatekey->pkey.rsa) &
-              RSA_METHOD_FLAG_NO_CHECK) ||
-             (c->pkeys[i].privatekey->pkey.rsa->flags &
-              RSA_FLAG_EXT_PKEY))) ;
-        else
-#endif                          /* OPENSSL_NO_RSA */
-#ifndef OPENSSL_NO_EC
-        if ((c->pkeys[i].privatekey->type == EVP_PKEY_EC) &&
-            (EC_KEY_get_flags(c->pkeys[i].privatekey->pkey.ec) &
-             EC_FLAG_EXT_PKEY)) ;
-        else
-#endif /* OPENSSL_NO_EC */
-#endif /* OPENSSL_NO_AKAMAI */
         if (!X509_check_private_key(x, c->pkeys[i].privatekey)) {
             /*
              * don't fail for a cert/key mismatch, just free current private
@@ -1170,3 +1124,64 @@ int SSL_CTX_use_serverinfo_file(SSL_CTX *ctx, const char *file)
 }
 # endif                         /* OPENSSL_NO_STDIO */
 #endif                          /* OPENSSL_NO_TLSEXT */
+
+#ifndef OPENSSL_NO_AKAMAI
+
+static int ssl_use_no_PrivateKey_internal(CERT* cert, int type)
+{
+    EVP_PKEY *pub = NULL;
+    CERT_PKEY *cp = NULL;
+    int ret = 0;
+    int line;
+
+    cp = &cert->pkeys[type];
+    if (cp->x509 == NULL)
+        return 1; /* not an error */
+
+    /* make sure we have a public key,
+       this also increments the references,
+       so we need to free it when done */
+    pub = X509_get_pubkey(cp->x509);
+    if (pub == NULL)
+        return 0;
+
+    if (ssl_set_pkey(cert, pub))
+        ret = 1;
+
+    EVP_PKEY_free(pub);
+    return ret;
+}
+
+int SSL_use_no_PrivateKey(SSL *ssl)
+{
+    int i;
+    int ret = 1;
+
+    if (!ssl_cert_inst(&ssl->cert)) {
+        /* should be SSL_F_SSL_USE_NO_PRIVATEKEY */
+        SSLerr(SSL_F_SSL_USE_PRIVATEKEY, ERR_R_MALLOC_FAILURE);
+        return (0);
+    }
+    for (i = 0; i < SSL_PKEY_NUM; i++) {
+        ret = ret && ssl_use_no_PrivateKey_internal(ssl->cert, i);
+    }
+    return ret;
+}
+
+int SSL_CTX_use_no_PrivateKey(SSL_CTX *ctx)
+{
+    int i;
+    int ret = 1;
+
+    if (!ssl_cert_inst(&ctx->cert)) {
+        /* should be SSL_F_SSL_CTX_USE_NO_PRIVATEKEY */
+        SSLerr(SSL_F_SSL_CTX_USE_PRIVATEKEY, ERR_R_MALLOC_FAILURE);
+        return (0);
+    }
+    for (i = 0; i < SSL_PKEY_NUM; i++) {
+        ret = ret && ssl_use_no_PrivateKey_internal(ctx->cert, i);
+    }
+    return ret;
+}
+
+#endif /* OPENSSL_NO_AKAMAI */

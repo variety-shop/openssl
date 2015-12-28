@@ -3659,8 +3659,24 @@ int ssl3_send_server_certificate(SSL *s)
 
 void ssl_task_rsa_decrypt(SSL *s, SSL_rsa_decrypt_ctx *ctx)
 {
-    OPENSSL_assert(ctx);
-    ctx->dest_len = RSA_private_decrypt(ctx->src_len, ctx->src, ctx->dest, ctx->rsa, ctx->padding);
+    size_t outlen;
+    int ret;
+    EVP_PKEY_CTX* pkey_ctx;
+    EVP_PKEY* pkey = EVP_PKEY_new();
+    OPENSSL_assert(ctx); /* coding error */
+    ctx->dest_len = -1;
+    if (pkey != NULL) {
+        EVP_PKEY_set1_RSA(pkey, ctx->rsa);
+        pkey_ctx = EVP_PKEY_CTX_new(pkey, NULL);
+        if (pkey_ctx != NULL) {
+            EVP_PKEY_decrypt_init(pkey_ctx);
+            ret = EVP_PKEY_decrypt(pkey_ctx, ctx->dest, &outlen, ctx->src, ctx->src_len);
+            if (ret > 0)
+                ctx->dest_len = outlen;
+            EVP_PKEY_CTX_free(pkey_ctx);
+        }
+        EVP_PKEY_free(pkey);
+    }
     if (ctx->dest_len < 0)
         SSL_signal_event_err(s, SSL_EVENT_KEY_EXCH_DECRYPT_DONE,
                              SSL_F_SSL_RSA_PRIVATE_DECRYPT, ERR_R_RSA_LIB);

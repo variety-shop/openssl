@@ -2861,6 +2861,8 @@ const struct openssl_ssl_test_functions *SSL_test_functions(void);
 # endif
 
 # ifndef OPENSSL_NO_AKAMAI
+int SSL_use_no_PrivateKey(SSL *ssl);
+int SSL_CTX_use_no_PrivateKey(SSL_CTX *ctx);
 void SSL_CTX_share_session_cache(SSL_CTX *a, SSL_CTX *b);
 /* SSL3 buffer allocation routine */
 /* The int argument is 1 for read buffers, 0 for write buffers */
