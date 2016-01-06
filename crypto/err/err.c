@@ -278,6 +278,41 @@ static const ERR_FNS *err_fns = NULL;
  * all ERR state operation (together with requisite locking) to the
  * implementations and state in the loading application.
  */
+#ifndef OPENSSL_NO_AKAMAI
+/*
+ * Akamai has adopted a modified concurrency model for accesses to these globals.
+ * They are still protected by the RW lock CRYPTO_LOCK_ERR, but more operations
+ * are performed under the read lock than in stock OpenSSL.  Holding a write
+ * lock permits full read/write access to the hashes, both the pointer to the
+ * global structure and the contents of the buckets, etc., as well as regular
+ * (non-atomic) accesses to the integer values.  Holding a read lock guarantees
+ * that the hash tables will remain stable, both the actual pointer global and
+ * the contents of the buckets.  Holding a reference to the thread hash table
+ * (i.e., incrementing int_thread_hash_references in an appropriate manner)
+ * provides the weaker guarantee that the thread hash table handle valid at
+ * the time the reference is obtained will remain valid until the reference is
+ * dropped.  (Code running under a write lock, such as thread_del_item(), can
+ * still change the global thread hash table handle before dropping the lock,
+ * so as to get a private handle to use to deallocate memory.)  Because holding
+ * a read lock is sufficient to guarantee stability of the global hash tables,
+ * the condition that the hash table handle valid at the time a reference is
+ * obtained remain valid can be satisfied with only a read lock, not a write
+ * lock.  The only complication is that since there can be multiple concurrent
+ * threads of execution under the read lock, care must be taken to provide
+ * a consistent picture of the reference count to all threads under the reaad
+ * lock -- accesses from different threads (under the read lock) need to be
+ * atomic with respect to each other.  Although there are system-provided
+ * primitives to perform atomic operations on 32-bit integers, we prefer to
+ * preserve the abstraction barrier of CRYPTO_add() and introduce a new lock,
+ * CRYPTO_LOCK_ERR_TH_HASH_REF, to protect accesses to
+ * int_thread_hash_references.  (This lock is not actually used on x86/linux
+ * where we set an add_lock_callback that uses the compiler intrinsic atomic
+ * operations.)  The extra protection for atomicity is strictly-speaking only
+ * needed when the read lock is held, but for clarity we enforce that it is
+ * always held for accesses to int_thread_hash_references, and it is only
+ * obtained when the regular CRYPTO_LOCK_ERR is already held.
+ */
+#endif
 static LHASH_OF(ERR_STRING_DATA) *int_error_hash = NULL;
 static LHASH_OF(ERR_STATE) *int_thread_hash = NULL;
 static int int_thread_hash_references = 0;
@@ -465,12 +500,12 @@ static LHASH_OF(ERR_STATE) *int_thread_get(int create)
         ret = int_thread_hash;
         if (ret) {
             /*
-             * Interlock below is to sync between increments
-             * (as there may be several threads simultaneously owning read lock)
-             * Need to unlock before doing add
+             * All accesses to int_thread_hash_references must
+             * be atomic.  Use CRYPTO_LOCK_ERR_TH_HASH_REF to enforce that,
+             * taken after CRYPTO_LOCK_ERR.
              */
+            CRYPTO_add(&int_thread_hash_references, 1, CRYPTO_LOCK_ERR_TH_HASH_REF);
             CRYPTO_r_unlock(CRYPTO_LOCK_ERR);
-            CRYPTO_add(&int_thread_hash_references, 1, CRYPTO_LOCK_ERR);
             return ret;
         }
         CRYPTO_r_unlock(CRYPTO_LOCK_ERR);
@@ -486,7 +521,7 @@ static LHASH_OF(ERR_STATE) *int_thread_get(int create)
         CRYPTO_pop_info();
     }
     if (int_thread_hash) {
-        int_thread_hash_references++;
+        CRYPTO_add(&int_thread_hash_references, 1, CRYPTO_LOCK_ERR_TH_HASH_REF);
         ret = int_thread_hash;
     }
     CRYPTO_w_unlock(CRYPTO_LOCK_ERR);
@@ -500,7 +535,7 @@ static void int_thread_release(LHASH_OF(ERR_STATE) **hash)
     if (hash == NULL || *hash == NULL)
         return;
 
-    i = CRYPTO_add(&int_thread_hash_references, -1, CRYPTO_LOCK_ERR);
+    i = CRYPTO_add(&int_thread_hash_references, -1, CRYPTO_LOCK_ERR_TH_HASH_REF);
 
 #ifdef REF_PRINT
     fprintf(stderr, "%4d:%s\n", int_thread_hash_references, "ERR");
@@ -565,11 +600,15 @@ static void int_thread_del_item(const ERR_STATE *d)
     CRYPTO_w_lock(CRYPTO_LOCK_ERR);
     p = lh_ERR_STATE_delete(hash, d);
     /* make sure we don't leak memory */
+    /* CRYPTO_LOCK_ERR_TH_HASH_REF is needed for access to
+     * int_thread_hash_references. */
+    CRYPTO_w_lock(CRYPTO_LOCK_ERR_TH_HASH_REF);
     if (int_thread_hash_references == 1
         && int_thread_hash && lh_ERR_STATE_num_items(int_thread_hash) == 0) {
         lh_ERR_STATE_free(int_thread_hash);
         int_thread_hash = NULL;
     }
+    CRYPTO_w_unlock(CRYPTO_LOCK_ERR_TH_HASH_REF);
     CRYPTO_w_unlock(CRYPTO_LOCK_ERR);
 
     ERRFN(thread_release) (&hash);
