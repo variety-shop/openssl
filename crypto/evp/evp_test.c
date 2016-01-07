@@ -578,7 +578,7 @@ int main(int argc, char **argv)
             }
 #endif
 #ifdef OPENSSL_NO_CHACHA
-            if (strstr(cipher, "CHACHA20") == cipher) {
+            if (strstr(cipher, "chacha20") == cipher) {
                 fprintf(stdout, "Cipher disabled, skipping %s\n", cipher);
                 continue;
             }

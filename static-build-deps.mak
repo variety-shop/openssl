@@ -113,7 +113,6 @@ $P/build.ts: \
  $P/crypto/evp/m_sha1.c \
  $P/crypto/evp/names.c \
  $P/crypto/evp/p_lib.c \
- $P/crypto/buildinf.h \
  $P/crypto/rand/rand_lib.c \
  $P/crypto/rand/rand_unix.c \
  $P/crypto/rand/rand_err.c \
@@ -728,7 +727,6 @@ $P/build.ts: \
  $P/crypto/modes/ofb128.c \
  $P/crypto/modes/wrap128.c \
  $P/crypto/modes/cts128.c \
- $P/crypto/opensslconf.h \
  $P/crypto/armcap.c \
  $P/crypto/whrlpool/wp_dgst.c \
  $P/crypto/whrlpool/whrlpool.h \
@@ -836,76 +834,6 @@ $P/build.ts: \
  $P/crypto/camellia/camellia.c \
  $P/crypto/constant_time_locl.h \
  $P/crypto/LPdir_wince.c \
- $P/include/openssl/ssl.h \
- $P/include/openssl/blowfish.h \
- $P/include/openssl/tls1.h \
- $P/include/openssl/dtls1.h \
- $P/include/openssl/ssl3.h \
- $P/include/openssl/ui_compat.h \
- $P/include/openssl/des_old.h \
- $P/include/openssl/evp.h \
- $P/include/openssl/opensslv.h \
- $P/include/openssl/asn1t.h \
- $P/include/openssl/bn.h \
- $P/include/openssl/sha.h \
- $P/include/openssl/des.h \
- $P/include/openssl/txt_db.h \
- $P/include/openssl/crypto.h \
- $P/include/openssl/pem.h \
- $P/include/openssl/engine.h \
- $P/include/openssl/ecdsa.h \
- $P/include/openssl/md5.h \
- $P/include/openssl/hmac.h \
- $P/include/openssl/store.h \
- $P/include/openssl/asn1_mac.h \
- $P/include/openssl/pkcs7.h \
- $P/include/openssl/e_os2.h \
- $P/include/openssl/ecdh.h \
- $P/include/openssl/lhash.h \
- $P/include/openssl/ec.h \
- $P/include/openssl/err.h \
- $P/include/openssl/stack.h \
- $P/include/openssl/e_os.h \
- $P/include/openssl/symhacks.h \
- $P/include/openssl/pkcs12.h \
- $P/include/openssl/ssl_locl.h \
- $P/include/openssl/obj_mac.h \
- $P/include/openssl/ssl23.h \
- $P/include/openssl/ebcdic.h \
- $P/include/openssl/pem2.h \
- $P/include/openssl/x509v3.h \
- $P/include/openssl/asn1.h \
- $P/include/openssl/kssl.h \
- $P/include/openssl/safestack.h \
- $P/include/openssl/bio.h \
- $P/include/openssl/rsa.h \
- $P/include/openssl/x509.h \
- $P/include/openssl/comp.h \
- $P/include/openssl/srtp.h \
- $P/include/openssl/ssl2.h \
- $P/include/openssl/rc2.h \
- $P/include/openssl/ts.h \
- $P/include/openssl/modes.h \
- $P/include/openssl/rand.h \
- $P/include/openssl/cmac.h \
- $P/include/openssl/x509_vfy.h \
- $P/include/openssl/camellia.h \
- $P/include/openssl/dso.h \
- $P/include/openssl/conf_api.h \
- $P/include/openssl/ossl_typ.h \
- $P/include/openssl/buffer.h \
- $P/include/openssl/dsa.h \
- $P/include/openssl/rc4.h \
- $P/include/openssl/ui.h \
- $P/include/openssl/opensslconf.h \
- $P/include/openssl/cms.h \
- $P/include/openssl/ocsp.h \
- $P/include/openssl/pqueue.h \
- $P/include/openssl/dh.h \
- $P/include/openssl/objects.h \
- $P/include/openssl/aes.h \
- $P/include/openssl/krb5_asn.h \
- $P/include/openssl/conf.h \
  $P/MacOS/buildinf.h \
  $P/MacOS/_MWERKS_GUSI_prefix.h \
  $P/MacOS/GetHTTPS.src/MacSocket.h \
@@ -1036,55 +964,16 @@ $P/build.ts: \
  $P/apps/version.c \
  $P/apps/s_time.c \
  $P/test/testharness.c \
- $P/test/ecdsatest.c \
  $P/test/tlsexttest.c \
- $P/test/rc2test.c \
- $P/test/evp_extra_test.c \
  $P/test/tasktest.c \
  $P/test/testutil.h \
- $P/test/dhtest.c \
- $P/test/destest.c \
- $P/test/md5test.c \
  $P/test/methtest.c \
- $P/test/rc4test.c \
- $P/test/rmdtest.c \
  $P/test/ciphpreftest.c \
- $P/test/enginetest.c \
- $P/test/ssltest.c \
  $P/test/clientcache2test.c \
  $P/test/r160test.c \
- $P/test/jpaketest.c \
- $P/test/shatest.c \
- $P/test/evp_test.c \
- $P/test/client_cache_test.c \
- $P/test/ectest.c \
- $P/test/v3nametest.c \
- $P/test/md4test.c \
- $P/test/md2test.c \
- $P/test/clienthellotest.c \
- $P/test/srptest.c \
- $P/test/dsatest.c \
- $P/test/heartbeat_test.c \
- $P/test/sha256t.c \
- $P/test/constant_time_test.c \
- $P/test/sha1test.c \
  $P/test/dummytest.c \
- $P/test/wp_test.c \
- $P/test/randtest.c \
- $P/test/bftest.c \
- $P/test/verify_extra_test.c \
- $P/test/mdc2test.c \
- $P/test/bntest.c \
- $P/test/ecdhtest.c \
- $P/test/casttest.c \
- $P/test/rc5test.c \
  $P/test/igetest.c \
  $P/test/asn1test.c \
- $P/test/exptest.c \
- $P/test/rsa_test.c \
- $P/test/ideatest.c \
- $P/test/hmactest.c \
- $P/test/sha512t.c \
  $P/engines/e_aep.c \
  $P/engines/e_chil.c \
  $P/engines/e_chil_err.h \
