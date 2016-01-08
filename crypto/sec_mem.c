@@ -416,7 +416,7 @@ static void sh_done()
     if (sh.bittable)
         OPENSSL_free(sh.bittable);
     if (sh.bitmalloc)
-        OPENSSL_free(sh.bittable);
+        OPENSSL_free(sh.bitmalloc);
     if (sh.map_result != NULL && sh.map_size)
         munmap(sh.map_result, sh.map_size);
     memset(&sh, 0, sizeof sh);
