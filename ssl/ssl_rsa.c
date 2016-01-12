@@ -63,11 +63,6 @@
 #include <openssl/evp.h>
 #include <openssl/x509.h>
 #include <openssl/pem.h>
-#ifndef OPENSSL_NO_AKAMAI
-# ifndef OPENSSL_NO_EC
-#  include <openssl/ec.h>
-# endif
-#endif
 
 static int ssl_set_cert(CERT *c, X509 *x509);
 static int ssl_set_pkey(CERT *c, EVP_PKEY *pkey);
@@ -220,7 +215,6 @@ static int ssl_set_pkey(CERT *c, EVP_PKEY *pkey)
         EVP_PKEY_free(pktmp);
         ERR_clear_error();
 
-#ifdef OPENSSL_NO_AKAMAI
 #ifndef OPENSSL_NO_RSA
         /*
          * Don't check the public/private key, this is mostly for smart
@@ -230,25 +224,6 @@ static int ssl_set_pkey(CERT *c, EVP_PKEY *pkey)
             (RSA_flags(pkey->pkey.rsa) & RSA_METHOD_FLAG_NO_CHECK)) ;
         else
 #endif
-#else /* OPENSSL_NO_AKAMAI */
-#ifndef OPENSSL_NO_RSA
-        /*
-         * Don't check the public/private key, this is mostly for smart
-         * cards.
-         */
-        if ((pkey->type == EVP_PKEY_RSA) &&
-            ((RSA_flags(pkey->pkey.rsa) & RSA_METHOD_FLAG_NO_CHECK) ||
-             (pkey->pkey.rsa->flags & RSA_FLAG_EXT_PKEY)))
-            /* no-op */ ;
-        else
-#endif
-#ifndef OPENSSL_NO_EC
-        if ((pkey->type == EVP_PKEY_EC) &&
-            (EC_KEY_get_flags(pkey->pkey.ec) & EC_FLAG_EXT_PKEY))
-            /* no-op */ ;
-        else
-#endif
-#endif /* OPENSSL_NO_AKAMAI */
         if (!X509_check_private_key(c->pkeys[i].x509, pkey)) {
             X509_free(c->pkeys[i].x509);
             c->pkeys[i].x509 = NULL;
@@ -444,7 +419,6 @@ static int ssl_set_cert(CERT *c, X509 *x)
         EVP_PKEY_copy_parameters(pkey, c->pkeys[i].privatekey);
         ERR_clear_error();
 
-#ifdef OPENSSL_NO_AKAMAI
 #ifndef OPENSSL_NO_RSA
         /*
          * Don't check the public/private key, this is mostly for smart
@@ -455,26 +429,6 @@ static int ssl_set_cert(CERT *c, X509 *x)
              RSA_METHOD_FLAG_NO_CHECK)) ;
         else
 #endif                          /* OPENSSL_NO_RSA */
-#else /* OPENSSL_NO_AKAMAI */
-#ifndef OPENSSL_NO_RSA
-        /*
-         * Don't check the public/private key, this is mostly for smart
-         * cards.
-         */
-        if ((c->pkeys[i].privatekey->type == EVP_PKEY_RSA) &&
-            ((RSA_flags(c->pkeys[i].privatekey->pkey.rsa) &
-              RSA_METHOD_FLAG_NO_CHECK) ||
-             (c->pkeys[i].privatekey->pkey.rsa->flags &
-              RSA_FLAG_EXT_PKEY))) ;
-        else
-#endif                          /* OPENSSL_NO_RSA */
-#ifndef OPENSSL_NO_EC
-        if ((c->pkeys[i].privatekey->type == EVP_PKEY_EC) &&
-            (EC_KEY_get_flags(c->pkeys[i].privatekey->pkey.ec) &
-             EC_FLAG_EXT_PKEY)) ;
-        else
-#endif /* OPENSSL_NO_EC */
-#endif /* OPENSSL_NO_AKAMAI */
         if (!X509_check_private_key(x, c->pkeys[i].privatekey)) {
             /*
              * don't fail for a cert/key mismatch, just free current private
@@ -1216,14 +1170,7 @@ static int ssl_set_cert_and_key(CERT *c, X509 *x509, EVP_PKEY *privatekey,
         /* Copied from ssl_set_cert/pkey */
 #ifndef OPENSSL_NO_RSA
         if ((privatekey->type == EVP_PKEY_RSA) &&
-            ((RSA_flags(privatekey->pkey.rsa) & RSA_METHOD_FLAG_NO_CHECK) ||
-             (privatekey->pkey.rsa->flags & RSA_FLAG_EXT_PKEY)))
-            /* no-op */ ;
-        else
-#endif
-#ifndef OPENSSL_NO_EC
-        if ((privatekey->type == EVP_PKEY_EC) &&
-            (EC_KEY_get_flags(privatekey->pkey.ec) & EC_FLAG_EXT_PKEY))
+            (RSA_flags(privatekey->pkey.rsa) & RSA_METHOD_FLAG_NO_CHECK))
             /* no-op */ ;
         else
 #endif
