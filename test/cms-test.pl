@@ -98,6 +98,7 @@ my $badcmd = 0;
 my $no_ec;
 my $no_ec2m;
 my $no_ecdh;
+my $no_rc2;
 my $ossl8 = `$ossl_path version -v` =~ /0\.9\.8/;
 
 system ("$ossl_path no-cms > $null_path");
@@ -147,6 +148,20 @@ elsif ($? == $failure_code)
 else
 	{
 	die "Error checking for ECDH support\n";
+	}
+
+system ("$ossl_path no-rc2 > $null_path");
+if ($? == 0)
+	{
+	$no_rc2 = 1;
+	}
+elsif ($? == $failure_code)
+	{
+	$no_rc2 = 0;
+	}
+else
+	{
+	die "Error checking for RC2 support\n";
 	}
     
 my @smime_pkcs7_tests = (
@@ -558,6 +573,11 @@ sub run_smime_tests {
 	if ($no_ec2m && $tnam =~ /K-283/)
 		{
 		print "$tnam: skipped, EC2M disabled\n";
+		next;
+		}
+	if ($no_rc2 && $tnam =~ /RC2/)
+		{
+		print "$tnam: skipped, RC2 disabled\n";
 		next;
 		}
         system("$scmd$rscmd$redir");
