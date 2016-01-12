@@ -4438,9 +4438,11 @@ CRYPTO_secure_malloc                    884779	EXIST::FUNCTION:SECURE_HEAP
 EVP_chacha20_poly1305                   884780	EXIST::FUNCTION:CHACHA,POLY1305
 CRYPTO_secure_malloc_done               884781	EXIST::FUNCTION:SECURE_HEAP
 CRYPTO_secure_malloc_initialized        884782	EXIST::FUNCTION:SECURE_HEAP
+ECDSA_METHOD_get_flags                  884783	EXIST::FUNCTION:AKAMAI,ECDSA
 CRYPTO_secure_allocated                 884784	EXIST::FUNCTION:SECURE_HEAP
 BN_secure_new                           884785	EXIST::FUNCTION:
 CRYPTO_secure_malloc_init               884786	EXIST::FUNCTION:SECURE_HEAP
+ECDSA_METHOD_get_sign                   884787	EXIST::FUNCTION:AKAMAI,ECDSA
 CRYPTO_secure_free                      884788	EXIST::FUNCTION:SECURE_HEAP
 DSA_security_bits                       884789	EXIST::FUNCTION:DSA
 RSA_security_bits                       884790	EXIST::FUNCTION:RSA
@@ -4449,6 +4451,7 @@ CRYPTO_secure_actual_size               884792	EXIST::FUNCTION:SECURE_HEAP
 CRYPTO_set_secure_mem_functions         884793	EXIST::FUNCTION:SECURE_HEAP
 Poly1305_Update                         884794	EXIST::FUNCTION:POLY1305
 ChaCha20_ctr32                          884795	EXIST::FUNCTION:CHACHA
+ECDSA_METHOD_get_sign_setup             884796	EXIST::FUNCTION:AKAMAI,ECDSA
 BUF_MEM_new_ex                          884797	EXIST::FUNCTION:
 Poly1305_Final                          884798	EXIST::FUNCTION:POLY1305
 EVP_PKEY_security_bits                  884799	EXIST::FUNCTION:
@@ -4458,6 +4461,7 @@ X509_STORE_load_mem                     884802	EXIST::FUNCTION:AKAMAI
 Poly1305_ctx_size                       884803	EXIST::FUNCTION:POLY1305
 EVP_PKEY_asn1_set_security_bits         884804	EXIST::FUNCTION:
 CRYPTO_get_secure_mem_ex_functions      884805	EXIST::FUNCTION:SECURE_HEAP
+ECDSA_METHOD_get_verify                 884807	EXIST::FUNCTION:AKAMAI,ECDSA
 DH_security_bits                        884808	EXIST::FUNCTION:DH
 Poly1305_Init                           884809	EXIST::FUNCTION:POLY1305
 BN_security_bits                        884810	EXIST::FUNCTION:
