@@ -747,9 +747,6 @@ typedef struct ec_key_st EC_KEY;
 /* some values for the flags field */
 # define EC_FLAG_NON_FIPS_ALLOW  0x1
 # define EC_FLAG_FIPS_CHECKED    0x2
-# ifndef OPENSSL_NO_AKAMAI
-#  define EC_FLAG_EXT_PKEY        0x4
-# endif
 
 /** Creates a new EC_KEY object.
  *  \return EC_KEY object or NULL if an error occurred.
