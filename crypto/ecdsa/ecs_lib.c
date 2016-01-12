@@ -359,3 +359,30 @@ void *ECDSA_METHOD_get_app_data(ECDSA_METHOD *ecdsa_method)
 {
     return ecdsa_method->app_data;
 }
+
+#ifndef OPENSSL_NO_AKAMAI
+
+ECDSA_SIG *(*ECDSA_METHOD_get_sign(ECDSA_METHOD *ecdsa_method))
+    (const unsigned char*, int, const BIGNUM*, const BIGNUM*, EC_KEY*)
+{
+    return ecdsa_method->ecdsa_do_sign;
+}
+
+int (*ECDSA_METHOD_get_sign_setup(ECDSA_METHOD *ecdsa_method))
+    (EC_KEY*, BN_CTX*, BIGNUM **, BIGNUM **)
+{
+    return ecdsa_method->ecdsa_sign_setup;
+}
+
+int (*ECDSA_METHOD_get_verify(ECDSA_METHOD *ecdsa_method))
+    (const unsigned char*, int, const ECDSA_SIG*, EC_KEY*)
+{
+    return ecdsa_method->ecdsa_do_verify;
+}
+
+int ECDSA_METHOD_get_flags(ECDSA_METHOD *ecdsa_method)
+{
+    return ecdsa_method->flags;
+}
+
+#endif
