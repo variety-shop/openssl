@@ -128,6 +128,7 @@ and [options] can be one of
 	no-ecdsa				- No ECDSA
 	no-ecdh					- No ECDH
 	no-engine				- No engine
+	no-egd					- No EGD
 	no-hw					- No hw
 	nasm 					- Use NASM for x86 asm
 	nw-nasm					- Use NASM x86 asm for NetWare
@@ -302,6 +303,7 @@ $cflags.=" -DOPENSSL_NO_ECDSA" if $no_ecdsa;
 $cflags.=" -DOPENSSL_NO_ECDH" if $no_ecdh;
 $cflags.=" -DOPENSSL_NO_GOST" if $no_gost;
 $cflags.=" -DOPENSSL_NO_ENGINE"   if $no_engine;
+$cflags.=" -DOPENSSL_NO_EGD"   if $no_egd;
 $cflags.=" -DOPENSSL_NO_HW"   if $no_hw;
 $cflags.=" -DOPENSSL_FIPS"    if $fips;
 $cflags.=" -DOPENSSL_NO_JPAKE"    if $no_jpake;
@@ -1258,6 +1260,7 @@ sub read_options
 		"no-ecdh" => \$no_ecdh,
 		"no-gost" => \$no_gost,
 		"no-engine" => \$no_engine,
+		"no-egd" => \$no_egd,
 		"no-hw" => \$no_hw,
 	        "no-buf-freelists" => \$no_buf_freelists,
 	        "no-heartbeats" => \$no_heartbeats,
