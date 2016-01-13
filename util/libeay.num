@@ -1757,7 +1757,7 @@ DES_crypt                               2249	EXIST::FUNCTION:DES
 PEM_write_bio_X509_REQ_NEW              2250	EXIST::FUNCTION:
 PEM_write_X509_REQ_NEW                  2251	EXIST:!WIN16:FUNCTION:
 BIO_callback_ctrl                       2252	EXIST::FUNCTION:
-RAND_egd                                2253	EXIST::FUNCTION:
+RAND_egd                                2253	EXIST::FUNCTION:EGD
 RAND_status                             2254	EXIST::FUNCTION:
 bn_dump1                                2255	NOEXIST::FUNCTION:
 DES_check_key_parity                    2256	EXIST::FUNCTION:DES
@@ -1814,7 +1814,7 @@ X509_ALGOR_cmp                          2398	EXIST::FUNCTION:
 EVP_CIPHER_CTX_set_key_length           2399	EXIST::FUNCTION:
 EVP_CIPHER_CTX_ctrl                     2400	EXIST::FUNCTION:
 BN_mod_exp_mont_word                    2401	EXIST::FUNCTION:
-RAND_egd_bytes                          2402	EXIST::FUNCTION:
+RAND_egd_bytes                          2402	EXIST::FUNCTION:EGD
 X509_REQ_get1_email                     2403	EXIST::FUNCTION:
 X509_get1_email                         2404	EXIST::FUNCTION:
 X509_email_free                         2405	EXIST::FUNCTION:
@@ -2451,7 +2451,7 @@ X509V3_EXT_nconf_nid                    2942	EXIST::FUNCTION:
 ASN1_SEQUENCE_it                        2943	EXIST:!EXPORT_VAR_AS_FUNCTION:VARIABLE:
 ASN1_SEQUENCE_it                        2943	EXIST:EXPORT_VAR_AS_FUNCTION:FUNCTION:
 UI_set_default_method                   2944	EXIST::FUNCTION:
-RAND_query_egd_bytes                    2945	EXIST::FUNCTION:
+RAND_query_egd_bytes                    2945	EXIST::FUNCTION:EGD
 UI_method_get_writer                    2946	EXIST::FUNCTION:
 UI_OpenSSL                              2947	EXIST::FUNCTION:
 PEM_def_callback                        2948	EXIST::FUNCTION:
