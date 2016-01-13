@@ -97,7 +97,7 @@ extern "C" {
  */
 #  define DEVRANDOM "/dev/urandom","/dev/random","/dev/srandom"
 # endif
-# ifndef DEVRANDOM_EGD
+# if !defined(OPENSSL_NO_EGD) && !defined(DEVRANDOM_EGD)
 /*
  * set this to a comma-seperated list of 'egd' sockets to try out. These
  * sockets will be tried in the order listed in case accessing the device
