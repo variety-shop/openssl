@@ -95,7 +95,9 @@
  *   RAND_egd() is a wrapper for RAND_egd_bytes() with numbytes=255.
  */
 
-#if defined(OPENSSL_SYS_WIN32) || defined(OPENSSL_SYS_VMS) || defined(OPENSSL_SYS_MSDOS) || defined(OPENSSL_SYS_VXWORKS) || defined(OPENSSL_SYS_NETWARE) || defined(OPENSSL_SYS_VOS) || defined(OPENSSL_SYS_BEOS)
+#ifndef OPENSSL_NO_EGD
+
+# if defined(OPENSSL_SYS_WIN32) || defined(OPENSSL_SYS_VMS) || defined(OPENSSL_SYS_MSDOS) || defined(OPENSSL_SYS_VXWORKS) || defined(OPENSSL_SYS_NETWARE) || defined(OPENSSL_SYS_VOS) || defined(OPENSSL_SYS_BEOS)
 int RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes)
 {
     return (-1);
@@ -110,30 +112,30 @@ int RAND_egd_bytes(const char *path, int bytes)
 {
     return (-1);
 }
-#else
-# include <openssl/opensslconf.h>
-# include OPENSSL_UNISTD
-# include <stddef.h>
-# include <sys/types.h>
-# include <sys/socket.h>
-# ifndef NO_SYS_UN_H
-#  ifdef OPENSSL_SYS_VXWORKS
-#   include <streams/un.h>
-#  else
-#   include <sys/un.h>
-#  endif
 # else
+#  include <openssl/opensslconf.h>
+#  include OPENSSL_UNISTD
+#  include <stddef.h>
+#  include <sys/types.h>
+#  include <sys/socket.h>
+#  ifndef NO_SYS_UN_H
+#   ifdef OPENSSL_SYS_VXWORKS
+#    include <streams/un.h>
+#   else
+#    include <sys/un.h>
+#   endif
+#  else
 struct sockaddr_un {
     short sun_family;           /* AF_UNIX */
     char sun_path[108];         /* path name (gag) */
 };
-# endif                         /* NO_SYS_UN_H */
-# include <string.h>
-# include <errno.h>
+#  endif                         /* NO_SYS_UN_H */
+#  include <string.h>
+#  include <errno.h>
 
-# ifndef offsetof
-#  define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
-# endif
+#  ifndef offsetof
+#   define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+#  endif
 
 int RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes)
 {
@@ -159,25 +161,25 @@ int RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes)
             success = 1;
         else {
             switch (errno) {
-# ifdef EINTR
+#  ifdef EINTR
             case EINTR:
-# endif
-# ifdef EAGAIN
+#  endif
+#  ifdef EAGAIN
             case EAGAIN:
-# endif
-# ifdef EINPROGRESS
+#  endif
+#  ifdef EINPROGRESS
             case EINPROGRESS:
-# endif
-# ifdef EALREADY
+#  endif
+#  ifdef EALREADY
             case EALREADY:
-# endif
+#  endif
                 /* No error, try again */
                 break;
-# ifdef EISCONN
+#  ifdef EISCONN
             case EISCONN:
                 success = 1;
                 break;
-# endif
+#  endif
             default:
                 goto err;       /* failure */
             }
@@ -194,12 +196,12 @@ int RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes)
                 numbytes += num;
             else {
                 switch (errno) {
-# ifdef EINTR
+#  ifdef EINTR
                 case EINTR:
-# endif
-# ifdef EAGAIN
+#  endif
+#  ifdef EAGAIN
                 case EAGAIN:
-# endif
+#  endif
                     /* No error, try again */
                     break;
                 default:
@@ -217,12 +219,12 @@ int RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes)
                 numbytes += num;
             else {
                 switch (errno) {
-# ifdef EINTR
+#  ifdef EINTR
                 case EINTR:
-# endif
-# ifdef EAGAIN
+#  endif
+#  ifdef EAGAIN
                 case EAGAIN:
-# endif
+#  endif
                     /* No error, try again */
                     break;
                 default:
@@ -246,12 +248,12 @@ int RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes)
                 numbytes += num;
             else {
                 switch (errno) {
-# ifdef EINTR
+#  ifdef EINTR
                 case EINTR:
-# endif
-# ifdef EAGAIN
+#  endif
+#  ifdef EAGAIN
                 case EAGAIN:
-# endif
+#  endif
                     /* No error, try again */
                     break;
                 default:
@@ -289,4 +291,10 @@ int RAND_egd(const char *path)
     return (RAND_egd_bytes(path, 255));
 }
 
+# endif
+
+#else /* OPENSSL_NO_EGD */
+# if PEDANTIC
+static void *dummy = &dummy;
+# endif
 #endif
