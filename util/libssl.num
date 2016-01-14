@@ -522,5 +522,12 @@ SSL_akamai_set_cipher_list              10030	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_akamai_get_preferred_cipher_count   10031	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_akamai_fixup_cipher_strength        10032	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_CTX_akamai_get_preferred_cipher_count 10033	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_get_X509_pubkey_digest              10036	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
+RSALG_hash                              10039	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
+SSL_INTERNAL_get_sign_pkey              10040	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
+SSL_INTERNAL_use_sigalgs                10041	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
+SSL_INTERNAL_send_alert                 10043	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
+SSL_rsalg_get_server_random             10079	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
+SSL_akamai_get_prf                      10080	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
 SSL_CTX_akamai_session_stats_bio        10085	1_1_0e	EXIST::FUNCTION:AKAMAI
 SSL_default_akamai_cipher_list          10086	1_1_1	EXIST::FUNCTION:AKAMAI

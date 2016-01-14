@@ -228,6 +228,10 @@ SSL_EX_DATA_AKAMAI *SSL_get_ex_data_akamai(SSL* s)
 static int akamai_opt_is_ok(enum SSL_AKAMAI_OPT opt)
 {
     /* if your feature is disabled, add here */
+#ifdef OPENSSL_NO_RSALG
+    if (opt == SSL_AKAMAI_OPT_RSALG)
+        return 0;
+#endif
     return (opt < SSL_AKAMAI_OPT_LIMIT) ? 1 : 0;
 }
 
@@ -792,6 +796,101 @@ int SSL_CTX_akamai_set_cipher_list(SSL_CTX *ctx, const char *pref, const char* m
                                              &ctx->cipher_list_by_id,
                                              &ex_data->akamai_cipher_count);
 }
+
+# ifndef OPENSSL_NO_AKAMAI_RSALG
+/*
+ * The RSALG algorithm requires that the random number be hashed before being
+ * placed in the server hello message.
+ * |s_rand| is the random buffer, must be SSL3_RANDOM_SIZE
+ */
+void RSALG_hash(unsigned char *s_rand)
+{
+    unsigned char out[SHA256_DIGEST_LENGTH];
+    OPENSSL_assert(SHA256_DIGEST_LENGTH == SSL3_RANDOM_SIZE);
+    /*
+     * Take a sha256 hash of the server random,
+     * to be placed in the server hello.
+     */
+    SHA256(s_rand, SSL3_RANDOM_SIZE, out);
+
+    /* The first 4 bytes must be the time, just as with standard RSA. */
+    memcpy(s_rand+4, out+4, SSL3_RANDOM_SIZE-4);
+}
+
+size_t SSL_rsalg_get_server_random(SSL* s, unsigned char *out, size_t outlen)
+{
+    SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
+    if (outlen == 0)
+        return sizeof(ex_data->server_random);
+    if (outlen > sizeof(ex_data->server_random))
+        outlen = sizeof(ex_data->server_random);
+    memcpy(out, ex_data->server_random, outlen);
+    return outlen;
+}
+
+int SSL_get_X509_pubkey_digest(SSL* s, unsigned char* hash)
+{
+    unsigned long alg_a = 0;
+    int algorithm_auth_index = -1;
+
+    /*
+     * Note that this logic is similar to ssl_lib.c:ssl_get_sign_pkey
+     * (in how it looks up our signing cert).
+     * Also note we are not supporting DSA here.
+     */
+    if (s->s3  == NULL || s->s3->tmp.new_cipher == NULL ||
+        s->cert == NULL)
+        return 0;
+
+    alg_a = s->s3->tmp.new_cipher->algorithm_auth;
+
+    if ((alg_a & SSL_aRSA))
+        algorithm_auth_index = SSL_PKEY_RSA;
+    else if ((alg_a & SSL_aECDSA))
+        algorithm_auth_index = SSL_PKEY_ECC;
+
+    /* once we know which index we need to use, we can compute the SHA-256 hash */
+    if (algorithm_auth_index == -1 || s->cert->pkeys[algorithm_auth_index].x509 == NULL)
+        return 0;
+
+    /* we should still have a valid public key, even if our private key is not here */
+    return X509_pubkey_digest(s->cert->pkeys[algorithm_auth_index].x509,
+                              EVP_sha256(), hash, NULL);
+}
+
+int SSL_akamai_get_prf(SSL *s)
+{
+    const EVP_MD *md = ssl_prf_md(s);
+    if (md == NULL)
+        return NID_undef;
+    return EVP_MD_nid(md);
+}
+
+EVP_PKEY *SSL_INTERNAL_get_sign_pkey(SSL *s, const SSL_CIPHER *cipher, const EVP_MD **pmd)
+{
+    /* no longer exists, recreate it */
+    if (s->s3->tmp.cert == NULL || s->s3->tmp.sigalg == NULL)
+        return NULL;
+    if (pmd != NULL)
+        *pmd = ssl_md(s->s3->tmp.sigalg->hash_idx);
+    return s->s3->tmp.cert->privatekey;
+}
+
+/* ssl_set_handshake_header() changed signature/arguments */
+
+int SSL_INTERNAL_send_alert(SSL *s, int level, int desc)
+{
+    return ssl3_send_alert(s, level, desc);
+}
+
+unsigned int SSL_INTERNAL_use_sigalgs(SSL* s)
+{
+    return SSL_USE_SIGALGS(s);
+}
+
+/* tls12_get_sigandhash() is obsolete and removed */
+
+# endif /* OPENSSL_NO_AKAMAI_RSALG */
 
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b)
 {
