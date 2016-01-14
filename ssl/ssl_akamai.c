@@ -670,6 +670,14 @@ void* SSL_get_cert_verify_arg(SSL *s)
     return SSL_get_ex_data_akamai(s)->app_verify_arg;
 }
 
+void SSL_CTX_set_cert_store_ref(SSL_CTX *ctx, X509_STORE *store)
+{
+    if (ctx->cert_store != NULL)
+        X509_STORE_free(ctx->cert_store);
+    CRYPTO_add(&store->references, 1, CRYPTO_LOCK_X509_STORE);
+    ctx->cert_store = store;
+}
+
 #else /* OPENSSL_NO_AKAMAI */
 
 # if PEDANTIC
