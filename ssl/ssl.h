@@ -2220,9 +2220,6 @@ void SSL_CTX_tlsext_ticket_appdata_cbs(SSL_CTX *ctx,
 int SSL_want(const SSL *s);
 int SSL_clear(SSL *s);
 
-#ifndef OPENSSL_NO_AKAMAI
-void SSL_CTX_flush_sessions_lock(SSL_CTX *ctx, long tm, int lock);
-#endif
 void SSL_CTX_flush_sessions(SSL_CTX *ctx, long tm);
 
 const SSL_CIPHER *SSL_get_current_cipher(const SSL *s);
@@ -2681,35 +2678,6 @@ int SSL_use_cert_and_key(SSL *ssl, X509 *x509, EVP_PKEY *privatekey,
 int SSL_CTX_use_cert_and_key(SSL_CTX *ctx, X509 *x509, EVP_PKEY *privatekey,
                              STACK_OF(X509) *extra, int override);
 
-#  ifndef OPENSSL_NO_AKAMAI_CLIENT_CACHE
-/* Support for client cache */
-#   ifdef OPENSSL_SYS_WINDOWS
-#    include <winsock.h>
-#   else
-#    include <sys/socket.h>
-#   endif
-
-/* IPv4 legacy functions */
-void SSL_set_remote_addr(SSL *s, unsigned int addr);
-void SSL_set_remote_port(SSL *s, unsigned int port);
-unsigned int SSL_get_remote_addr(const SSL *s);
-unsigned int SSL_get_remote_port(const SSL *s);
-
-/* IPv4/6 versions */
-int SSL_set_remote_addr_ex(SSL *s, struct sockaddr_storage* addr);
-int SSL_get_remote_addr_ex(const SSL *s, struct sockaddr_storage* addr);
-
-void SSL_SESSION_copy_remote_addr(SSL_SESSION*, SSL*);
-
-int    SSL_SESSION_client_cmp(const void *data1, const void *data2);
-
-#   define MUST_HAVE_APP_DATA 0x1
-#   define MUST_COPY_SESSION  0x2
-int     SSL_get_prev_client_session(SSL *s, int flags);
-int     SSL_SESSION_set_timeout_update_cache(const SSL *s, long t);
-
-int     SSL_CTX_set_client_session_cache(SSL_CTX *ctx);
-#  endif /* OPENSSL_NO_AKAMAI_CLIENT_CACHE */
 # endif /* OPENSSL_NO_AKAMAI */
 
 /* BEGIN ERROR CODES */
