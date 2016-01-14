@@ -4392,3 +4392,6 @@ EVP_aria_192_gcm                        4335	1_1_1	EXIST::FUNCTION:ARIA
 CRYPTO_THREAD_glock_new                 4336	1_1_1	EXIST::FUNCTION:
 X509_LOOKUP_mem                         10001	1_1_0a	EXIST::FUNCTION:AKAMAI
 X509_STORE_load_mem                     10002	1_1_0a	EXIST::FUNCTION:AKAMAI
+AKAMAI_prf                              10007	1_1_0c	EXIST::FUNCTION:AKAMAI
+AKAMAI_algorithm2_to_md                 10008	1_1_0c	EXIST::FUNCTION:AKAMAI
+AKAMAI_rsalg_hash                       10009	1_1_0c	EXIST::FUNCTION:AKAMAI
