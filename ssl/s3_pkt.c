@@ -1465,7 +1465,7 @@ int ssl3_readv_bytes(SSL *s, int type, const SSL_BUCKET *buckets,
         (s->s3->handshake_fragment_len >= 4) &&
         (s->s3->handshake_fragment[0] == SSL3_MT_CLIENT_HELLO) &&
         (s->session != NULL) && (s->session->cipher != NULL) &&
-        (s->options & SSL_OP_DISALLOW_RENEGOTIATION)) {
+        (SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION))) {
         al=SSL_AD_NO_RENEGOTIATION;
         SSLerr(SSL_F_SSL3_READ_BYTES,SSL_R_SSL_HANDSHAKE_FAILURE);
         goto f_err;
