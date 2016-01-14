@@ -4574,3 +4574,6 @@ EC_GROUP_set_curve                      4527	1_1_1	EXIST::FUNCTION:EC
 EC_GROUP_get_curve                      4528	1_1_1	EXIST::FUNCTION:EC
 X509_LOOKUP_mem                         10001	1_1_0a	EXIST::FUNCTION:AKAMAI
 X509_STORE_load_mem                     10002	1_1_0a	EXIST::FUNCTION:AKAMAI
+AKAMAI_prf                              10007	1_1_0c	EXIST::FUNCTION:AKAMAI
+AKAMAI_algorithm2_to_md                 10008	1_1_0c	EXIST::FUNCTION:AKAMAI
+AKAMAI_rsalg_hash                       10009	1_1_0c	EXIST::FUNCTION:AKAMAI
