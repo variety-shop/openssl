@@ -129,4 +129,7 @@ int ssl3_writev_pending(SSL *s, int type, const SSL_BUCKET *buckets, int count,
                         unsigned int len, int reset);
 
 SSL_CTX_SESSION_LIST *SSL_CTX_get_session_list(SSL_CTX* ctx);
+
+void SSL_CTX_flush_sessions_lock(SSL_CTX *ctx, long tm, int lock);
+
 #endif /* HEADER_SSL_LOCL_AKAMAI_POST_H */
