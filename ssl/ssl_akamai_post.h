@@ -154,6 +154,10 @@ void* SSL_get_cert_verify_arg(SSL *s);
 
 void SSL_CTX_set_cert_store_ref(SSL_CTX *, X509_STORE *);
 
+/* SSL buffer allocation routine */
+/* The int argument is 1 for read buffers, 0 for write buffers */
+void SSL_set_buffer_mem_functions(void* (*m)(int, size_t), void(*f)(int, size_t, void*));
+
 # ifdef  __cplusplus
 }
 # endif
