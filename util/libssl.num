@@ -433,4 +433,14 @@ SSL_akamai_fixup_cipher_strength        10032	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_CTX_akamai_get_preferred_cipher_count 10033	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_CTX_use_cert_and_key                10034	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_use_cert_and_key                    10035	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_get_X509_pubkey_digest              10036	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
+SSL_INTERNAL_get_sigandhash             10037	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
+SSL_INTERNAL_set_handshake_header       10038	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
+RSALG_hash                              10039	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
+SSL_INTERNAL_get_sign_pkey              10040	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
+SSL_INTERNAL_use_sigalgs                10041	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
+SSL_INTERNAL_get_algorithm2             10042	1_1_0	NOEXIST::FUNCTION:
+SSL_INTERNAL_send_alert                 10043	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
+SSL_rsalg_get_server_random             10079	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
+SSL_akamai_get_prf                      10080	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
 SSL_CTX_akamai_session_stats_bio        10085	1_1_0e	EXIST::FUNCTION:AKAMAI
