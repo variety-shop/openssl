@@ -137,6 +137,9 @@ size_t SSL_BUCKET_cpy_in(const SSL_BUCKET *buckets, int count,
                          void *buf, int len);
 unsigned char *SSL_BUCKET_get_pointer(const SSL_BUCKET *buckets, int count,
                                       int offset, unsigned int *nw);
+# ifdef HEADER_X509_H
+X509 *SSL_get0_peer_certificate(const SSL *s);
+# endif
 
 # ifdef  __cplusplus
 }
