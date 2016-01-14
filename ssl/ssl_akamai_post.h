@@ -36,6 +36,7 @@ extern "C" {
 
 /* AKAMAI OPTIONS */
 typedef enum SSL_AKAMAI_OPT {
+    SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION = 0, /* CR 1138222 */
     /* insert here... */
     SSL_AKAMAI_OPT_LIMIT
 } SSL_AKAMAI_OPT;

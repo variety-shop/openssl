@@ -1759,7 +1759,7 @@ int MAIN(int argc, char *argv[])
     SSL_CTX_set_quiet_shutdown(ctx, 1);
 #ifndef OPENSSL_NO_AKAMAI
     if (disallow_reneg)
-        SSL_CTX_set_options(ctx, SSL_OP_DISALLOW_RENEGOTIATION);
+        SSL_CTX_akamai_opt_set(ctx, SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION);
 #endif
     if (hack)
         SSL_CTX_set_options(ctx, SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG);
