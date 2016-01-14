@@ -2680,9 +2680,6 @@ int SSL_use_cert_and_key(SSL *ssl, X509 *x509, EVP_PKEY *privatekey,
                          STACK_OF(X509) *extra, int override);
 int SSL_CTX_use_cert_and_key(SSL_CTX *ctx, X509 *x509, EVP_PKEY *privatekey,
                              STACK_OF(X509) *extra, int override);
-/* SSL3 buffer allocation routine */
-/* The int argument is 1 for read buffers, 0 for write buffers */
-void ssl3_set_buffer_mem_functions(void* (*m)(int, size_t), void(*f)(int, size_t, void*));
 
 #  ifndef OPENSSL_NO_AKAMAI_CLIENT_CACHE
 /* Support for client cache */
