@@ -681,7 +681,7 @@ ssl3_buffer_free(int for_read, size_t sz, void *mem)
         OPENSSL_free(mem);
 }
 
-void ssl3_set_buffer_mem_functions(void* (*m)(int, size_t), void(*f)(int, size_t, void*))
+void SSL_set_buffer_mem_functions(void* (*m)(int, size_t), void(*f)(int, size_t, void*))
 {
     buffer_malloc_cb = m;
     buffer_free_cb = f;
