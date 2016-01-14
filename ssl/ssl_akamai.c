@@ -566,6 +566,26 @@ int ssl23_writev(SSL *s, const SSL_BUCKET *buckets, int count)
 
 # endif /* !OPENSSL_NO_IOVEC */
 
+# ifdef HEADER_X509_H
+/*
+ * Same as SSL_get_peer_certificate() except it doesn't
+ * increment the ref count of the returned X509*
+ */
+X509 *SSL_get0_peer_certificate(const SSL *s)
+{
+    X509 *r = SSL_get_peer_certificate(s);
+
+    /*
+     * the reference was just incremented, so decrement
+     * no need for X509_free() overhead
+     */
+    if (r)
+        CRYPTO_add(&r->references, -1, CRYPTO_LOCK_X509);
+
+    return (r);
+}
+# endif
+
 #else /* OPENSSL_NO_AKAMAI */
 
 # if PEDANTIC
