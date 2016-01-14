@@ -303,8 +303,7 @@ if (exists $ENV{FIPSDIR})
 #Akamai adds %enabled to list enabled features
 my %enabled = ( # "what"                => "comment" [or special keyword "experimental"]
                 "akamai-client-cache"   => "akamai-default",
-                "iovec"                 => "akamai-default",
-                "store"                 => "akamai-default"
+                "iovec"                 => "akamai-default"
 );
 
 # All of the following is disabled by default (RC5 was enabled before 0.9.8):
@@ -347,6 +346,7 @@ my %disabled = ( # "what"         => "comment" [or special keyword "experimental
 		 "ssl-trace"	  => "default",
 		 "ssl2"	  	  => "akamai-default",
 		 "ssl3"	  	  => "akamai-default",
+		 "store"	  => "experimental",
 		 "unit-test"	  => "default",
 		 "whirlpool"	  => "akamai-default",
 		 "zlib"           => "default",
