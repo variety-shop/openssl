@@ -714,15 +714,6 @@ struct ssl_session_st {
  */
 # define SSL_OP_CRYPTOPRO_TLSEXT_BUG                     0x80000000L
 
-# ifndef OPENSSL_NO_AKAMAI
-/* Akamai specific option, currently even in openssl/master this particular
- * bit is not used for anything so it seems ok to steal it for our purpose.
- * Relevant CR# is 1138222.
- * As server, disallow renegotiation (secure and legacy)
-*/
-#  define SSL_OP_DISALLOW_RENEGOTIATION                  0x00200000L
-# endif
-
 /*
  * Allow SSL_write(..., n) to return r with 0 < r < n (i.e. report success
  * when just a single record has been written):
