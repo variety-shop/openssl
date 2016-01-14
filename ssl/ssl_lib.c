@@ -932,26 +932,6 @@ X509 *SSL_get_peer_certificate(const SSL *s)
     return (r);
 }
 
-#ifndef OPENSSL_NO_AKAMAI
-/* 
- * Same as SSL_get_peer_certificate() except it doesn't
- * increment the ref count of the returned X509*
- */
-X509 *SSL_get0_peer_certificate(const SSL *s)
-{
-    X509 *r = SSL_get_peer_certificate(s);
-
-    /*
-     * the reference was just incremented, so decrement
-     * no need for X509_free() overhead
-     */
-    if (r)
-        CRYPTO_add(&r->references, -1, CRYPTO_LOCK_X509);
-        
-    return (r);
-}
-#endif
-
 STACK_OF(X509) *SSL_get_peer_cert_chain(const SSL *s)
 {
     STACK_OF(X509) *r;
