@@ -152,6 +152,8 @@ void SSL_set_cert_verify_callback(SSL *s,
                                   void *arg);
 void* SSL_get_cert_verify_arg(SSL *s);
 
+void SSL_CTX_set_cert_store_ref(SSL_CTX *, X509_STORE *);
+
 # ifdef  __cplusplus
 }
 # endif
