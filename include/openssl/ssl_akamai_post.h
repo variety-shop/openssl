@@ -41,6 +41,7 @@ const char *SSL_default_akamai_cipher_list(void);
 
 /* AKAMAI OPTIONS */
 typedef enum SSL_AKAMAI_OPT {
+    SSL_AKAMAI_OPT_RSALG = 0,
     /* insert here... */
     SSL_AKAMAI_OPT_LIMIT
 } SSL_AKAMAI_OPT;
@@ -113,6 +114,21 @@ int SSL_akamai_get_preferred_cipher_count(SSL *s);
 int SSL_CTX_akamai_set_cipher_list(SSL_CTX *ctx, const char *pref, const char *must);
 int SSL_akamai_set_cipher_list(SSL *s, const char *pref, const char *must);
 int SSL_akamai_fixup_cipher_strength(const char* level, const char* ciphers);
+
+#  ifndef OPENSSL_NO_AKAMAI_RSALG
+void RSALG_hash(unsigned char *s_rand);
+size_t SSL_rsalg_get_server_random(SSL* s, unsigned char *out, size_t outlen);
+int SSL_get_X509_pubkey_digest(SSL* s, unsigned char* hash);
+/* wrapper functions around internal SSL stuff */
+
+int SSL_akamai_get_prf(SSL *s);
+
+EVP_PKEY *SSL_INTERNAL_get_sign_pkey(SSL *s, const SSL_CIPHER *cipher,
+                                     const EVP_MD **pmd);
+int SSL_INTERNAL_send_alert(SSL *s, int level, int desc);
+unsigned int SSL_INTERNAL_use_sigalgs(SSL* s);
+
+#  endif /* OPENSSL_NO_AKAMAI_RSALG */
 
 /* Replaces SSL_CTX_sessions() and OPENSSL_LH_stats_bio() for shared session cache. */
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b);
