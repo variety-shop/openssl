@@ -42,6 +42,7 @@ extern "C" {
 /* AKAMAI OPTIONS */
 typedef enum SSL_AKAMAI_OPT {
     SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION = 0, /* CR 1138222 */
+    SSL_AKAMAI_OPT_RSALG,
     /* insert here... */
     SSL_AKAMAI_OPT_LIMIT
 } SSL_AKAMAI_OPT;
@@ -149,6 +150,30 @@ int SSL_use_cert_and_key(SSL *ssl, X509 *x509, EVP_PKEY *privatekey,
                          STACK_OF(X509) *extra, int override);
 int SSL_CTX_use_cert_and_key(SSL_CTX *ctx, X509 *x509, EVP_PKEY *privatekey,
                              STACK_OF(X509) *extra, int override);
+
+#  ifndef OPENSSL_NO_AKAMAI_RSALG
+void RSALG_hash(unsigned char *s_rand, unsigned char *p, size_t len);
+int SSL_get_X509_pubkey_digest(SSL* s, unsigned char* hash);
+/* wrapper functions around internal SSL stuff */
+int SSL_INTERNAL_prf(SSL *s,
+                     const void *seed1, int seed1_len,
+                     const void *seed2, int seed2_len,
+                     const void *seed3, int seed3_len,
+                     const void *seed4, int seed4_len,
+                     const void *seed5, int seed5_len,
+                     const unsigned char *sec, int slen,
+                     unsigned char *out, int olen);
+long SSL_INTERNAL_get_algorithm2(SSL *s);
+
+EVP_PKEY *SSL_INTERNAL_get_sign_pkey(SSL *s, const SSL_CIPHER *cipher,
+                                     const EVP_MD **pmd);
+void SSL_INTERNAL_set_handshake_header(SSL *s, int type, unsigned long len);
+int SSL_INTERNAL_send_alert(SSL *s, int level, int desc);
+unsigned int SSL_INTERNAL_use_sigalgs(SSL* s);
+int SSL_INTERNAL_get_sigandhash(unsigned char *p, const EVP_PKEY *pk,
+                                const EVP_MD *md);
+
+#  endif /* OPENSSL_NO_AKAMAI_RSALG */
 
 #  ifdef  __cplusplus
 }

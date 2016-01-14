@@ -1523,7 +1523,20 @@ int tls_construct_server_hello(SSL *s)
      * Random stuff. Filling of the server_random takes place in
      * tls_process_client_hello()
      */
+#ifdef OPENSSL_NO_AKAMAI_RSALG
     memcpy(p, s->s3->server_random, SSL3_RANDOM_SIZE);
+#else
+    if (SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_RSALG) &&
+        (s->s3->tmp.new_cipher->algorithm_mkey & SSL_kRSA) &&
+        /* Session resumption does not use the cryptoserver; skip hashing. */
+        s->hit == 0) {
+        /* We are using RSALG, so we need to hash the server random. */
+        RSALG_hash(s->s3->server_random, p, SSL3_RANDOM_SIZE);
+    } else {
+        /* not RSALG */
+        memcpy(p, s->s3->server_random, SSL3_RANDOM_SIZE);
+    }
+#endif
     p += SSL3_RANDOM_SIZE;
 
     /*-
