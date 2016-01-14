@@ -243,6 +243,12 @@ void SSL_CTX_tlsext_ticket_appdata_cbs(SSL_CTX *ctx,
 int SSL_CTX_use_certificate_chain_mem(SSL_CTX *ctx, void *buf, int len);
 int SSL_CTX_load_verify_mem(SSL_CTX *ctx, void *buf, int len);
 
+/* No privatekey support */
+int SSL_use_cert_and_key(SSL *ssl, X509 *x509, EVP_PKEY *privatekey,
+                         STACK_OF(X509) *extra, int override);
+int SSL_CTX_use_cert_and_key(SSL_CTX *ctx, X509 *x509, EVP_PKEY *privatekey,
+                             STACK_OF(X509) *extra, int override);
+
 # ifdef  __cplusplus
 }
 # endif
