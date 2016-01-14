@@ -4581,3 +4581,6 @@ OPENSSL_INIT_set_config_filename        4534	1_1_1b	EXIST::FUNCTION:STDIO
 OPENSSL_INIT_set_config_file_flags      4535	1_1_1b	EXIST::FUNCTION:STDIO
 X509_LOOKUP_mem                         10001	1_1_0a	EXIST::FUNCTION:AKAMAI
 X509_STORE_load_mem                     10002	1_1_0a	EXIST::FUNCTION:AKAMAI
+AKAMAI_prf                              10007	1_1_0c	EXIST::FUNCTION:AKAMAI
+AKAMAI_algorithm2_to_md                 10008	1_1_0c	EXIST::FUNCTION:AKAMAI
+AKAMAI_rsalg_hash                       10009	1_1_0c	EXIST::FUNCTION:AKAMAI

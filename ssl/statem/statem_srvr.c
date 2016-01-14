@@ -1903,6 +1903,13 @@ static int tls_early_post_process_client_hello(SSL *s)
         }
     }
 
+#ifndef OPENSSL_NO_AKAMAI_RSALG
+    {
+        SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
+        memcpy(ex_data->server_random, s->s3->server_random, SSL3_RANDOM_SIZE);
+    }
+#endif
+
     if (!s->hit
             && s->version >= TLS1_VERSION
             && !SSL_IS_TLS13(s)
@@ -2356,6 +2363,19 @@ int tls_construct_server_hello(SSL *s, WPACKET *pkt)
     int usetls13 = SSL_IS_TLS13(s) || s->hello_retry_request == SSL_HRR_PENDING;
 
     version = usetls13 ? TLS1_2_VERSION : s->version;
+
+#ifndef OPENSSL_NO_AKAMAI_RSALG
+    if (SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_RSALG) &&
+        (s->s3->tmp.new_cipher->algorithm_mkey & SSL_kRSA) &&
+        /* Only hash once in a TLS 1.3 HelloRetryRequest flow. */
+        s->hello_retry_request != SSL_HRR_PENDING &&
+        /* Session resumption does not use the cryptoserver; skip hashing. */
+        s->hit == 0) {
+        /* We are using RSALG, so we need to hash the server random. */
+        RSALG_hash(s->s3->server_random);
+    }
+#endif
+
     if (!WPACKET_put_bytes_u16(pkt, version)
                /*
                 * Random stuff. Filling of the server_random takes place in
