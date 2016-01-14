@@ -2211,7 +2211,6 @@ int SSL_CTX_set_ssl2_cipher_list(SSL_CTX *ctx, const char *str);
 int SSL_CTX_set_preferred_cipher_list(SSL_CTX *ctx, const char *str);
 STACK_OF(SSL_CIPHER) *SSL_get_ssl2_ciphers(SSL *s);
 STACK_OF(SSL_CIPHER) *SSL_get_preferred_ciphers(SSL *s);
-void SSL_CTX_set_cert_store_ref(SSL_CTX *, X509_STORE *);
 void SSL_CTX_tlsext_ticket_appdata_cbs(SSL_CTX *ctx,
                                        tlsext_ticket_appdata_size_cb_fn size_cb,
                                        tlsext_ticket_appdata_append_cb_fn append_cb,
