@@ -335,6 +335,7 @@ my %disabled = ( # "what"         => "comment" [or special keyword "experimental
 		 "poly1305"	  => "akamai-default",
 		 "psk"		  => "akamai-default",
 		 "rc2"            => "akamai-default",
+		 "rc4"		  => "akamai-default",
 		 "rc5"            => "default",
 		 "rfc3779"	  => "default",
 		 "ripemd"	  => "akamai-default",

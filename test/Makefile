@@ -902,9 +902,11 @@ rc2test.o: ../include/openssl/e_os2.h ../include/openssl/opensslconf.h
 rc2test.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
 rc2test.o: ../include/openssl/safestack.h ../include/openssl/stack.h
 rc2test.o: ../include/openssl/symhacks.h rc2test.c
-rc4test.o: ../e_os.h ../include/openssl/e_os2.h
-rc4test.o: ../include/openssl/opensslconf.h ../include/openssl/rc4.h
-rc4test.o: ../include/openssl/sha.h rc4test.c
+rc4test.o: ../include/openssl/buffer.h ../include/openssl/crypto.h
+rc4test.o: ../include/openssl/e_os2.h ../include/openssl/opensslconf.h
+rc4test.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
+rc4test.o: ../include/openssl/safestack.h ../include/openssl/stack.h
+rc4test.o: ../include/openssl/symhacks.h rc4test.c
 rc5test.o: ../include/openssl/buffer.h ../include/openssl/crypto.h
 rc5test.o: ../include/openssl/e_os2.h ../include/openssl/opensslconf.h
 rc5test.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
