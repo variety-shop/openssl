@@ -317,6 +317,7 @@ my %disabled = ( # "what"         => "comment" [or special keyword "experimental
 		 "cast"		  => "akamai-default",
 		 "chacha"	  => "akamai-default",
 		 "comp"		  => "akamai-default",
+		 "dso"		  => "akamai-default",
 		 "dtls1"	  => "akamai-default",
 		 "dynamic-engine" => "akamai-default",
 		 "ec_nistp_64_gcc_128" => "default",
