@@ -239,7 +239,6 @@ static int tls1_P_hash(const EVP_MD *md, const unsigned char *sec,
 }
 
 /* seed1 through seed5 are virtually concatenated */
-#ifdef OPENSSL_NO_AKAMAI_ASYNC_RSALG
 static int tls1_PRF(long digest_mask,
                     const void *seed1, int seed1_len,
                     const void *seed2, int seed2_len,
@@ -248,21 +247,6 @@ static int tls1_PRF(long digest_mask,
                     const void *seed5, int seed5_len,
                     const unsigned char *sec, int slen,
                     unsigned char *out1, unsigned char *out2, int olen)
-#else
-/*
- * NOTE: This function needs to be externally linkable (i.e., not static)
- * so that TLS cryptoserver can invoke it to compute the master secret
- * for RSALG.
- */
-int tls1_PRF(long digest_mask,
-             const void *seed1, int seed1_len,
-             const void *seed2, int seed2_len,
-             const void *seed3, int seed3_len,
-             const void *seed4, int seed4_len,
-             const void *seed5, int seed5_len,
-             const unsigned char *sec, int slen,
-             unsigned char *out1, unsigned char *out2, int olen)
-#endif
 {
     int len, i, idx, count;
     const unsigned char *S1;
@@ -1390,3 +1374,23 @@ int tls1_alert_code(int code)
         return (-1);
     }
 }
+
+#ifndef OPENSSL_NO_AKAMAI_ASYNC_RSALG
+/*
+ * NOTE: This function needs to be externally linkable (i.e., not static)
+ * so that TLS cryptoserver can invoke it to compute the master secret
+ * for RSALG.
+ */
+int SSL_INTERNAL_prf(long dm,
+                     const void *s1, int l1,
+                     const void *s2, int l2,
+                     const void *s3, int l3,
+                     const void *s4, int l4,
+                     const void *s5, int l5,
+                     const unsigned char *sec, int slen,
+                     unsigned char *out1, unsigned char *out2, int olen)
+{
+    return tls1_PRF(dm, s1, l1, s2, l2, s3, l3, s4, l4, s5, l5, sec, slen,
+                    out1, out2, olen);
+}
+#endif
