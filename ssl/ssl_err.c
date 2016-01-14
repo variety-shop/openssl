@@ -662,6 +662,7 @@ static ERR_STRING_DATA SSL_str_reasons[] = {
      "unsafe legacy renegotiation disabled"},
     {ERR_REASON(SSL_R_UNSUPPORTED_COMPRESSION_ALGORITHM),
      "unsupported compression algorithm"},
+    {ERR_REASON(SSL_R_UNSUPPORTED_DIGEST_TYPE), "unsupported digest type"},
     {ERR_REASON(SSL_R_UNSUPPORTED_ELLIPTIC_CURVE),
      "unsupported elliptic curve"},
     {ERR_REASON(SSL_R_UNSUPPORTED_PROTOCOL), "unsupported protocol"},

@@ -2557,6 +2557,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_R_UNKNOWN_STATE                              255
 # define SSL_R_UNSAFE_LEGACY_RENEGOTIATION_DISABLED       338
 # define SSL_R_UNSUPPORTED_COMPRESSION_ALGORITHM          257
+# define SSL_R_UNSUPPORTED_DIGEST_TYPE                    997
 # define SSL_R_UNSUPPORTED_ELLIPTIC_CURVE                 315
 # define SSL_R_UNSUPPORTED_PROTOCOL                       258
 # define SSL_R_UNSUPPORTED_SSL_VERSION                    259
