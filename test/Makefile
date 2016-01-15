@@ -110,18 +110,24 @@ OBJ=	$(BNTEST).o $(ECTEST).o  $(ECDSATEST).o $(ECDHTEST).o $(IDEATEST).o \
 	$(TASKTEST).o $(TLSEXTTEST).o $(CIPHPREFTEST).o \
 	$(CLIENTCACHETEST).o $(CLIENTCACH2TEST).o
 
-SRC=	$(BNTEST).c $(ECTEST).c  $(ECDSATEST).c $(ECDHTEST).c $(IDEATEST).c \
+# DSRC = dummy scource, source that may end up symlinking to dummytest,
+# does not include files in the test directory
+DSRC=	$(BNTEST).c $(ECTEST).c  $(ECDSATEST).c $(ECDHTEST).c $(IDEATEST).c \
 	$(MD2TEST).c  $(MD4TEST).c $(MD5TEST).c \
 	$(HMACTEST).c $(WPTEST).c \
 	$(RC2TEST).c $(RC4TEST).c $(RC5TEST).c \
 	$(DESTEST).c $(SHATEST).c $(SHA1TEST).c $(MDC2TEST).c $(RMDTEST).c \
 	$(RANDTEST).c $(DHTEST).c $(ENGINETEST).c $(CASTTEST).c \
 	$(BFTEST).c  $(SSLTEST).c $(DSATEST).c   $(EXPTEST).c $(RSATEST).c \
-	$(EVPTEST).c $(EVPEXTRATEST).c $(IGETEST).c $(JPAKETEST).c $(SRPTEST).c $(ASN1TEST).c \
+	$(EVPTEST).c $(EVPEXTRATEST).c $(JPAKETEST).c $(SRPTEST).c \
 	$(V3NAMETEST).c $(HEARTBEATTEST).c $(CONSTTIMETEST).c $(VERIFYEXTRATEST).c \
+	$(SHA256TEST).c $(SHA512TEST).c \
 	$(CLIENTHELLOTEST).c  $(SSLV2CONFTEST).c \
-	$(TASKTEST).c $(TLSEXTTEST).c $(CIPHPREFTEST).c \
-	$(CLIENTCACHETEST).c $(CLIENTCACHE2TEST).c
+	$(CLIENTCACHETEST).c
+
+# SRC = all the source - includes source files in the test directory
+SRC=	$(DSRC) $(IGETEST).c $(ASN1TEST).c \
+	$(TASKTEST).c $(TLSEXTTEST).c $(CIPHPREFTEST).c $(CLIENTCACHE2TEST).c
 
 EXHEADER= 
 HEADER=	testutil.h $(EXHEADER)
@@ -140,8 +146,8 @@ files:
 
 links:
 
-generate: $(SRC)
-$(SRC):
+generate: $(DSRC)
+$(DSRC):
 	@sh $(TOP)/util/point.sh dummytest.c $@
 
 errors:
@@ -404,14 +410,14 @@ update: local_depend
 
 depend: local_depend
 	@if [ -z "$(THIS)" ]; then $(MAKE) -f $(TOP)/Makefile reflect THIS=$@; fi
+
 local_depend:
 	@[ -z "$(THIS)" ] || $(MAKEDEPEND) -- $(CFLAG) $(INCLUDES) $(DEPFLAG) -- $(PROGS) $(SRC)
 
 dclean:
 	$(PERL) -pe 'if (/^# DO NOT DELETE THIS LINE/) {print; exit(0);}' $(MAKEFILE) >Makefile.new
 	mv -f Makefile.new $(MAKEFILE)
-	rm -f $(SRC) $(SHA256TEST).c $(SHA512TEST).c evptests.txt newkey.pem testkey.pem \
-			testreq.pem
+	rm -f $(DSRC) evptests.txt newkey.pem testkey.pem testreq.pem
 
 clean:
 	rm -f .rnd tmp.bntest tmp.bctest *.o *.obj *.dll lib tags core .pure .nfs* *.old *.bak fluff $(EXE) *.ss *.srl log dummytest
@@ -930,6 +936,20 @@ sha1test.o: ../include/openssl/objects.h ../include/openssl/opensslconf.h
 sha1test.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
 sha1test.o: ../include/openssl/safestack.h ../include/openssl/sha.h
 sha1test.o: ../include/openssl/stack.h ../include/openssl/symhacks.h sha1test.c
+sha256t.o: ../include/openssl/asn1.h ../include/openssl/bio.h
+sha256t.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
+sha256t.o: ../include/openssl/evp.h ../include/openssl/obj_mac.h
+sha256t.o: ../include/openssl/objects.h ../include/openssl/opensslconf.h
+sha256t.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
+sha256t.o: ../include/openssl/safestack.h ../include/openssl/sha.h
+sha256t.o: ../include/openssl/stack.h ../include/openssl/symhacks.h sha256t.c
+sha512t.o: ../include/openssl/asn1.h ../include/openssl/bio.h
+sha512t.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
+sha512t.o: ../include/openssl/evp.h ../include/openssl/obj_mac.h
+sha512t.o: ../include/openssl/objects.h ../include/openssl/opensslconf.h
+sha512t.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
+sha512t.o: ../include/openssl/safestack.h ../include/openssl/sha.h
+sha512t.o: ../include/openssl/stack.h ../include/openssl/symhacks.h sha512t.c
 shatest.o: ../e_os.h ../include/openssl/asn1.h ../include/openssl/bio.h
 shatest.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
 shatest.o: ../include/openssl/evp.h ../include/openssl/obj_mac.h
