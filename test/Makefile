@@ -114,19 +114,25 @@ OBJ=	$(BNTEST).o $(ECTEST).o  $(ECDSATEST).o $(ECDHTEST).o $(IDEATEST).o \
 	$(TASKTEST).o $(TLSEXTTEST).o $(CIPHPREFTEST).o \
 	$(CLIENTCACHETEST).o $(CLIENTCACH2TEST).o
 
-SRC=	$(BNTEST).c $(ECTEST).c  $(ECDSATEST).c $(ECDHTEST).c $(IDEATEST).c \
+# DSRC = dummy scource, source that may end up symlinking to dummytest,
+# does not include files in the test directory
+DSRC=	$(BNTEST).c $(ECTEST).c  $(ECDSATEST).c $(ECDHTEST).c $(IDEATEST).c \
 	$(MD2TEST).c  $(MD4TEST).c $(MD5TEST).c \
 	$(HMACTEST).c $(WPTEST).c \
 	$(RC2TEST).c $(RC4TEST).c $(RC5TEST).c \
 	$(DESTEST).c $(SHATEST).c $(SHA1TEST).c $(MDC2TEST).c $(RMDTEST).c \
 	$(RANDTEST).c $(DHTEST).c $(ENGINETEST).c $(CASTTEST).c \
 	$(BFTEST).c  $(SSLTEST).c $(DSATEST).c   $(EXPTEST).c $(RSATEST).c \
-	$(EVPTEST).c $(EVPEXTRATEST).c $(IGETEST).c $(JPAKETEST).c $(SRPTEST).c $(ASN1TEST).c \
+	$(EVPTEST).c $(EVPEXTRATEST).c $(JPAKETEST).c $(SRPTEST).c \
 	$(V3NAMETEST).c $(HEARTBEATTEST).c $(CONSTTIMETEST).c $(VERIFYEXTRATEST).c \
-	$(CLIENTHELLOTEST).c  $(SSLV2CONFTEST).c $(DTLSTEST).c ssltestlib.c \
+	$(SHA256TEST).c $(SHA512TEST).c \
+	$(CLIENTHELLOTEST).c  $(SSLV2CONFTEST).c $(DTLSTEST).c \
 	$(BADDTLSTEST).c \
-	$(TASKTEST).c $(TLSEXTTEST).c $(CIPHPREFTEST).c \
-	$(CLIENTCACHETEST).c $(CLIENTCACHE2TEST).c
+	$(CLIENTCACHETEST).c
+
+# SRC = all the source - includes source files in the test directory
+SRC=	$(DSRC) $(IGETEST).c $(ASN1TEST).c ssltestlib.c \
+	$(TASKTEST).c $(TLSEXTTEST).c $(CIPHPREFTEST).c $(CLIENTCACHE2TEST).c testharness.c
 
 EXHEADER= 
 HEADER=	testutil.h ssltestlib.h $(EXHEADER)
@@ -145,8 +151,8 @@ files:
 
 links:
 
-generate: $(SRC)
-$(SRC):
+generate: $(DSRC)
+$(DSRC):
 	@sh $(TOP)/util/point.sh dummytest.c $@
 
 errors:
@@ -418,14 +424,14 @@ update: local_depend
 
 depend: local_depend
 	@if [ -z "$(THIS)" ]; then $(MAKE) -f $(TOP)/Makefile reflect THIS=$@; fi
+
 local_depend:
 	@[ -z "$(THIS)" ] || $(MAKEDEPEND) -- $(CFLAG) $(INCLUDES) $(DEPFLAG) -- $(PROGS) $(SRC)
 
 dclean:
 	$(PERL) -pe 'if (/^# DO NOT DELETE THIS LINE/) {print; exit(0);}' $(MAKEFILE) >Makefile.new
 	mv -f Makefile.new $(MAKEFILE)
-	rm -f $(SRC) $(SHA256TEST).c $(SHA512TEST).c evptests.txt newkey.pem testkey.pem \
-			testreq.pem
+	rm -f $(DSRC) evptests.txt newkey.pem testkey.pem testreq.pem
 
 clean:
 	rm -f .rnd tmp.bntest tmp.bctest *.o *.obj *.dll lib tags core .pure .nfs* *.old *.bak fluff $(EXE) *.ss *.srl log dummytest
@@ -639,25 +645,6 @@ asn1test.o: ../include/openssl/pkcs7.h ../include/openssl/safestack.h
 asn1test.o: ../include/openssl/sha.h ../include/openssl/stack.h
 asn1test.o: ../include/openssl/symhacks.h ../include/openssl/x509.h
 asn1test.o: ../include/openssl/x509_vfy.h asn1test.c
-bad_dtls_test.o: ../e_os.h ../include/openssl/asn1.h ../include/openssl/bio.h
-bad_dtls_test.o: ../include/openssl/buffer.h ../include/openssl/comp.h
-bad_dtls_test.o: ../include/openssl/crypto.h ../include/openssl/dtls1.h
-bad_dtls_test.o: ../include/openssl/e_os2.h ../include/openssl/ec.h
-bad_dtls_test.o: ../include/openssl/ecdh.h ../include/openssl/ecdsa.h
-bad_dtls_test.o: ../include/openssl/err.h ../include/openssl/evp.h
-bad_dtls_test.o: ../include/openssl/hmac.h ../include/openssl/kssl.h
-bad_dtls_test.o: ../include/openssl/lhash.h ../include/openssl/obj_mac.h
-bad_dtls_test.o: ../include/openssl/objects.h ../include/openssl/opensslconf.h
-bad_dtls_test.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
-bad_dtls_test.o: ../include/openssl/pem.h ../include/openssl/pem2.h
-bad_dtls_test.o: ../include/openssl/pkcs7.h ../include/openssl/pqueue.h
-bad_dtls_test.o: ../include/openssl/rand.h ../include/openssl/safestack.h
-bad_dtls_test.o: ../include/openssl/sha.h ../include/openssl/srtp.h
-bad_dtls_test.o: ../include/openssl/ssl.h ../include/openssl/ssl2.h
-bad_dtls_test.o: ../include/openssl/ssl23.h ../include/openssl/ssl3.h
-bad_dtls_test.o: ../include/openssl/stack.h ../include/openssl/symhacks.h
-bad_dtls_test.o: ../include/openssl/tls1.h ../include/openssl/x509.h
-bad_dtls_test.o: ../include/openssl/x509_vfy.h bad_dtls_test.c
 bftest.o: ../include/openssl/buffer.h ../include/openssl/crypto.h
 bftest.o: ../include/openssl/e_os2.h ../include/openssl/opensslconf.h
 bftest.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
@@ -988,6 +975,20 @@ sha1test.o: ../include/openssl/objects.h ../include/openssl/opensslconf.h
 sha1test.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
 sha1test.o: ../include/openssl/safestack.h ../include/openssl/sha.h
 sha1test.o: ../include/openssl/stack.h ../include/openssl/symhacks.h sha1test.c
+sha256t.o: ../include/openssl/asn1.h ../include/openssl/bio.h
+sha256t.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
+sha256t.o: ../include/openssl/evp.h ../include/openssl/obj_mac.h
+sha256t.o: ../include/openssl/objects.h ../include/openssl/opensslconf.h
+sha256t.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
+sha256t.o: ../include/openssl/safestack.h ../include/openssl/sha.h
+sha256t.o: ../include/openssl/stack.h ../include/openssl/symhacks.h sha256t.c
+sha512t.o: ../include/openssl/asn1.h ../include/openssl/bio.h
+sha512t.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
+sha512t.o: ../include/openssl/evp.h ../include/openssl/obj_mac.h
+sha512t.o: ../include/openssl/objects.h ../include/openssl/opensslconf.h
+sha512t.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
+sha512t.o: ../include/openssl/safestack.h ../include/openssl/sha.h
+sha512t.o: ../include/openssl/stack.h ../include/openssl/symhacks.h sha512t.c
 shatest.o: ../e_os.h ../include/openssl/asn1.h ../include/openssl/bio.h
 shatest.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
 shatest.o: ../include/openssl/evp.h ../include/openssl/obj_mac.h
