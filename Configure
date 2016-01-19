@@ -426,7 +426,7 @@ foreach my $proto ((@tls, @dtls))
 	}
 
 # do this in one place
-my @akamai = qw(akamai-client-cache akamai-ghost);
+my @akamai = qw(akamai-client-cache akamai-debian akamai-ghost);
 foreach my $proto ((@akamai))
         {
         push(@disablables, $proto);
