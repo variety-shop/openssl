@@ -80,6 +80,9 @@ static int get_issuer_sk(X509 **issuer, X509_STORE_CTX *ctx, X509 *x);
 static int check_dane_issuer(X509_STORE_CTX *ctx, int depth);
 static int check_key_level(X509_STORE_CTX *ctx, X509 *cert);
 static int check_sig_level(X509_STORE_CTX *ctx, X509 *cert);
+#ifndef OPENSSL_NO_AKAMAI_DEBIAN
+static int check_ca_blacklist(X509_STORE_CTX *ctx);
+#endif
 
 static int get_crl_score(X509_STORE_CTX *ctx, X509 **pissuer,
                          unsigned int *preasons, X509_CRL *crl, X509 *x);
@@ -235,6 +238,11 @@ static int verify_chain(X509_STORE_CTX *ctx)
 
     if ((ok = check_name_constraints(ctx)) == 0)
         return ok;
+
+#ifndef OPENSSL_NO_AKAMAI_DEBIAN
+    if ((ok = check_ca_blacklist(ctx)) == 0)
+        return ok;
+#endif
 
 #ifndef OPENSSL_NO_RFC3779
     /* RFC 3779 path validation, now that CRL check has been done */
@@ -991,6 +999,35 @@ static int check_crl_time(X509_STORE_CTX *ctx, X509_CRL *crl, int notify)
 
     return 1;
 }
+
+#ifndef OPENSSL_NO_AKAMAI_DEBIAN
+static int check_ca_blacklist(X509_STORE_CTX *ctx)
+{
+    X509 *x;
+    int i;
+    char *name;
+
+    /* Check all certificates against the blacklist */
+    for (i = sk_X509_num(ctx->chain) - 1; i >= 0; i--) {
+        x = sk_X509_value(ctx->chain, i);
+        /* Mark certificates containing the following names as
+         * revoked, no matter where in the chain they are.
+         */
+        name = X509_NAME_oneline(x->cert_info.subject, NULL, 0);
+        if (name && (strstr(name, "DigiNotar") ||
+                     strstr(name, "Digicert Sdn. Bhd."))) {
+            OPENSSL_free(name);
+            ctx->error = X509_V_ERR_CERT_REVOKED;
+            ctx->error_depth = i;
+            ctx->current_cert = x;
+            if (!ctx->verify_cb(0,ctx))
+                return 0;
+        } else
+            OPENSSL_free(name);
+    }
+    return 1;
+}
+#endif
 
 static int get_crl_sk(X509_STORE_CTX *ctx, X509_CRL **pcrl, X509_CRL **pdcrl,
                       X509 **pissuer, int *pscore, unsigned int *preasons,
