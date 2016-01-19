@@ -88,7 +88,11 @@ extern "C" {
  * should only keep the versions that are binary compatible with the current.
  */
 # define SHLIB_VERSION_HISTORY ""
-# define SHLIB_VERSION_NUMBER "1.0.0"
+# ifdef OPENSSL_NO_AKAMAI_DEBIAN
+#  define SHLIB_VERSION_NUMBER "1.0.0"
+# else
+#  define SHLIB_VERSION_NUMBER "1.0.2"
+# endif
 
 
 #ifdef  __cplusplus
