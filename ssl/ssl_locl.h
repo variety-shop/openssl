@@ -871,37 +871,6 @@ extern SSL3_ENC_METHOD SSLv3_enc_data;
 extern SSL3_ENC_METHOD DTLSv1_enc_data;
 extern SSL3_ENC_METHOD DTLSv1_2_enc_data;
 
-#ifndef OPENSSL_NO_IOVEC
-
-int	ssl2_readv(SSL *s, const ssl_bucket *buckets, int count);
-int	ssl23_readv(SSL *s, const ssl_bucket *buckets, int count);
-int	ssl3_readv(SSL *s, const ssl_bucket *buckets, int count);
-
-int	ssl2_writev(SSL *s, const ssl_bucket *buckets, int count);
-int	ssl23_writev(SSL *s, const ssl_bucket *buckets, int count);
-int	ssl3_writev(SSL *s, const ssl_bucket *buckets, int count);
-
-int 	ssl3_readv_bytes(SSL *s, int type, const ssl_bucket *buckets, int count, int peek);
-int 	ssl3_writev_bytes(SSL *s, int type, const ssl_bucket *buckets, int count);
-
-int 	dtls1_readv_bytes(SSL *s, int type, const ssl_bucket *buckets, int count, int peek);
-int 	dtls1_writev_bytes(SSL *s, int type, const ssl_bucket *buckets, int count);
-
-#define OPENSSL_SSL2_IOVEC_FNS ssl2_readv, ssl2_writev, NULL, NULL,
-#define OPENSSL_SSL23_IOVEC_FNS ssl23_readv, ssl23_writev, ssl3_readv_bytes, ssl3_writev_bytes,
-#define OPENSSL_SSL3_IOVEC_FNS ssl3_readv, ssl3_writev, ssl3_readv_bytes, ssl3_writev_bytes,
-#define OPENSSL_DTLS1_IOVEC_FNS ssl3_readv, ssl3_writev, dtls1_readv_bytes, dtls1_writev_bytes,
-
-#else  /* !OPENSSL_NO_IOVEC */
-
-#define OPENSSL_SSL2_IOVEC_FNS
-#define OPENSSL_SSL23_IOVEC_FNS
-#define OPENSSL_SSL3_IOVEC_FNS
-#define OPENSSL_DTLS1_IOVEC_FNS
-
-#endif /* OPENSSL_NO_IOVEC */
-
-
 # define IMPLEMENT_tls_meth_func(version, func_name, s_accept, s_connect, \
                                 s_get_meth, enc_data) \
 const SSL_METHOD *func_name(void)  \
@@ -922,7 +891,6 @@ const SSL_METHOD *func_name(void)  \
                 ssl3_get_message, \
                 ssl3_read_bytes, \
                 ssl3_write_bytes, \
-                OPENSSL_SSL3_IOVEC_FNS \
                 ssl3_dispatch_alert, \
                 ssl3_ctrl, \
                 ssl3_ctx_ctrl, \
@@ -961,7 +929,6 @@ const SSL_METHOD *func_name(void)  \
                 ssl3_get_message, \
                 ssl3_read_bytes, \
                 ssl3_write_bytes, \
-                OPENSSL_SSL3_IOVEC_FNS \
                 ssl3_dispatch_alert, \
                 ssl3_ctrl, \
                 ssl3_ctx_ctrl, \
@@ -1000,7 +967,6 @@ const SSL_METHOD *func_name(void)  \
         ssl3_get_message, \
         ssl3_read_bytes, \
         ssl3_write_bytes, \
-        OPENSSL_SSL23_IOVEC_FNS \
         ssl3_dispatch_alert, \
         ssl3_ctrl, \
         ssl3_ctx_ctrl, \
@@ -1039,7 +1005,6 @@ const SSL_METHOD *func_name(void)  \
                 NULL, /* NULL - ssl_get_message */ \
                 NULL, /* NULL - ssl_get_record */ \
                 NULL, /* NULL - ssl_write_bytes */ \
-                OPENSSL_SSL2_IOVEC_FNS \
                 NULL, /* NULL - dispatch_alert */ \
                 ssl2_ctrl,      /* local */ \
                 ssl2_ctx_ctrl,  /* local */ \
@@ -1079,7 +1044,6 @@ const SSL_METHOD *func_name(void)  \
                 dtls1_get_message, \
                 dtls1_read_bytes, \
                 dtls1_write_app_data_bytes, \
-                OPENSSL_DTLS1_IOVEC_FNS \
                 dtls1_dispatch_alert, \
                 dtls1_ctrl, \
                 ssl3_ctx_ctrl, \
@@ -1287,10 +1251,6 @@ int ssl3_read_n(SSL *s, int n, int max, int extend);
 int dtls1_read_bytes(SSL *s, int type, unsigned char *buf, int len, int peek);
 int ssl3_do_compress(SSL *ssl);
 int ssl3_do_uncompress(SSL *ssl);
-int ssl3_do_vcompress(SSL *ssl, const ssl_bucket *buckets, int count,
-                      size_t offset, size_t len);
-int ssl3_writev_pending(SSL *s, int type, const ssl_bucket *buckets, int count,
-                        unsigned int len, int reset);
 unsigned char *dtls1_set_message_header(SSL *s,
                                         unsigned char *p, unsigned char mt,
                                         unsigned long len,
