@@ -436,6 +436,136 @@ int SSL_CTX_set_ciphers_ex(SSL_CTX *ctx,const char *str, unsigned long flags)
     return ret;
 }
 
+# ifndef OPENSSL_NO_IOVEC
+
+int SSL_readv(SSL *s, const SSL_BUCKET *buckets, int count)
+{
+    if (s->handshake_func == 0) {
+        SSLerr(SSL_F_SSL_READ, SSL_R_UNINITIALIZED);
+        return -1;
+    }
+
+    if ((s->shutdown & SSL_RECEIVED_SHUTDOWN)) {
+        s->rwstate=SSL_NOTHING;
+        return(0);
+    }
+    return (s->method->akamai.ssl_readv(s, buckets, count));
+}
+
+int SSL_writev(SSL *s, const SSL_BUCKET *buckets, int count)
+{
+    if (s->handshake_func == 0) {
+        SSLerr(SSL_F_SSL_WRITE, SSL_R_UNINITIALIZED);
+        return -1;
+    }
+
+    if ((s->shutdown & SSL_SENT_SHUTDOWN)) {
+        s->rwstate=SSL_NOTHING;
+        SSLerr(SSL_F_SSL_WRITE,SSL_R_PROTOCOL_IS_SHUTDOWN);
+        return(-1);
+    }
+    return (s->method->akamai.ssl_writev(s, buckets, count));
+}
+
+static int ssl3_readv_internal(SSL *s, const SSL_BUCKET *buckets, int count, int peek)
+{
+    int ret;
+
+    clear_sys_error();
+    if (s->s3->renegotiate)
+        ssl3_renegotiate_check(s);
+    s->s3->in_read_app_data = 1;
+    ret = s->method->akamai.ssl_readv_bytes(s, SSL3_RT_APPLICATION_DATA,
+                                            buckets, count, peek);
+    if ((ret == -1) && (s->s3->in_read_app_data == 2)) {
+        /* ssl3_read_bytes decided to call s->handshake_func, which
+         * called ssl3_read_bytes to read handshake data.
+         * However, ssl3_read_bytes actually found application data
+         * and thinks that application data makes sense here; so disable
+         * handshake processing and try to read application data again. */
+        s->in_handshake++;
+        ret = s->method->akamai.ssl_readv_bytes(s, SSL3_RT_APPLICATION_DATA,
+                                                buckets, count, peek);
+        s->in_handshake--;
+    }
+    else
+        s->s3->in_read_app_data = 0;
+
+    return (ret);
+}
+
+int ssl3_readv(SSL *s, const SSL_BUCKET *buckets, int count)
+{
+    return (ssl3_readv_internal(s, buckets, count, 0));
+}
+
+int ssl3_writev(SSL *s, const SSL_BUCKET *buckets, int count)
+{
+    int ret, n;
+
+    clear_sys_error();
+    if (s->s3->renegotiate)
+        ssl3_renegotiate_check(s);
+
+    /* This is an experimental flag that sends the
+     * last handshake message in the same packet as the first
+     * use data - used to see if it helps the TCP protocol during
+     * session-id reuse */
+    /* The second test is because the buffer may have been removed */
+    if ((s->s3->flags & SSL3_FLAGS_POP_BUFFER) && (s->wbio == s->bbio)) {
+        /* First time through, we write into the buffer */
+        if (s->s3->delay_buf_pop_ret == 0) {
+            ret = ssl3_writev_bytes(s, SSL3_RT_APPLICATION_DATA,
+                                    buckets, count);
+            if (ret <= 0)
+                return (ret);
+
+            s->s3->delay_buf_pop_ret = ret;
+        }
+
+        s->rwstate = SSL_WRITING;
+        n = BIO_flush(s->wbio);
+        if (n <= 0)
+            return (n);
+        s->rwstate = SSL_NOTHING;
+
+        /* We have flushed the buffer, so remove it */
+        ssl_free_wbio_buffer(s);
+        s->s3->flags &= ~SSL3_FLAGS_POP_BUFFER;
+
+        ret = s->s3->delay_buf_pop_ret;
+        s->s3->delay_buf_pop_ret = 0;
+    } else {
+        ret = s->method->akamai.ssl_writev_bytes(s, SSL3_RT_APPLICATION_DATA,
+                                                 buckets, count);
+        if (ret <= 0)
+            return (ret);
+    }
+    return (ret);
+}
+
+int ssl23_writev(SSL *s, const SSL_BUCKET *buckets, int count)
+{
+    int n;
+
+    clear_sys_error();
+    if (SSL_in_init(s) && (!s->in_handshake)) {
+        n=s->handshake_func(s);
+        if (n < 0)
+            return(n);
+        if (n == 0) {
+            SSLerr(SSL_F_SSL23_WRITE,SSL_R_SSL_HANDSHAKE_FAILURE);
+            return(-1);
+        }
+        return (SSL_writev(s,buckets,count));
+    } else {
+        ssl_undefined_function(s);
+        return(-1);
+    }
+}
+
+# endif /* !OPENSSL_NO_IOVEC */
+
 #else /* OPENSSL_NO_AKAMAI */
 
 # if PEDANTIC
