@@ -28,9 +28,51 @@
 extern "C" {
 # endif
 
+# ifndef OPENSSL_NO_IOVEC
+
+typedef struct iovec SSL_BUCKET;
+
+#  ifndef WIN32
+#   include <sys/uio.h>
+#  else
+#   ifndef HAVE_STRUCT_IOVEC
+struct iovec {
+    void *iov_base;     /* Pointer to data.  */
+    size_t iov_len;     /* Length of data.  */
+};
+#    define HAVE_STRUCT_IOVEC
+#   endif /* HAVE_STRUCT_IOVEC */
+#  endif /* !WIN32 */
+
+#  define SSL_BUCKET_MAX 32
+
+int SSL_readv(SSL *ssl, const SSL_BUCKET *buckets, int count);
+int SSL_writev(SSL *ssl, const SSL_BUCKET *buckets, int count);
+
+# else  /* !OPENSSL_NO_IOVEC */
+
+typedef struct ssl_bucket_st SSL_BUCKET;
+
+struct ssl_bucket_st {
+    void *iov_base;
+    size_t iov_len;
+};
+
+#  define SSL_BUCKET_MAX 1
+
+# endif /* OPENSSL_NO_IOVEC */
+
 /* for extending protocol methods */
 struct ssl_akamai_method_st
 {
+# ifndef OPENSSL_NO_IOVEC
+    int (*ssl_readv)(SSL *s, const SSL_BUCKET *buckets, int count);
+    int (*ssl_writev)(SSL *s, const SSL_BUCKET *buckets, int count);
+    int (*ssl_readv_bytes)(SSL *s, int type, const SSL_BUCKET *buckets,
+                           int count, int peek);
+    int (*ssl_writev_bytes)(SSL *s, int type, const SSL_BUCKET *buckets,
+                            int count);
+# endif
 };
 
 # ifdef  __cplusplus

@@ -126,6 +126,17 @@ int SSL_CTX_set_ciphers_ex(SSL_CTX *,const char *str, unsigned long flags);
 # define SSL_CTX_set_preferred_ciphers(ctx,str) \
         SSL_CTX_set_ciphers_ex(ctx,str,SSL_OP_CIPHER_SERVER_PREFERENCE)
 
+size_t SSL_BUCKET_len(const SSL_BUCKET *buckets, int count);
+int SSL_BUCKET_same(const SSL_BUCKET *buckets1, int count1,
+                    const SSL_BUCKET *buckets2, int count2);
+void SSL_BUCKET_set(SSL_BUCKET *bucket, void *buf, size_t len);
+size_t SSL_BUCKET_cpy_out(void *buf, const SSL_BUCKET *bucket,
+                          int count, int offset, int len);
+size_t SSL_BUCKET_cpy_in(const SSL_BUCKET *buckets, int count,
+                         void *buf, int len);
+unsigned char *SSL_BUCKET_get_pointer(const SSL_BUCKET *buckets, int count,
+                                      int offset, unsigned int *nw);
+
 # ifdef  __cplusplus
 }
 # endif
