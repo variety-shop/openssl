@@ -117,15 +117,15 @@
 
 static int read_n(SSL *s, unsigned int n, unsigned int max,
                   unsigned int extend);
-static int n_do_ssl_write(SSL *s, const ssl_bucket *buckets, int count, int offset, int len);
-static int write_pending(SSL *s, const ssl_bucket * buckets, int count, unsigned int len);
+static int n_do_ssl_write(SSL *s, const SSL_BUCKET *buckets, int count, int offset, int len);
+static int write_pending(SSL *s, const SSL_BUCKET * buckets, int count, unsigned int len);
 static int ssl_mt_error(int n);
 
 /*
  * SSL 2.0 imlementation for SSL_read/SSL_peek - This routine will return 0
  * to len bytes, decrypted etc if required.
  */
-static int ssl2_read_internal(SSL *s, const ssl_bucket *buckets, size_t count, int peek)
+static int ssl2_read_internal(SSL *s, const SSL_BUCKET *buckets, size_t count, int peek)
 {
     int n;
     unsigned char mac[MAX_MAC_SIZE];
@@ -159,7 +159,7 @@ static int ssl2_read_internal(SSL *s, const ssl_bucket *buckets, size_t count, i
         else
             n = len;
 
-        ssl_bucket_cpy_in(buckets, count, s->s2->ract_data, n);
+        SSL_BUCKET_cpy_in(buckets, count, s->s2->ract_data, n);
         if (!peek) {
             s->s2->ract_data_length -= n;
             s->s2->ract_data += n;
@@ -312,13 +312,13 @@ static int ssl2_read_internal(SSL *s, const ssl_bucket *buckets, size_t count, i
 
 int ssl2_read(SSL *s, void *buf, int len)
 {
-    ssl_bucket bucket = { buf, len };
+    SSL_BUCKET bucket = { buf, len };
     return ssl2_read_internal(s, &bucket, 1, 0);
 }
 
 int ssl2_peek(SSL *s, void *buf, int len)
 {
-    ssl_bucket bucket = { buf, len };
+    SSL_BUCKET bucket = { buf, len };
     return ssl2_read_internal(s, &bucket, 1, 1);
 }
 
@@ -441,7 +441,7 @@ int ssl2_write(SSL *s, const void *_buf, int len)
 {
     const unsigned char *buf=_buf;
     unsigned int n, tot;
-    ssl_bucket data = { (void*)buf, len };
+    SSL_BUCKET data = { (void*)buf, len };
 
     int i = ssl2_write_preflight(s);
     if (i <= 0)
@@ -474,7 +474,7 @@ int ssl2_write(SSL *s, const void *_buf, int len)
 /*
  * Return values are as per SSL_write()
  */
-static int write_pending(SSL *s, const ssl_bucket *buckets, int count, unsigned int len)
+static int write_pending(SSL *s, const SSL_BUCKET *buckets, int count, unsigned int len)
 {
     int i;
 
@@ -485,7 +485,7 @@ static int write_pending(SSL *s, const ssl_bucket *buckets, int count, unsigned 
      */
     if ((s->s2->wpend_tot > (int)len) ||
         (!(s->mode & SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER) &&
-         !ssl_bucket_same(s->s2->wpend_bucket, s->s2->wpend_bucket_count, buckets, count) )) {
+         !SSL_BUCKET_same(s->s2->wpend_bucket, s->s2->wpend_bucket_count, buckets, count) )) {
         SSLerr(SSL_F_WRITE_PENDING, SSL_R_BAD_WRITE_RETRY);
         return (-1);
     }
@@ -516,7 +516,7 @@ static int write_pending(SSL *s, const ssl_bucket *buckets, int count, unsigned 
     }
 }
 
-static int n_do_ssl_write(SSL *s, const ssl_bucket *buckets, int count, int offset, int len)
+static int n_do_ssl_write(SSL *s, const SSL_BUCKET *buckets, int count, int offset, int len)
 {
     unsigned int j, k, olen, p, bs;
     int mac_size;
@@ -624,7 +624,7 @@ static int n_do_ssl_write(SSL *s, const ssl_bucket *buckets, int count, int offs
         return -1;
     }
     /* we copy the data into s->s2->wbuf */
-    ssl_bucket_cpy_out(s->s2->wact_data, buckets, count, offset, len);
+    SSL_BUCKET_cpy_out(s->s2->wact_data, buckets, count, offset, len);
     if (p)
         memset(&(s->s2->wact_data[len]), 0, p); /* arbitrary padding */
 
@@ -660,7 +660,7 @@ static int n_do_ssl_write(SSL *s, const ssl_bucket *buckets, int count, int offs
 
     /* lets try to actually write the data */
     s->s2->wpend_tot = olen;
-    memcpy(s->s2->wpend_bucket, buckets, sizeof(ssl_bucket)*count);
+    memcpy(s->s2->wpend_bucket, buckets, sizeof(SSL_BUCKET)*count);
     s->s2->wpend_bucket_count = count;
 
     s->s2->wpend_ret = len;
@@ -753,11 +753,11 @@ static int ssl_mt_error(int n)
 
 # ifndef OPENSSL_NO_IOVEC
 
-int ssl2_readv(SSL *s, const ssl_bucket *buckets, int count)
+int ssl2_readv(SSL *s, const SSL_BUCKET *buckets, int count)
 {
     return ssl2_read_internal(s, buckets, count, 0);
 }
-int ssl2_writev(SSL *s, const ssl_bucket *buckets, int count)
+int ssl2_writev(SSL *s, const SSL_BUCKET *buckets, int count)
 {
     unsigned int n, offset,len;
 
@@ -765,7 +765,7 @@ int ssl2_writev(SSL *s, const ssl_bucket *buckets, int count)
     if (i <= 0)
         return (i);
 
-    len = ssl_bucket_len(buckets, count);
+    len = SSL_BUCKET_len(buckets, count);
     if (len <= 0)
         return (len);
 

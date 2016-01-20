@@ -428,12 +428,6 @@ typedef int (*tlsext_ticket_appdata_parse_cb_fn) (SSL *s,
 #  define APPDATA_MAG_LEN_BYTES          (APPDATA_MAG_BYTES + APPDATA_LENGTH_BYTES)
 # endif /* OPENSSL_NO_AKAMAI */
 
-# ifndef OPENSSL_NO_IOVEC
-typedef struct iovec ssl_bucket;
-# else  /* !OPENSSL_NO_IOVEC */
-typedef struct ssl_bucket_st ssl_bucket;
-# endif /* OPENSSL_NO_IOVEC */
-
 # ifndef OPENSSL_NO_TLSEXT
 
 /* Typedefs for handling custom extensions */
@@ -492,14 +486,6 @@ struct ssl_method_st {
     int (*ssl_read_bytes) (SSL *s, int type, unsigned char *buf, int len,
                            int peek);
     int (*ssl_write_bytes) (SSL *s, int type, const void *buf_, int len);
-# ifndef OPENSSL_NO_IOVEC
-    int (*ssl_readv)(SSL *s, const ssl_bucket *buckets, int count);
-    int (*ssl_writev)(SSL *s, const ssl_bucket *buckets, int count);
-    int (*ssl_readv_bytes)(SSL *s, int type, const ssl_bucket *buckets,
-                           int count, int peek);
-    int (*ssl_writev_bytes)(SSL *s, int type, const ssl_bucket *buckets,
-                            int count);
-# endif /* !OPENSSL_NO_IOVEC */
     int (*ssl_dispatch_alert) (SSL *s);
     long (*ssl_ctrl) (SSL *s, int cmd, long larg, void *parg);
     long (*ssl_ctx_ctrl) (SSL_CTX *ctx, int cmd, long larg, void *parg);
@@ -1808,44 +1794,6 @@ struct ssl_st {
 }
 #endif
 
-# ifndef OPENSSL_NO_IOVEC
-
-#  ifndef WIN32
-#   include <sys/uio.h>
-#  else
-#   ifndef HAVE_STRUCT_IOVEC
-struct iovec {
-    void *iov_base;     /* Pointer to data.  */
-    size_t iov_len;     /* Length of data.  */
-};
-#    define HAVE_STRUCT_IOVEC
-#   endif /* HAVE_STRUCT_IOVEC */
-#  endif /* !WIN32 */
-
-#  define SSL_BUCKET_MAX 32
-
-# else  /* !OPENSSL_NO_IOVEC */
-
-struct ssl_bucket_st {
-    void *iov_base;
-    size_t iov_len;
-};
-
-#  define SSL_BUCKET_MAX 1
-
-# endif /* OPENSSL_NO_IOVEC */
-
-size_t ssl_bucket_len(const ssl_bucket *buckets, int count);
-int ssl_bucket_same(const ssl_bucket *buckets1, int count1,
-                    const ssl_bucket *buckets2, int count2);
-void ssl_bucket_set(ssl_bucket *bucket, void *buf, size_t len);
-size_t ssl_bucket_cpy_out(void *buf, const ssl_bucket *bucket,
-                          int count, int offset, int len);
-size_t ssl_bucket_cpy_in(const ssl_bucket *buckets, int count,
-                         void *buf, int len);
-unsigned char *ssl_bucket_get_pointer(const ssl_bucket *buckets, int count,
-                                      int offset, unsigned int *nw);
-
 # include <openssl/ssl2.h>
 # include <openssl/ssl3.h>
 # include <openssl/tls1.h>      /* This is mostly sslv3 with a few tweaks */
@@ -2519,10 +2467,6 @@ int SSL_connect(SSL *ssl);
 int SSL_read(SSL *ssl, void *buf, int num);
 int SSL_peek(SSL *ssl, void *buf, int num);
 int SSL_write(SSL *ssl, const void *buf, int num);
-# ifndef OPENSSL_NO_IOVEC
-int SSL_readv(SSL *ssl, const ssl_bucket *buckets, int count);
-int SSL_writev(SSL *ssl, const ssl_bucket *buckets, int count);
-#endif /* !OPENSSL_NO_IOVEC */
 long SSL_ctrl(SSL *ssl, int cmd, long larg, void *parg);
 long SSL_callback_ctrl(SSL *, int, void (*)(void));
 long SSL_CTX_ctrl(SSL_CTX *ctx, int cmd, long larg, void *parg);

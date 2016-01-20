@@ -25,10 +25,36 @@
 
 # ifndef OPENSSL_NO_AKAMAI
 
-#  define OPENSSL_SSL2_AKAMAI_FNS  { }
-#  define OPENSSL_SSL23_AKAMAI_FNS { }
-#  define OPENSSL_SSL3_AKAMAI_FNS  { }
-#  define OPENSSL_DTLS1_AKAMAI_FNS { }
+#  ifndef OPENSSL_NO_IOVEC
+int ssl2_readv(SSL *s, const SSL_BUCKET *buckets, int count);
+int ssl23_readv(SSL *s, const SSL_BUCKET *buckets, int count);
+int ssl3_readv(SSL *s, const SSL_BUCKET *buckets, int count);
+
+int ssl2_writev(SSL *s, const SSL_BUCKET *buckets, int count);
+int ssl23_writev(SSL *s, const SSL_BUCKET *buckets, int count);
+int ssl3_writev(SSL *s, const SSL_BUCKET *buckets, int count);
+
+int ssl3_readv_bytes(SSL *s, int type, const SSL_BUCKET *buckets, int count, int peek);
+int ssl3_writev_bytes(SSL *s, int type, const SSL_BUCKET *buckets, int count);
+
+int dtls1_readv_bytes(SSL *s, int type, const SSL_BUCKET *buckets, int count, int peek);
+int dtls1_writev_bytes(SSL *s, int type, const SSL_BUCKET *buckets, int count);
+
+#   define OPENSSL_SSL2_IOVEC_FNS  ssl2_readv, ssl2_writev, NULL, NULL,
+#   define OPENSSL_SSL23_IOVEC_FNS ssl23_readv, ssl23_writev, ssl3_readv_bytes, ssl3_writev_bytes,
+#   define OPENSSL_SSL3_IOVEC_FNS  ssl3_readv, ssl3_writev, ssl3_readv_bytes, ssl3_writev_bytes,
+#   define OPENSSL_DTLS1_IOVEC_FNS ssl3_readv, ssl3_writev, dtls1_readv_bytes, dtls1_writev_bytes,
+#  else /* OPENSSL_NO_IOVEC */
+#   define OPENSSL_SSL2_IOVEC_FNS
+#   define OPENSSL_SSL23_IOVEC_FNS
+#   define OPENSSL_SSL3_IOVEC_FNS
+#   define OPENSSL_DTLS1_IOVEC_FNS
+#  endif /* OPENSSL_NO_IOVEC */
+
+#  define OPENSSL_SSL2_AKAMAI_FNS  { OPENSSL_SSL2_IOVEC_FNS  }
+#  define OPENSSL_SSL23_AKAMAI_FNS { OPENSSL_SSL23_IOVEC_FNS }
+#  define OPENSSL_SSL3_AKAMAI_FNS  { OPENSSL_SSL3_IOVEC_FNS  }
+#  define OPENSSL_DTLS1_AKAMAI_FNS { OPENSSL_DTLS1_IOVEC_FNS }
 
 # else /* OPENSSL_NO_AKAMAI */
 
