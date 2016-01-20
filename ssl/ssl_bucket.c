@@ -9,7 +9,7 @@
 
 #include "ssl_locl.h"
 
-size_t ssl_bucket_len(const ssl_bucket *buckets, int count)
+size_t SSL_BUCKET_len(const SSL_BUCKET *buckets, int count)
 {
     size_t len = 0;
     int i;
@@ -18,19 +18,19 @@ size_t ssl_bucket_len(const ssl_bucket *buckets, int count)
     return len;
 }
 
-int ssl_bucket_same(const ssl_bucket *buckets1, int count1, const ssl_bucket *buckets2, int count2)
+int SSL_BUCKET_same(const SSL_BUCKET *buckets1, int count1, const SSL_BUCKET *buckets2, int count2)
 {
     return ((count1 == count2) &&
-            (memcmp(buckets1, buckets2, count2*sizeof(ssl_bucket)) == 0));
+            (memcmp(buckets1, buckets2, count2*sizeof(SSL_BUCKET)) == 0));
 }
 
-void ssl_bucket_set(ssl_bucket *bucket, void *buf, size_t len)
+void SSL_BUCKET_set(SSL_BUCKET *bucket, void *buf, size_t len)
 {
     bucket->iov_base = buf;
     bucket->iov_len = len;
 }
 
-size_t ssl_bucket_cpy_out(void *buf, const ssl_bucket *buckets, int count, int offset, int len)
+size_t SSL_BUCKET_cpy_out(void *buf, const SSL_BUCKET *buckets, int count, int offset, int len)
 {
     int j, i = 0;
     size_t copied = 0;
@@ -60,7 +60,7 @@ size_t ssl_bucket_cpy_out(void *buf, const ssl_bucket *buckets, int count, int o
     return (copied);
 }
 
-size_t ssl_bucket_cpy_in(const ssl_bucket *buckets, int count, void *buf, int len)
+size_t SSL_BUCKET_cpy_in(const SSL_BUCKET *buckets, int count, void *buf, int len)
 {
     size_t copied = 0;
     int i;
@@ -83,7 +83,7 @@ size_t ssl_bucket_cpy_in(const ssl_bucket *buckets, int count, void *buf, int le
     return (copied);
 }
 
-unsigned char *ssl_bucket_get_pointer(const ssl_bucket *buckets, int count,
+unsigned char *SSL_BUCKET_get_pointer(const SSL_BUCKET *buckets, int count,
                                       int offset, unsigned int *nw)
 {
     int i = 0;
