@@ -104,4 +104,9 @@ int ssl_schedule_task(SSL *s, int task_type, SSL_TASK_CTX *ctx, SSL_TASK_FN fn);
 int ssl3_process_client_key_exchange(SSL *s);
 # endif /* OPENSSL_NO_AKAMAI_ASYNC */
 
+int ssl3_do_vcompress(SSL *ssl, const SSL_BUCKET *buckets, int count,
+                      size_t offset, size_t len);
+int ssl3_writev_pending(SSL *s, int type, const SSL_BUCKET *buckets, int count,
+                        unsigned int len, int reset);
+
 #endif /* HEADER_SSL_LOCL_AKAMAI_POST_H */
