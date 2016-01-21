@@ -426,7 +426,7 @@ int ssl3_accept(SSL *s)
 #endif
             }
             if (s->s3->tmp.sub_state == SSL3_ST_SUB_2) {
-                if (!ssl_event_did_succeed(s, SSL_EVENT_TLSEXT_SERVERNAME_READY, &ret)) {
+                if (!SSL_event_did_succeed(s, SSL_EVENT_TLSEXT_SERVERNAME_READY, &ret)) {
                     goto end;
                 }
                 ret = ssl3_get_client_hello_post_app(s, 0);
@@ -681,7 +681,7 @@ int ssl3_accept(SSL *s)
             /* fall through */
 
         case SSL3_ST_SR_KEY_EXCH_PROCESS:
-            if (!ssl_event_did_succeed(s, SSL_EVENT_KEY_EXCH_DECRYPT_DONE, &ret))
+            if (!SSL_event_did_succeed(s, SSL_EVENT_KEY_EXCH_DECRYPT_DONE, &ret))
                 goto end;
 
 #ifdef OPENSSL_NO_AKAMAI_ASYNC_RSALG
@@ -1818,7 +1818,7 @@ int ssl3_send_server_done(SSL *s)
     return ssl_do_write(s);
 }
 
-static int ssl3_send_server_key_exchange_prep_data(SSL *s, SSL_key_exch_prep_ctx *ctx)
+static int ssl3_send_server_key_exchange_prep_data(SSL *s, SSL_KEY_EXCH_PREP_CTX *ctx)
 {
     int j;
     int kn, i, al;
@@ -1833,7 +1833,7 @@ static int ssl3_send_server_key_exchange_prep_data(SSL *s, SSL_key_exch_prep_ctx
 
     if (1) { /* minimize changes by forcing an indent */
         memset(r, 0, sizeof(r));
-        memset(ctx, 0, sizeof(SSL_key_exch_prep_ctx));
+        memset(ctx, 0, sizeof(SSL_KEY_EXCH_PREP_CTX));
         ctx->type = s->s3->tmp.new_cipher->algorithm_mkey;
 
 #ifndef OPENSSL_NO_RSA
@@ -2194,7 +2194,7 @@ static int ssl3_send_server_key_exchange_prep_data(SSL *s, SSL_key_exch_prep_ctx
     return (-1);
 }
 
-static void ssl3_send_server_key_exchange_sign_data(SSL *s, SSL_key_exch_prep_ctx *ctx)
+static void ssl3_send_server_key_exchange_sign_data(SSL *s, SSL_KEY_EXCH_PREP_CTX *ctx)
 {
     int al;
     unsigned char *d = &ctx->msg[s->method->ssl3_enc->hhlen];
@@ -2312,21 +2312,22 @@ static void ssl3_send_server_key_exchange_sign_data(SSL *s, SSL_key_exch_prep_ct
 int ssl3_send_server_key_exchange(SSL *s)
 {
     int ret;
+    SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
     if (s->state == SSL3_ST_SW_KEY_EXCH_A) {
-        ret = ssl3_send_server_key_exchange_prep_data(s, &s->task.ctx.kx_sign);
+        ret = ssl3_send_server_key_exchange_prep_data(s, &ex_data->task.ctx.kx_sign);
         if (ret <= 0)
             return ret;
 
         s->state = SSL3_ST_SW_KEY_EXCH_B;
         ret = ssl_schedule_task(s, SSL_EVENT_KEY_EXCH_MSG_SIGNED,
-                                &s->task.ctx.kx_sign,
-                                (SSL_task_fn *)ssl3_send_server_key_exchange_sign_data);
+                                &ex_data->task.ctx.kx_sign,
+                                (SSL_TASK_FN *)ssl3_send_server_key_exchange_sign_data);
         if (ret < 0) {
             SSLerr(SSL_F_SSL3_SEND_SERVER_KEY_EXCHANGE,SSL_R_UNKNOWN_STATE);
             return ret;
         }
     }
-    if (!ssl_event_did_succeed(s, SSL_EVENT_KEY_EXCH_MSG_SIGNED, &ret))
+    if (!SSL_event_did_succeed(s, SSL_EVENT_KEY_EXCH_MSG_SIGNED, &ret))
         return ret;
 
     return (ssl_do_write(s));
@@ -2481,7 +2482,8 @@ int ssl3_get_client_key_exchange(SSL *s)
     if (alg_k & SSL_kRSA) {
         RSA *rsa = NULL;
         EVP_PKEY *pkey = NULL;
-        SSL_rsa_decrypt_ctx *ctx = NULL;
+        SSL_RSA_DECRYPT_CTX *ctx = NULL;
+        SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
 
         /* FIX THIS UP EAY EAY EAY EAY */
         if (s->s3->tmp.use_rsa_tmp) {
@@ -2539,7 +2541,7 @@ int ssl3_get_client_key_exchange(SSL *s)
         }
 
         /* preserve across invocation */
-        ctx = &s->task.ctx.rsa_decrypt;
+        ctx = &ex_data->task.ctx.rsa_decrypt;
         ctx->src = p;
         ctx->dest = p;
         ctx->src_len = n;
@@ -2563,7 +2565,7 @@ int ssl3_get_client_key_exchange(SSL *s)
             s->state = SSL3_ST_SR_KEY_EXCH_PROCESS;
 #endif /* OPENSSL_NO_AKAMAI_ASYNC_RSALG */
         i = ssl_schedule_task(s, SSL_EVENT_KEY_EXCH_DECRYPT_DONE,
-                              ctx, (SSL_task_fn*)ssl_task_rsa_decrypt);
+                              ctx, (SSL_TASK_FN*)ssl_task_rsa_decrypt);
         if (i < 0) {
             al = SSL_AD_DECRYPT_ERROR;
             SSLerr(SSL_F_SSL3_GET_CLIENT_KEY_EXCHANGE, SSL_R_DECRYPTION_FAILED);
@@ -3236,7 +3238,8 @@ int ssl3_process_client_key_exchange(SSL *s)
     unsigned char decrypt_good, version_good;
     unsigned char *p;
     size_t j, padding_len;
-    SSL_rsa_decrypt_ctx *ctx = &s->task.ctx.rsa_decrypt;
+    SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
+    SSL_RSA_DECRYPT_CTX *ctx = &ex_data->task.ctx.rsa_decrypt;
 
 #ifndef OPENSSL_NO_RSA
     if (s->s3->tmp.new_cipher->algorithm_mkey & SSL_kRSA) {
@@ -3747,7 +3750,7 @@ int ssl3_send_server_certificate(SSL *s)
     return ssl_do_write(s);
 }
 
-void ssl_task_rsa_decrypt(SSL *s, SSL_rsa_decrypt_ctx *ctx)
+void ssl_task_rsa_decrypt(SSL *s, SSL_RSA_DECRYPT_CTX *ctx)
 {
     /*
      * For not-SSLv2, we are decrypting with no padding.  The PKCS#1 padding
