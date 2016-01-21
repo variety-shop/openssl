@@ -17,8 +17,8 @@ static pthread_t worker;
 typedef struct {
     SSL *ssl;
     int event;
-    SSL_task_ctx *ctx;
-    SSL_task_fn *fn;
+    SSL_TASK_CTX *ctx;
+    SSL_TASK_FN *fn;
 } task_ctx;
 
 static int set_expected(TestContext *tctx, const int *expected)
@@ -33,7 +33,7 @@ static int set_expected(TestContext *tctx, const int *expected)
 }
 
 /* Refuse task execution, letting openssl handle it */
-static int refuse_task_cb(SSL *s, int event, SSL_task_ctx *ctx, SSL_task_fn *fn)
+static int refuse_task_cb(SSL *s, int event, SSL_TASK_CTX *ctx, SSL_TASK_FN *fn)
 {
     if (exp_events != NULL && call_idx < exp_len)
         (void)TESTEQINT(exp_tctx, exp_events[call_idx], event, "unexpected task event");
@@ -48,7 +48,7 @@ static int refuse_task_cb(SSL *s, int event, SSL_task_ctx *ctx, SSL_task_fn *fn)
 }
 
 /* Executes task directly in this thread */
-static int direct_task_cb(SSL *s, int event, SSL_task_ctx *ctx, SSL_task_fn *fn)
+static int direct_task_cb(SSL *s, int event, SSL_TASK_CTX *ctx, SSL_TASK_FN *fn)
 {
     refuse_task_cb(s, event, ctx, fn);
     fn(s, ctx);
@@ -66,7 +66,7 @@ static void *delay_task1(void *c)
 }
 
 /* Executes task asynchrounously in separate thread */
-static int async_task_cb(SSL *s, int event, SSL_task_ctx *ctx, SSL_task_fn *fn)
+static int async_task_cb(SSL *s, int event, SSL_TASK_CTX *ctx, SSL_TASK_FN *fn)
 {
     task_ctx *task;
     int rc;
