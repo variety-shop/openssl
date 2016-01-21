@@ -337,7 +337,6 @@ static ERR_STRING_DATA SSL_str_functs[] = {
     {ERR_FUNC(SSL_F_SSL_SET_WFD), "SSL_set_wfd"},
     {ERR_FUNC(SSL_F_SSL_SHUTDOWN), "SSL_shutdown"},
     {ERR_FUNC(SSL_F_SSL_SRP_CTX_INIT), "SSL_SRP_CTX_init"},
-    {ERR_FUNC(SSL_F_SSL_TASK_RSA_DECRYPT), "ssl_task_rsa_decrypt"},
     {ERR_FUNC(SSL_F_SSL_UNDEFINED_CONST_FUNCTION),
      "ssl_undefined_const_function"},
     {ERR_FUNC(SSL_F_SSL_UNDEFINED_FUNCTION), "ssl_undefined_function"},
@@ -375,6 +374,9 @@ static ERR_STRING_DATA SSL_str_functs[] = {
     {ERR_FUNC(SSL_F_TLS1_SETUP_KEY_BLOCK), "tls1_setup_key_block"},
     {ERR_FUNC(SSL_F_TLS1_SET_SERVER_SIGALGS), "tls1_set_server_sigalgs"},
     {ERR_FUNC(SSL_F_WRITE_PENDING), "WRITE_PENDING"},
+#ifndef OPENSSL_NO_AKAMAI
+    {ERR_FUNC(SSL_F_SSL_TASK_RSA_DECRYPT), "ssl_task_rsa_decrypt"},
+#endif
     {0, NULL}
 };
 
