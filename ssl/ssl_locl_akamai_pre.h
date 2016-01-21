@@ -25,10 +25,10 @@
 
 # ifndef OPENSSL_NO_AKAMAI
 
-#  define OPENSSL_SSL2_AKAMAI_FNS  {}
-#  define OPENSSL_SSL23_AKAMAI_FNS {}
-#  define OPENSSL_SSL3_AKAMAI_FNS  {}
-#  define OPENSSL_DTLS1_AKAMAI_FNS {}
+#  define OPENSSL_SSL2_AKAMAI_FNS  { }
+#  define OPENSSL_SSL23_AKAMAI_FNS { }
+#  define OPENSSL_SSL3_AKAMAI_FNS  { }
+#  define OPENSSL_DTLS1_AKAMAI_FNS { }
 
 # else /* OPENSSL_NO_AKAMAI */
 

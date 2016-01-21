@@ -269,6 +269,164 @@ int SSL_akamai_opt_get(SSL* s, enum SSL_AKAMAI_OPT opt)
     return ret;
 }
 
+# ifndef OPENSSL_NO_AKAMAI_ASYNC
+
+void SSL_CTX_set_schedule_task_cb(SSL_CTX *ctx, SSL_schedule_task_cb cb)
+{
+    SSL_CTX_get_ex_data_akamai(ctx)->schedule_task_cb = cb;
+}
+
+SSL_schedule_task_cb SSL_CTX_get_schedule_task_cb(SSL_CTX *ctx)
+{
+    return (SSL_CTX_get_ex_data_akamai(ctx)->schedule_task_cb);
+}
+
+static void cleanup_event(SSL *s)
+{
+    SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
+    memset(&ex_data->event, 0, sizeof(ex_data->event));
+}
+
+/* Cannot call when CRYPTO_LOCK_SSL is taken
+ * as this may call SSL_free, which could
+ * also free itself */
+static void cleanup_task(SSL *s)
+{
+    SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
+    SSL* tmp = ex_data->task.ssl_ref;
+    ex_data->task.ssl_ref = NULL;
+    if (tmp) {
+        SSL_free(tmp); /* decr ref counter */
+    }
+}
+
+int SSL_signal_event_result(SSL *s, int event, int retcode, int func, int reason, const char *file, int line)
+{
+    int ret = 1;
+    SSL_EX_DATA_AKAMAI *ex_data;
+    CRYPTO_w_lock(CRYPTO_LOCK_SSL);
+    ex_data = SSL_get_ex_data_akamai(s);
+    /* We would expect that we wait for this event, but maybe we moved
+     * on with our internal state and the event is late. Ignore it in
+     * this case. */
+    if (s->rwstate == event) {
+        cleanup_event(s);
+        ex_data->event.type = event;
+        ex_data->event.result = retcode;
+        ex_data->event.err_func = func;
+        ex_data->event.err_reason = reason;
+        ex_data->event.err_file = file;
+        ex_data->event.err_line = line;
+
+        switch (event) {
+        /* Insert handling of events common to all SSL versions here. */
+#ifndef OPENSSL_NO_AKAMAI_ASYNC_RSALG
+        case SSL_EVENT_KEY_EXCH_DECRYPT_DONE:
+       /*
+        * PORT NOTE: should this be handled in the callback below?
+        * For RSALG we've skipped ssl3_get_client_key_exchange_b(),
+        * so we need to do a length check here.
+        */
+            if (s->state == SSL3_ST_SR_KEY_EXCH_ASYNC_RSALG) {
+                if (retcode == SSL_MAX_MASTER_KEY_LENGTH)
+                    s->session->master_key_length = retcode;
+            }
+            /* FALLTHRU */
+#endif
+        default:
+            break;
+        }
+        s->rwstate = SSL_NOTHING;
+        if (ex_data->task.type == event) {
+            /* Can't do cleanup_task() here because
+             * CRYPTO_LOCK_SSL is already taken */
+            SSL* tmp = ex_data->task.ssl_ref;
+            ex_data->task.ssl_ref = NULL;
+            CRYPTO_w_unlock(CRYPTO_LOCK_SSL);
+            if (tmp) {
+                SSL_free(tmp); /* decr ref counter */
+            }
+            return ret;
+        }
+    }
+    CRYPTO_w_unlock(CRYPTO_LOCK_SSL);
+    return ret;
+}
+
+int ssl_schedule_task(SSL *s, int task_type, SSL_TASK_CTX *ctx, SSL_TASK_FN *fn)
+{
+    int ret = 0;
+    SSL_EX_DATA_AKAMAI *ex_data;
+    SSL_CTX_EX_DATA_AKAMAI *ctx_data;
+    CRYPTO_add(&s->references, 1, CRYPTO_LOCK_SSL); /* see that no one frees it */
+    ex_data = SSL_get_ex_data_akamai(s);
+    ctx_data = SSL_CTX_get_ex_data_akamai(s->ctx);
+    cleanup_event(s);
+    cleanup_task(s);
+    s->rwstate = task_type;
+    ex_data->task.type = task_type;
+    ex_data->task.ssl_ref = s;
+    if (ctx_data->schedule_task_cb)
+        ret = ctx_data->schedule_task_cb(s, task_type, ctx, fn);
+    if (ret == 0) {
+        /* either no cb or cb did not accept task */
+        fn(s, ctx);
+        /* fn MUST call SSL_signal_event() in the end, so state
+           should have changed and cleanup was done. */
+        OPENSSL_assert(s->rwstate != task_type);
+        OPENSSL_assert(ex_data->task.ssl_ref == NULL);
+        ret = 1;
+    } else if (ret < 0) {
+        /* task execution failed, cleanup */
+        s->rwstate = SSL_NOTHING;
+        cleanup_task(s);
+    }
+    return (ret);
+}
+
+int SSL_get_event_result(SSL *s)
+{
+    SSL_ASYNC_EVENT *event = &(SSL_get_ex_data_akamai(s)->event);
+    if (event->result < 0 && event->err_func) {
+        ERR_PUT_error(ERR_LIB_SSL, event->err_func, event->err_reason,
+                      event->err_file, event->err_line);
+        event->err_func = 0; /* report only once */
+    }
+    return (event->result);
+}
+
+int SSL_event_did_succeed(SSL *s, int event, int *result)
+{
+    SSL_ASYNC_EVENT *ae;
+    CRYPTO_r_lock(CRYPTO_LOCK_SSL);
+    ae = &(SSL_get_ex_data_akamai(s)->event);
+    if (s->rwstate == event) /* still waiting for it? */
+        *result = -1;
+    else if (ae->type == event)
+        *result = SSL_get_event_result(s);
+    else /* not waiting, but recorded event is different kind.  */
+        *result = 0;
+    CRYPTO_r_unlock(CRYPTO_LOCK_SSL);
+    return (*result >= 0);
+}
+
+SSL_RSA_DECRYPT_CTX* SSL_async_get_rsa_decrypt(SSL* s)
+{
+    return &(SSL_get_ex_data_akamai(s)->task.ctx.rsa_decrypt);
+}
+
+SSL_KEY_EXCH_PREP_CTX* SSL_async_get_key_exch_prep(SSL* s)
+{
+    return &(SSL_get_ex_data_akamai(s)->task.ctx.kx_sign);
+}
+
+int SSL_async_get_task_event(SSL* s)
+{
+    return (SSL_get_ex_data_akamai(s)->task.type);
+}
+
+# endif /* OPENSSL_NO_AKAMAI_ASYNC */
+
 #else /* OPENSSL_NO_AKAMAI */
 
 # if PEDANTIC
