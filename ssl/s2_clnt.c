@@ -831,9 +831,10 @@ static int client_certificate(SSL *s)
     }
 
     if (s->state == SSL2_ST_SEND_CLIENT_CERTIFICATE_C) {
+        SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
         s->state = SSL2_ST_SEND_CLIENT_CERTIFICATE_D;
         i = ssl_schedule_task(s, SSL_EVENT_SETUP_CERT_VRFY_DONE,
-                              &s->task.ctx, ssl2_setup_client_verify_msg);
+                              &ex_data->task.ctx, ssl2_setup_client_verify_msg);
         if (i < 0) {
             SSLerr(SSL_F_SSL3_SEND_CLIENT_VERIFY,SSL_R_SSL_HANDSHAKE_FAILURE);
             return -1; /* async key signing couldn't be started */
@@ -841,7 +842,7 @@ static int client_certificate(SSL *s)
     }
 
     /* Waiting for our setup task to complete */
-    if (!ssl_event_did_succeed(s, SSL_EVENT_SETUP_CERT_VRFY_DONE, &i))
+    if (!SSL_event_did_succeed(s, SSL_EVENT_SETUP_CERT_VRFY_DONE, &i))
         return i;
 
     return (ssl2_do_write(s));
