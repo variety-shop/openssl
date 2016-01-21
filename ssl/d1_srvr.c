@@ -367,7 +367,7 @@ int dtls1_accept(SSL *s)
 #endif
             }
             if (s->s3->tmp.sub_state == SSL3_ST_SUB_2) {
-                if (!ssl_event_did_succeed(s, SSL_EVENT_TLSEXT_SERVERNAME_READY, &ret))
+                if (!SSL_event_did_succeed(s, SSL_EVENT_TLSEXT_SERVERNAME_READY, &ret))
                     goto end;
                 ret = ssl3_get_client_hello_post_app(s, 0);
                 if (ret <= 0)
