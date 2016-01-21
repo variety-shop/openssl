@@ -8,8 +8,8 @@ SSL_CTX_set_schedule_task_cb, SSL_CTX_get_schedule_task_cb - handle task callbac
 
  #include <openssl/ssl.h>
 
- typedef void SSL_task_fn(SSL *, SSL_task_ctx *ctx);
- typedef int (*SSL_schedule_task_cb)(SSL *ssl, int event_type, SSL_task_ctx *ctx, SSL_task_fn *fn);
+ typedef void SSL_TASK_FN(SSL *, SSL_task_ctx *ctx);
+ typedef int (*SSL_schedule_task_cb)(SSL *ssl, int event_type, SSL_task_ctx *ctx, SSL_TASK_FN *fn);
 
  void SSL_CTX_set_schedule_task_cb(SSL_CTX *ctx, SSL_schedule_task_cb cb);
  SSL_schedule_task_cb SSL_CTX_get_schedule_task_cb(SSL_CTX *ctx);
