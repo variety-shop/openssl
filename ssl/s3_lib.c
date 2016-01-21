@@ -4947,11 +4947,6 @@ int ssl3_peek(SSL *s, void *buf, int len)
     return ssl3_read_internal(s, buf, len, 1);
 }
 
-int ssl3_signal_event(SSL *s, int event, int retcode)
-{
-    return (1);
-}
-
 int ssl3_renegotiate(SSL *s)
 {
     if (s->handshake_func == NULL)
