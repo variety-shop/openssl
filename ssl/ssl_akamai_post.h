@@ -239,6 +239,10 @@ void SSL_CTX_tlsext_ticket_appdata_cbs(SSL_CTX *ctx,
                                        tlsext_ticket_appdata_parse_cb_fn parse_cb,
                                        void *arg);
 
+/* LIBTLS support */
+int SSL_CTX_use_certificate_chain_mem(SSL_CTX *ctx, void *buf, int len);
+int SSL_CTX_load_verify_mem(SSL_CTX *ctx, void *buf, int len);
+
 # ifdef  __cplusplus
 }
 # endif
