@@ -3254,10 +3254,11 @@ int ssl3_send_client_key_exchange(SSL *s)
 int ssl3_send_client_verify(SSL *s)
 {
     int i;
+    SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
     if (s->state == SSL3_ST_CW_CERT_VRFY_A) {
         s->state = SSL3_ST_CW_CERT_VRFY_B;
         i = ssl_schedule_task(s, SSL_EVENT_SETUP_CERT_VRFY_DONE,
-                              &s->task.ctx, SSLv3_setup_client_verify_msg);
+                              &ex_data->task.ctx, SSLv3_setup_client_verify_msg);
         if (i < 0) {
             SSLerr(SSL_F_SSL3_SEND_CLIENT_VERIFY,SSL_R_SSL_HANDSHAKE_FAILURE);
             return i;
@@ -3266,7 +3267,7 @@ int ssl3_send_client_verify(SSL *s)
     /* s->state == SSL3_ST_CW_CERT_VRFY_B */
 		
     /* Waiting for our setup method to complete */
-    if (!ssl_event_did_succeed(s, SSL_EVENT_SETUP_CERT_VRFY_DONE, &i))
+    if (!SSL_event_did_succeed(s, SSL_EVENT_SETUP_CERT_VRFY_DONE, &i))
         return i;
 		
     return ssl_do_write(s);
