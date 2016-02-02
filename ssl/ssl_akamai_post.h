@@ -122,6 +122,9 @@ int SSL_get_event_result(SSL *s);
 
 # endif /* OPENSSL_NO_AKAMAI_ASYNC */
 
+int SSL_CTX_set_ciphers_ex(SSL_CTX *,const char *str, unsigned long flags);
+# define SSL_CTX_set_preferred_ciphers(ctx,str) \
+        SSL_CTX_set_ciphers_ex(ctx,str,SSL_OP_CIPHER_SERVER_PREFERENCE)
 
 # ifdef  __cplusplus
 }
