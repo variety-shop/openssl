@@ -427,6 +427,15 @@ int SSL_async_get_task_event(SSL* s)
 
 # endif /* OPENSSL_NO_AKAMAI_ASYNC */
 
+/** specifiy the ciphers to be used by default by the SSL_CTX and set options */
+int SSL_CTX_set_ciphers_ex(SSL_CTX *ctx,const char *str, unsigned long flags)
+{
+    int ret = SSL_CTX_set_cipher_list(ctx,str);
+    if (ret > 0 && flags)
+        ret = SSL_CTX_set_options(ctx,flags);
+    return ret;
+}
+
 #else /* OPENSSL_NO_AKAMAI */
 
 # if PEDANTIC
