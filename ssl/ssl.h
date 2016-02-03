@@ -727,7 +727,7 @@ struct ssl_session_st {
  * Relevant CR# is 1138222.
  * As server, disallow renegotiation (secure and legacy)
 */
-#  define SSL_OP_DISALLOW_RENEGOTIATION                  0x10000000L
+#  define SSL_OP_DISALLOW_RENEGOTIATION                  0x00200000L
 # endif
 
 /*
