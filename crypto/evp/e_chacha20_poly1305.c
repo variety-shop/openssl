@@ -51,13 +51,25 @@
 #include <stdio.h>
 #include "cryptlib.h"
 
-# ifndef OPENSSL_SYS_VMS
-#  include <stdint.h>
-# else
-#  include <inttypes.h>
-# endif
-
 #ifndef OPENSSL_NO_CHACHA
+
+# ifndef OPENSSL_SYS_WINDOWS
+#  ifndef OPENSSL_SYS_VMS
+#   include <stdint.h>
+#  else
+#   include <inttypes.h>
+#  endif
+# endif
+# ifndef OPENSSL_NO_AKAMAI
+#  ifdef OPENSSL_SYS_WINDOWS
+#   if defined(_MSC_VER) && _MSC_VER >= 1600
+#    include <stdint.h>
+#   else
+/* Compat hack for the AEAD_CTX struct. */
+typedef unsigned __int64 uint64_t;
+#   endif
+#  endif
+# endif
 
 # include <openssl/evp.h>
 # include <openssl/objects.h>
