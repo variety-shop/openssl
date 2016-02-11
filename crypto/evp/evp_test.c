@@ -451,6 +451,7 @@ static int test_digest(const char *digest,
 int main(int argc, char **argv)
 {
     const char *szTestFile;
+    char *line = NULL;
     FILE *f;
 
     if (argc != 2) {
@@ -493,9 +494,13 @@ int main(int argc, char **argv)
      */
     /* ENGINE_set_cipher_flags(ENGINE_CIPHER_FLAG_NOINIT); */
 #endif
+    line = OPENSSL_malloc(10 * 1024);
+    if (line == NULL) {
+        perror("OpenSSL_malloc");
+        EXIT(5);
+    }
 
     for (;;) {
-        char line[4096];
         char *p;
         char *cipher;
         unsigned char *iv, *key, *plaintext, *ciphertext, *aad, *tag;
@@ -504,7 +509,7 @@ int main(int argc, char **argv)
         int an = 0;
         int tn = 0;
 
-        if (!fgets((char *)line, sizeof line, f))
+        if (!fgets((char *)line, (10 * 1024), f))
             break;
         if (line[0] == '#' || line[0] == '\n')
             continue;
@@ -588,6 +593,7 @@ int main(int argc, char **argv)
         }
     }
     fclose(f);
+    OPENSSL_free(line);
 
 #ifndef OPENSSL_NO_ENGINE
     ENGINE_cleanup();
