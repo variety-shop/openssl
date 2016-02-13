@@ -256,7 +256,11 @@ OPENSSL_GLOBAL const SSL_CIPHER ssl2_ciphers[] = {
      SSL_SSLV2,
      SSL_NOT_DEFAULT | SSL_NOT_EXP | SSL_MEDIUM,
      0,
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
      112,
+#else
+     168,
+#endif
      168,
      },
 
