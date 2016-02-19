@@ -3,6 +3,7 @@ IF[{- !$disabled{tests} -}]
           versions \
           client_cache_test \
           ciphpreftest \
+          pemtest \
           aborttest \
           sanitytest rsa_complex exdatatest bntest \
           ectest ecdsatest gmdifftest pbelutest ideatest \
@@ -309,6 +310,10 @@ IF[{- !$disabled{tests} -}]
   SOURCE[x509_dup_cert_test]=x509_dup_cert_test.c
   INCLUDE[x509_dup_cert_test]=../include
   DEPEND[x509_dup_cert_test]=../libcrypto
+
+  SOURCE[pemtest]=pemtest.c testutil.c
+  INCLUDE[pemtest]=../include
+  DEPEND[pemtest]=../libcrypto
 
   IF[{- !$disabled{shared} -}]
     PROGRAMS_NO_INST=shlibloadtest
