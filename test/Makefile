@@ -180,7 +180,7 @@ alltests: \
 	test_constant_time test_verify_extra test_clienthello test_sslv2conftest \
 	test_dtls test_bad_dtls test_fatalerr \
 	test_task test_tlsext test_ciphpref \
-	test_client_cache test_clientcache2
+	test_client_cache test_clientcache2 test_pem
 
 test_evp: $(EVPTEST)$(EXE_EXT) evptests.txt
 	../util/shlib_wrap.sh ./$(EVPTEST) evptests.txt
@@ -421,6 +421,9 @@ test_clientcache2: $(CLIENTCACHE2TEST)$(EXE_EXT) testclientcache2
 
 test_ciphpref: $(TLSEXTTEST)$(EXE_EXT) testciphpref
 	@sh ./testciphpref
+
+test_pem: testpem
+	@sh ./testpem
 
 lint:
 	lint -DLINT $(INCLUDES) $(SRC)>fluff
