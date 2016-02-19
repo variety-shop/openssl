@@ -4211,3 +4211,5 @@ DSO_dsobyaddr                           4171	1_1_0c	EXIST::FUNCTION:
 ASN1_UTCTIME_get                        10000	1_1_0a	EXIST::FUNCTION:AKAMAI
 X509_LOOKUP_mem                         10001	1_1_0a	EXIST::FUNCTION:AKAMAI
 X509_STORE_load_mem                     10002	1_1_0a	EXIST::FUNCTION:AKAMAI
+PEM_bytes_read_bio_secmem               10003	1_1_0a	EXIST::FUNCTION:AKAMAI
+PEM_read_bio_flags                      10004	1_1_0a	EXIST::FUNCTION:AKAMAI
