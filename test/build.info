@@ -2,6 +2,7 @@ IF[{- !$disabled{tests} -}]
   PROGRAMS_NO_INST=\
           client_cache_test \
           ciphpreftest \
+          pemtest \
           aborttest \
           sanitytest exdatatest bntest \
           ectest ecdsatest gmdifftest pbelutest ideatest \
@@ -293,6 +294,10 @@ IF[{- !$disabled{tests} -}]
   SOURCE[bio_enc_test]=bio_enc_test.c
   INCLUDE[bio_enc_test]=../include
   DEPEND[bio_enc_test]=../libcrypto
+
+  SOURCE[pemtest]=pemtest.c testutil.c
+  INCLUDE[pemtest]=../include
+  DEPEND[pemtest]=../libcrypto
 
   IF[{- !$disabled{shared} -}]
     PROGRAMS_NO_INST=shlibloadtest
