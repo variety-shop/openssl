@@ -399,6 +399,15 @@ int PEM_do_header(EVP_CIPHER_INFO *cipher, unsigned char *data, long *len,
 # ifndef OPENSSL_NO_BIO
 int PEM_read_bio(BIO *bp, char **name, char **header,
                  unsigned char **data, long *len);
+#  ifndef OPENSSL_NO_AKAMAI
+#   define PEM_FLAG_SECURE       0x1
+#   define PEM_FLAG_WEAK_EOL     0x2
+int PEM_read_bio_flags(BIO *bp, char **name, char **header,
+                       unsigned char **data, long *len, unsigned int flags);
+int PEM_bytes_read_bio_secmem(unsigned char **pdata, long *plen, char **pnm,
+                              const char *name, BIO *bp, pem_password_cb *cb,
+                              void *u);
+#  endif
 int PEM_write_bio(BIO *bp, const char *name, const char *hdr,
                   const unsigned char *data, long len);
 int PEM_bytes_read_bio(unsigned char **pdata, long *plen, char **pnm,
