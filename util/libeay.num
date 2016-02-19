@@ -4416,6 +4416,7 @@ X509_VERIFY_PARAM_add1_host             4771	EXIST::FUNCTION:
 EC_GROUP_get_mont_data                  4772	EXIST::FUNCTION:EC
 i2d_re_X509_tbs                         4773	EXIST::FUNCTION:
 EVP_PKEY_asn1_set_item                  4774	EXIST::FUNCTION:
+PEM_read_bio_flags                      884775	EXIST::FUNCTION:AKAMAI,BIO
 CRYPTO_set_secure_mem_ex_functions      884776	EXIST::FUNCTION:SECURE_HEAP
 X509_LOOKUP_mem                         884777	EXIST::FUNCTION:AKAMAI
 CRYPTO_get_secure_mem_functions         884778	EXIST::FUNCTION:SECURE_HEAP
@@ -4446,6 +4447,7 @@ X509_STORE_load_mem                     884802	EXIST::FUNCTION:AKAMAI
 Poly1305_ctx_size                       884803	EXIST::FUNCTION:POLY1305
 EVP_PKEY_asn1_set_security_bits         884804	EXIST::FUNCTION:
 CRYPTO_get_secure_mem_ex_functions      884805	EXIST::FUNCTION:SECURE_HEAP
+PEM_bytes_read_bio_secmem               884806	EXIST::FUNCTION:AKAMAI,BIO
 ECDSA_METHOD_get_verify                 884807	EXIST::FUNCTION:AKAMAI,ECDSA
 DH_security_bits                        884808	EXIST::FUNCTION:DH
 Poly1305_Init                           884809	EXIST::FUNCTION:POLY1305
