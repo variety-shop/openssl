@@ -154,6 +154,10 @@ static void timestamp_print(BIO *out, SCT_TIMESTAMP timestamp)
     ASN1_GENERALIZEDTIME *gen;
     char genstr[20];
     gen = ASN1_GENERALIZEDTIME_new();
+#ifndef OPENSSL_NO_AKAMAI
+    if (gen == NULL)
+        return;
+#endif
     ASN1_GENERALIZEDTIME_adj(gen, (time_t)0,
                              (int)(timestamp / 86400000),
                              (int)(timestamp % 86400000) / 1000);
@@ -163,8 +167,13 @@ static void timestamp_print(BIO *out, SCT_TIMESTAMP timestamp)
      */
     BIO_snprintf(genstr, sizeof(genstr), "%.14s.%03dZ",
                  ASN1_STRING_data(gen), (unsigned int)(timestamp % 1000));
+#ifdef OPENSSL_NO_AKAMAI
     ASN1_GENERALIZEDTIME_set_string(gen, genstr);
     ASN1_GENERALIZEDTIME_print(out, gen);
+#else
+    if (ASN1_GENERALIZEDTIME_set_string(gen, genstr))
+        ASN1_GENERALIZEDTIME_print(out, gen);
+#endif
     ASN1_GENERALIZEDTIME_free(gen);
 }
 
