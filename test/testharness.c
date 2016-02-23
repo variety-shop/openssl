@@ -447,6 +447,10 @@ int chatter(TestContext *tctx, SSL *s_ssl, SSL *c_ssl, long count)
 
     BIO *c_to_s=BIO_new(BIO_s_mem());
     BIO *s_to_c=BIO_new(BIO_s_mem());
+
+    memset(&client, 0, sizeof(client));
+    memset(&server, 0, sizeof(server));
+
     if ((s_to_c == NULL) || (c_to_s == NULL)) {
         ERR_print_errors(tctx->bio_err);
         goto err;
