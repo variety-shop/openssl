@@ -2620,10 +2620,16 @@ int ssl3_get_client_key_exchange(SSL *s)
         if (n == 0L) {
             /* Get pubkey from cert */
             EVP_PKEY *clkey = X509_get_pubkey(s->session->peer);
+#ifdef OPENSSL_NO_AKAMAI
             if (clkey) {
                 if (EVP_PKEY_cmp_parameters(clkey, skey) == 1)
                     dh_clnt = EVP_PKEY_get1_DH(clkey);
             }
+#else
+            if (clkey != NULL && skey != NULL &&
+                EVP_PKEY_cmp_parameters(clkey, skey) == 1)
+                dh_clnt = EVP_PKEY_get1_DH(clkey);
+#endif
             if (dh_clnt == NULL) {
                 al = SSL_AD_HANDSHAKE_FAILURE;
                 SSLerr(SSL_F_SSL3_GET_CLIENT_KEY_EXCHANGE,
