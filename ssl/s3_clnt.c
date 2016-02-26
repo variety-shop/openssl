@@ -1929,7 +1929,12 @@ int ssl3_get_key_exchange(SSL *s)
                                 sess_cert->peer_pkeys[SSL_PKEY_ECC].x509);
 # endif
         /* else anonymous ECDH, so no certificate or pkey. */
+#ifdef OPENSSL_NO_AKAMAI
         EC_KEY_set_public_key(ecdh, srvr_ecpoint);
+#else
+        if (!EC_KEY_set_public_key(ecdh, srvr_ecpoint))
+            goto f_err;
+#endif
         s->session->sess_cert->peer_ecdh_tmp = ecdh;
         ecdh = NULL;
         BN_CTX_free(bn_ctx);
