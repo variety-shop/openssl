@@ -78,6 +78,9 @@ long MS_CALLBACK BIO_debug_callback(BIO *bio, int cmd, const char *argp,
 
     len = BIO_snprintf(buf,sizeof buf,"BIO[%p]: ",(void *)bio);
 
+#ifndef OPENSSL_NO_AKAMAI
+    len = (len < 0 ) ? 0 : len;
+#endif
     p = buf + len;
     p_maxlen = sizeof(buf) - len;
 
