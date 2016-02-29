@@ -271,6 +271,7 @@ static int check_pem(const char *nm, const char *name)
     return 0;
 }
 
+#ifdef OPENSSL_NO_AKAMAI
 int PEM_bytes_read_bio(unsigned char **pdata, long *plen, char **pnm,
                        const char *name, BIO *bp, pem_password_cb *cb,
                        void *u)
@@ -314,8 +315,7 @@ int PEM_bytes_read_bio(unsigned char **pdata, long *plen, char **pnm,
         OPENSSL_free(data);
     return ret;
 }
-
-#ifndef OPENSSL_NO_AKAMAI
+#else /* OPENSSL_NO_AKAMAI */
 static void pem_flag_free(void *p, unsigned int flags)
 {
     if (flags & PEM_FLAG_SECURE)
@@ -331,7 +331,64 @@ static void *pem_flag_malloc(int num, unsigned int flags)
     else
         return OPENSSL_malloc(num);
 }
-#endif
+
+static int PEM_bytes_read_bio_flags(unsigned char **pdata, long *plen,
+                                    char **pnm, const char *name, BIO *bp,
+                                    pem_password_cb *cb, void *u,
+                                    unsigned int flags)
+{
+    EVP_CIPHER_INFO cipher;
+    char *nm = NULL, *header = NULL;
+    unsigned char *data = NULL;
+    long len;
+    int ret = 0;
+
+    do {
+        pem_flag_free(nm, flags);
+        pem_flag_free(header, flags);
+        pem_flag_free(data, flags);
+        if (!PEM_read_bio_flags(bp, &nm, &header, &data, &len, flags)) {
+            if (ERR_GET_REASON(ERR_peek_error()) == PEM_R_NO_START_LINE)
+                ERR_add_error_data(2, "Expecting: ", name);
+            return 0;
+        }
+    } while (!check_pem(nm, name));
+    if (!PEM_get_EVP_CIPHER_INFO(header, &cipher))
+        goto err;
+    if (!PEM_do_header(&cipher, data, &len, cb, u))
+        goto err;
+
+    *pdata = data;
+    *plen = len;
+
+    if (pnm)
+        *pnm = nm;
+
+    ret = 1;
+
+ err:
+    if (!ret || !pnm)
+        pem_flag_free(nm, flags);
+    pem_flag_free(header, flags);
+    if (!ret)
+        pem_flag_free(data, flags);
+    return ret;
+}
+
+int PEM_bytes_read_bio(unsigned char **pdata, long *plen, char **pnm,
+                       const char *name, BIO *bp, pem_password_cb *cb,
+                       void *u) {
+    return PEM_bytes_read_bio_flags(pdata, plen, pnm, name, bp, cb, u,
+                                    PEM_FLAG_WEAK_EOL);
+}
+
+int PEM_bytes_read_bio_secmem(unsigned char **pdata, long *plen, char **pnm,
+                              const char *name, BIO *bp, pem_password_cb *cb,
+                              void *u) {
+    return PEM_bytes_read_bio_flags(pdata, plen, pnm, name, bp, cb, u,
+                                    PEM_FLAG_SECURE);
+}
+#endif /* OPENSSL_NO_AKAMAI */
 
 #ifndef OPENSSL_NO_FP_API
 int PEM_ASN1_write(i2d_of_void *i2d, const char *name, FILE *fp,
