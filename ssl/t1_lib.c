@@ -1543,6 +1543,7 @@ unsigned char *ssl_add_clienthello_tlsext(SSL *s, unsigned char *buf,
         s2n(s->alpn_client_proto_list_len, ret);
         memcpy(ret, s->alpn_client_proto_list, s->alpn_client_proto_list_len);
         ret += s->alpn_client_proto_list_len;
+        s->cert->alpn_sent = 1;
     }
 # ifndef OPENSSL_NO_SRTP
     if (SSL_IS_DTLS(s) && SSL_get_srtp_profiles(s)) {
@@ -1915,7 +1916,7 @@ static void ssl_check_for_safari(SSL *s, const unsigned char *data,
 # endif                         /* !OPENSSL_NO_EC */
 
 /*
- * tls1_alpn_handle_client_hello is called to process the ALPN extension in a
+ * tls1_alpn_handle_client_hello is called to save the ALPN extension in a
  * ClientHello.  data: the contents of the extension, not including the type
  * and length.  data_len: the number of bytes in |data| al: a pointer to the
  * alert value to send in the event of a non-zero return.  returns: 0 on
@@ -1926,9 +1927,6 @@ static int tls1_alpn_handle_client_hello(SSL *s, const unsigned char *data,
 {
     unsigned i;
     unsigned proto_len;
-    const unsigned char *selected;
-    unsigned char selected_len;
-    int r;
 
     if (s->ctx->alpn_select_cb == NULL)
         return 0;
@@ -1962,24 +1960,53 @@ static int tls1_alpn_handle_client_hello(SSL *s, const unsigned char *data,
         i += proto_len;
     }
 
-    r = s->ctx->alpn_select_cb(s, &selected, &selected_len, data, data_len,
-                               s->ctx->alpn_select_cb_arg);
-    if (r == SSL_TLSEXT_ERR_OK) {
-        if (s->s3->alpn_selected)
-            OPENSSL_free(s->s3->alpn_selected);
-        s->s3->alpn_selected = OPENSSL_malloc(selected_len);
-        if (!s->s3->alpn_selected) {
-            *al = SSL_AD_INTERNAL_ERROR;
-            return -1;
-        }
-        memcpy(s->s3->alpn_selected, selected, selected_len);
-        s->s3->alpn_selected_len = selected_len;
+    if (s->cert->alpn_proposed != NULL)
+        OPENSSL_free(s->cert->alpn_proposed);
+    s->cert->alpn_proposed = OPENSSL_malloc(data_len);
+    if (s->cert->alpn_proposed == NULL) {
+        *al = SSL_AD_INTERNAL_ERROR;
+        return -1;
     }
+    memcpy(s->cert->alpn_proposed, data, data_len);
+    s->cert->alpn_proposed_len = data_len;
     return 0;
 
  parse_error:
     *al = SSL_AD_DECODE_ERROR;
     return -1;
+}
+
+/*
+ * Process the ALPN extension in a ClientHello.
+ * ret: a pointer to the TLSEXT return value: SSL_TLSEXT_ERR_*
+ * al: a pointer to the alert value to send in the event of a failure.
+ * returns 1 on success, 0 on failure: al/ret set only on failure
+ */
+static int tls1_alpn_handle_client_hello_late(SSL *s, int *ret, int *al)
+{
+    const unsigned char *selected = NULL;
+    unsigned char selected_len = 0;
+
+    if (s->ctx->alpn_select_cb != NULL && s->cert->alpn_proposed != NULL) {
+        int r = s->ctx->alpn_select_cb(s, &selected, &selected_len,
+                                       s->cert->alpn_proposed,
+                                       s->cert->alpn_proposed_len,
+                                       s->ctx->alpn_select_cb_arg);
+
+        if (r == SSL_TLSEXT_ERR_OK) {
+            OPENSSL_free(s->s3->alpn_selected);
+            s->s3->alpn_selected = OPENSSL_malloc(selected_len);
+            if (s->s3->alpn_selected == NULL) {
+                *al = SSL_AD_INTERNAL_ERROR;
+                *ret = SSL_TLSEXT_ERR_ALERT_FATAL;
+                return 0;
+            }
+            memcpy(s->s3->alpn_selected, selected, selected_len);
+            s->s3->alpn_selected_len = selected_len;
+        }
+    }
+
+    return 1;
 }
 
 static int ssl_scan_clienthello_tlsext(SSL *s, unsigned char **p,
@@ -2707,7 +2734,7 @@ static int ssl_scan_serverhello_tlsext(SSL *s, unsigned char **p,
             unsigned len;
 
             /* We must have requested it. */
-            if (s->alpn_client_proto_list == NULL) {
+            if (!s->cert->alpn_sent) {
                 *al = TLS1_AD_UNSUPPORTED_EXTENSION;
                 return 0;
             }
@@ -2872,6 +2899,7 @@ int ssl_prepare_clienthello_tlsext(SSL *s)
     }
 # endif
 
+    s->cert->alpn_sent = 0;
     return 1;
 }
 
@@ -3113,6 +3141,10 @@ int ssl_check_clienthello_tlsext_late(SSL *s)
         }
     } else
         s->tlsext_status_expected = 0;
+
+    if (!tls1_alpn_handle_client_hello_late(s, &ret, &al)) {
+        goto err;
+    }
 
  err:
     switch (ret) {
