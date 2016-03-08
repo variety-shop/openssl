@@ -1556,7 +1556,7 @@ typedef struct {
     unsigned char *src;
     unsigned char *dest;
     size_t src_len;
-    int dest_len; // can be <0 if decryption fails
+    int dest_len; /* can be <0 if decryption fails */
     RSA *rsa;
     int padding;
 } SSL_rsa_decrypt_ctx;
