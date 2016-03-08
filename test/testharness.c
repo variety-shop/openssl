@@ -1,6 +1,8 @@
 #include <openssl/bio.h>
 #include <openssl/err.h>
 #include <openssl/ssl.h>
+#include <openssl/dh.h>
+#include <openssl/bn.h>
 
 #include <unistd.h>
 #include <pthread.h>
@@ -76,12 +78,13 @@ int test_setup(void);
 int main(int argc, char *argv[])
 {
     TestContext tctx;
+    int i;
+    const char *suite;
 
     memset(&tctx, 0, sizeof(TestContext));
     tctx.protocol = "tlsv1_2";
 
-    int i;
-    const char *suite = argv[0];
+    suite = argv[0];
     for (i = 1; i < argc; ++i) {
         const char *arg = argv[i];
 
@@ -136,7 +139,7 @@ int main(int argc, char *argv[])
     return (tctx.failed ? 1 : 0);
 }
 
-DH *get_dh768()
+static DH *get_dh768(void)
 {
     static unsigned char dh768_p[] = {
         0x8B,0xF9,0xC0,0xF2,0xB8,0x8C,0xFC,0x68,0x11,0x15,0xB7,0x34,
@@ -167,9 +170,10 @@ DH *get_dh768()
 static int setup_ciphers(TestContext *tctx, SSL_CTX *ctx)
 {
     DH *dh = get_dh768();
+    EC_KEY *ecdh;
     SSL_CTX_set_tmp_dh(ctx,dh);
 
-    EC_KEY *ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
+    ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
     if (ecdh == NULL) {
         BIO_printf(tctx->bio_err, "unable to create curve (nistp256)\n");
         return (0);
@@ -263,8 +267,9 @@ int set_server_cert(TestContext *tctx, const char *cert_file, const char *key_fi
 
 int reset_ssl_ctx(TestContext *tctx)
 {
+    int ret;
     free_ssl_ctx(tctx);
-    int ret = new_ssl_ctx(tctx);
+    ret = new_ssl_ctx(tctx);
     if (ret && tctx->server_cert)
         ret = set_server_cert(tctx, tctx->server_cert, tctx->server_key);
     return (ret);
@@ -398,8 +403,10 @@ static int con_read(Connection *con, char *buf, size_t len)
 
 static int con_write(Connection *con, char *buf, size_t len)
 {
-    int j = (con->to_write > len)? (int)len : (int)con->to_write;
-    int i = BIO_write(con->bio, buf, j);
+    int j;
+    int i;
+    j = (con->to_write > (int)len) ? (int)len : con->to_write;
+    i = BIO_write(con->bio, buf, j);
     if (i < 0) {
         con->can_read = 0;
         con->can_write = 0;
@@ -444,6 +451,7 @@ int chatter(TestContext *tctx, SSL *s_ssl, SSL *c_ssl, long count)
 {
     int ret = 1;
     Connection client, server;
+    char cbuf[1024*8], sbuf[1024*8];
 
     BIO *c_to_s=BIO_new(BIO_s_mem());
     BIO *s_to_c=BIO_new(BIO_s_mem());
@@ -463,7 +471,6 @@ int chatter(TestContext *tctx, SSL *s_ssl, SSL *c_ssl, long count)
     client.to_read = server.to_write = count;
     client.to_write = server.to_read = count;
 
-    char cbuf[1024*8], sbuf[1024*8];
     memset(cbuf,0,sizeof(cbuf));
     memset(sbuf,0,sizeof(sbuf));
 

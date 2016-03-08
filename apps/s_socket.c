@@ -59,7 +59,7 @@
  */
 
 #ifndef OPENSSL_NO_AKAMAI
-# ifdef _MSC_VER
+# if defined(_MSC_VER) && (_MSC_VER < 1900) /* pre-VC14/VS2015 */
 #  define snprintf _snprintf
 # endif
 #endif

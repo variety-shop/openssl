@@ -836,7 +836,7 @@ static int client_certificate(SSL *s)
                               &s->task.ctx, ssl2_setup_client_verify_msg);
         if (i < 0) {
             SSLerr(SSL_F_SSL3_SEND_CLIENT_VERIFY,SSL_R_SSL_HANDSHAKE_FAILURE);
-            return -1; // async key signing couldn't be started
+            return -1; /* async key signing couldn't be started */
         }
     }
 

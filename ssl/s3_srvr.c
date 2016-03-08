@@ -1394,7 +1394,9 @@ int ssl3_get_client_hello(SSL *s)
 int ssl3_get_client_hello_post_app(SSL *s, int retry_cert)
 {
     int i = s->s3->tmp.i, al = SSL_AD_INTERNAL_ERROR, ret= -1;
+#ifndef OPENSSL_NO_COMP
     unsigned char *q = s->s3->tmp.q;
+#endif
     SSL_CIPHER *c;
     STACK_OF(SSL_CIPHER) *ciphers = s->s3->tmp.ciphers;
 #ifndef OPENSSL_NO_AKAMAI
@@ -1816,7 +1818,7 @@ int ssl3_send_server_done(SSL *s)
     return ssl_do_write(s);
 }
 
-int ssl3_send_server_key_exchange_prep_data(SSL *s, SSL_key_exch_prep_ctx *ctx)
+static int ssl3_send_server_key_exchange_prep_data(SSL *s, SSL_key_exch_prep_ctx *ctx)
 {
     int j;
     int kn, i, al;
@@ -2192,7 +2194,7 @@ int ssl3_send_server_key_exchange_prep_data(SSL *s, SSL_key_exch_prep_ctx *ctx)
     return (-1);
 }
 
-void ssl3_send_server_key_exchange_sign_data(SSL *s, SSL_key_exch_prep_ctx *ctx)
+static void ssl3_send_server_key_exchange_sign_data(SSL *s, SSL_key_exch_prep_ctx *ctx)
 {
     int al;
     unsigned char *d = &ctx->msg[s->method->ssl3_enc->hhlen];
@@ -3800,7 +3802,8 @@ int ssl3_send_newsession_ticket(SSL *s)
         unsigned char iv[EVP_MAX_IV_LENGTH];
         unsigned char key_name[16];
 #ifndef OPENSSL_NO_AKAMAI
-        int call_append = 0, app_size = 0;
+        int call_append = 0;
+        size_t app_size = 0;
 #endif
 
         /* get session encoding length */
