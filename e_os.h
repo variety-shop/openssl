@@ -170,10 +170,13 @@ extern "C" {
 #  define readsocket(s,b,n)       recv((s),(b),(n),0)
 #  define writesocket(s,b,n)      send((s),(b),(n),0)
 #  ifndef OPENSSL_NO_AKAMAI
-#   if (_MSC_VER < 1600) /* pre VC10 */
-#    define EADDRINUSE   WSAEADDRINUSE
-#   else                 /* VC10 and later */
-#    define snprintf     _snprintf
+#   ifdef _MSC_VER
+#    if (_MSC_VER < 1600) /* pre-VC10/VS2010 */
+#     define EADDRINUSE   WSAEADDRINUSE
+#    elif (_MSC_VER < 1900) /* VC10/V2010 but pre-VC14/VS2015 */
+#     define snprintf     _snprintf
+      /* else compile error if snprinf is a macro in VC14/VS2015 */
+#    endif
 #   endif
 #  endif /* OPENSSL_NO_AKAMAI */
 # elif defined(__DJGPP__)
