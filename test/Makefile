@@ -706,7 +706,8 @@ casttest.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
 casttest.o: ../include/openssl/safestack.h ../include/openssl/stack.h
 casttest.o: ../include/openssl/symhacks.h casttest.c
 ciphpreftest.o: ../include/openssl/asn1.h ../include/openssl/bio.h
-ciphpreftest.o: ../include/openssl/buffer.h ../include/openssl/crypto.h
+ciphpreftest.o: ../include/openssl/bn.h ../include/openssl/buffer.h
+ciphpreftest.o: ../include/openssl/crypto.h ../include/openssl/dh.h
 ciphpreftest.o: ../include/openssl/dtls1.h ../include/openssl/e_os2.h
 ciphpreftest.o: ../include/openssl/ec.h ../include/openssl/ecdh.h
 ciphpreftest.o: ../include/openssl/ecdsa.h ../include/openssl/err.h
@@ -748,7 +749,8 @@ client_cache_test.o: ../include/openssl/tls1.h ../include/openssl/x509.h
 client_cache_test.o: ../include/openssl/x509_vfy.h ../include/openssl/x509v3.h
 client_cache_test.o: ../ssl/ssl_locl.h client_cache_test.c
 clientcache2test.o: ../include/openssl/asn1.h ../include/openssl/bio.h
-clientcache2test.o: ../include/openssl/buffer.h ../include/openssl/crypto.h
+clientcache2test.o: ../include/openssl/bn.h ../include/openssl/buffer.h
+clientcache2test.o: ../include/openssl/crypto.h ../include/openssl/dh.h
 clientcache2test.o: ../include/openssl/dtls1.h ../include/openssl/e_os2.h
 clientcache2test.o: ../include/openssl/ec.h ../include/openssl/ecdh.h
 clientcache2test.o: ../include/openssl/ecdsa.h ../include/openssl/err.h
@@ -1111,7 +1113,8 @@ sslv2conftest.o: ../include/openssl/stack.h ../include/openssl/symhacks.h
 sslv2conftest.o: ../include/openssl/tls1.h ../include/openssl/x509.h
 sslv2conftest.o: ../include/openssl/x509_vfy.h sslv2conftest.c
 tasktest.o: ../include/openssl/asn1.h ../include/openssl/bio.h
-tasktest.o: ../include/openssl/buffer.h ../include/openssl/crypto.h
+tasktest.o: ../include/openssl/bn.h ../include/openssl/buffer.h
+tasktest.o: ../include/openssl/crypto.h ../include/openssl/dh.h
 tasktest.o: ../include/openssl/dtls1.h ../include/openssl/e_os2.h
 tasktest.o: ../include/openssl/ec.h ../include/openssl/ecdh.h
 tasktest.o: ../include/openssl/ecdsa.h ../include/openssl/err.h
@@ -1129,7 +1132,8 @@ tasktest.o: ../include/openssl/stack.h ../include/openssl/symhacks.h
 tasktest.o: ../include/openssl/tls1.h ../include/openssl/x509.h
 tasktest.o: ../include/openssl/x509_vfy.h tasktest.c testharness.c
 testharness.o: ../include/openssl/asn1.h ../include/openssl/bio.h
-testharness.o: ../include/openssl/buffer.h ../include/openssl/crypto.h
+testharness.o: ../include/openssl/bn.h ../include/openssl/buffer.h
+testharness.o: ../include/openssl/crypto.h ../include/openssl/dh.h
 testharness.o: ../include/openssl/dtls1.h ../include/openssl/e_os2.h
 testharness.o: ../include/openssl/ec.h ../include/openssl/ecdh.h
 testharness.o: ../include/openssl/ecdsa.h ../include/openssl/err.h
@@ -1147,7 +1151,8 @@ testharness.o: ../include/openssl/stack.h ../include/openssl/symhacks.h
 testharness.o: ../include/openssl/tls1.h ../include/openssl/x509.h
 testharness.o: ../include/openssl/x509_vfy.h testharness.c
 tlsexttest.o: ../include/openssl/asn1.h ../include/openssl/bio.h
-tlsexttest.o: ../include/openssl/buffer.h ../include/openssl/crypto.h
+tlsexttest.o: ../include/openssl/bn.h ../include/openssl/buffer.h
+tlsexttest.o: ../include/openssl/crypto.h ../include/openssl/dh.h
 tlsexttest.o: ../include/openssl/dtls1.h ../include/openssl/e_os2.h
 tlsexttest.o: ../include/openssl/ec.h ../include/openssl/ecdh.h
 tlsexttest.o: ../include/openssl/ecdsa.h ../include/openssl/err.h
