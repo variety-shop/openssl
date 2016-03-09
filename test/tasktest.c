@@ -6,7 +6,7 @@
 
 #include "testharness.c"
 
-static const int SLEN = 1024;
+#define SLEN 1024
 
 static TestContext *exp_tctx;
 static const int *exp_events;
@@ -68,15 +68,17 @@ static void *delay_task1(void *c)
 /* Executes task asynchrounously in separate thread */
 static int async_task_cb(SSL *s, int event, SSL_task_ctx *ctx, SSL_task_fn *fn)
 {
+    task_ctx *task;
+    int rc;
     refuse_task_cb(s, event, ctx, fn);
 
-    task_ctx *task = calloc(1, sizeof(task_ctx));
+    task = calloc(1, sizeof(task_ctx));
     task->ssl = s;
     task->event = event;
     task->ctx = ctx;
     task->fn = fn;
 
-    int rc = pthread_create(&worker, NULL, delay_task1, (void *)task);
+    rc = pthread_create(&worker, NULL, delay_task1, (void *)task);
     if (rc) {
         fprintf(stderr, "ERROR; return code from pthread_create() is %d\n", rc);
         return (-1);
@@ -87,14 +89,17 @@ static int async_task_cb(SSL *s, int event, SSL_task_ctx *ctx, SSL_task_fn *fn)
 static int test_server(TestContext *tctx, const char *variant, int *events, SSL_schedule_task_cb cb)
 {
     char buffer[SLEN];
+    int exp_calls;
+    SSL *s_ssl;
+    SSL *c_ssl;
     snprintf(buffer, SLEN, "test_task_cb(server, %s)", variant);
     TESTCASE(tctx, buffer);
 
-    int exp_calls = set_expected(tctx, events);
+    exp_calls = set_expected(tctx, events);
     SSL_CTX_set_schedule_task_cb(tctx->s_ctx, cb);
 
-    SSL *s_ssl = SSL_new(tctx->s_ctx);
-    SSL *c_ssl = SSL_new(tctx->c_ctx);
+    s_ssl = SSL_new(tctx->s_ctx);
+    c_ssl = SSL_new(tctx->c_ctx);
     c_ssl->debug = tctx->debug;
 
     (void)TESTASSERT(tctx, chatter(tctx, s_ssl, c_ssl, 1024) == 0, "data transfered");
@@ -111,14 +116,17 @@ static int test_server(TestContext *tctx, const char *variant, int *events, SSL_
 static int test_client(TestContext *tctx, const char *variant, int *events, SSL_schedule_task_cb cb)
 {
     char buffer[SLEN];
+    int exp_calls;
+    SSL *s_ssl;
+    SSL *c_ssl;
     snprintf(buffer, SLEN, "test_task_cb(client, %s)", variant);
     TESTCASE(tctx, buffer);
 
-    int exp_calls = set_expected(tctx, events);
+    exp_calls = set_expected(tctx, events);
     SSL_CTX_set_schedule_task_cb(tctx->c_ctx, cb);
 
-    SSL *s_ssl = SSL_new(tctx->s_ctx);
-    SSL *c_ssl = SSL_new(tctx->c_ctx);
+    s_ssl = SSL_new(tctx->s_ctx);
+    c_ssl = SSL_new(tctx->c_ctx);
     c_ssl->debug = tctx->debug;
 
     (void)TESTASSERT(tctx, chatter(tctx, s_ssl, c_ssl, 1024) == 0, "data transfered");
