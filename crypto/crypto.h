@@ -552,11 +552,12 @@ void *CRYPTO_remalloc(void *addr, int num, const char *file, int line);
         CRYPTO_secure_free(addr)
 
 int CRYPTO_secure_malloc_init(size_t sz, int minsize);
-void CRYPTO_secure_malloc_done();
+void CRYPTO_secure_malloc_done(void);
 void *CRYPTO_secure_malloc(int num, const char *file, int line);
 void CRYPTO_secure_free(void *ptr);
 int CRYPTO_secure_allocated(const void *ptr);
-int CRYPTO_secure_malloc_initialized();
+void *CRYPTO_secure_realloc(void *ptr, size_t size, const char *file, int line);
+int CRYPTO_secure_malloc_initialized(void);
 int CRYPTO_secure_actual_size(void *ptr);
 
 int CRYPTO_set_secure_mem_functions(void *(*m)(size_t), void (*f)(void *));
