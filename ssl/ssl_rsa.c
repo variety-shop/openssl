@@ -1127,7 +1127,7 @@ int SSL_CTX_use_serverinfo_file(SSL_CTX *ctx, const char *file)
 
 #ifndef OPENSSL_NO_AKAMAI
 
-int ssl_set_cert_and_key(CERT *c, X509 *x509, EVP_PKEY *privatekey,
+static int ssl_set_cert_and_key(CERT *c, X509 *x509, EVP_PKEY *privatekey,
                           STACK_OF(X509) *extra, int override)
 {
     int ret = -1;
