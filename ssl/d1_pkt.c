@@ -1406,7 +1406,13 @@ int dtls1_readv_bytes(SSL *s, int type, const ssl_bucket *buckets, int count, in
 
 int dtls1_read_bytes(SSL *s, int type, unsigned char *buf, int len, int peek)
 {
-    ssl_bucket bucket = { (void*)buf, len };
+#if PEDANTIC
+    ssl_bucket bucket;
+    bucket.iov_base = buf;
+    bucket.iov_len = len;
+#else
+    ssl_bucket bucket = { buf, len };
+#endif
     return dtls1_readv_bytes(s, type, &bucket, 1, peek);
 }
 
@@ -1490,8 +1496,8 @@ int dtls1_write_bytes(SSL *s, int type, const void *buf, int len)
     return i;
 }
 
-int do_dtls1_writev(SSL *s, int type, const ssl_bucket *buckets,
-                    int count, int create_empty_fragment)
+static int do_dtls1_writev(SSL *s, int type, const ssl_bucket *buckets,
+                           int count, int create_empty_fragment)
 {
     unsigned char *p, *pseq;
     int i, mac_size, clear = 0;
@@ -1712,7 +1718,13 @@ int do_dtls1_writev(SSL *s, int type, const ssl_bucket *buckets,
 int do_dtls1_write(SSL *s, int type, const unsigned char *buf,
                    unsigned int len, int create_empty_fragment)
 {
-    ssl_bucket bucket = { (void*)buf, len };
+#if PEDANTIC
+    ssl_bucket bucket;
+    bucket.iov_base = (void*)buf;
+    bucket.iov_len = len;
+#else
+    const ssl_bucket bucket = { buf, len };
+#endif
     return do_dtls1_writev(s, type, &bucket, 1, create_empty_fragment);
 }
 

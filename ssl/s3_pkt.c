@@ -670,8 +670,7 @@ int ssl3_do_vcompress(SSL *ssl, const ssl_bucket *buckets, int count, size_t off
 int ssl3_writev_bytes(SSL *s, int type, const ssl_bucket *buckets,
                       int count)
 {
-    int tot;
-    unsigned int n, nw, len;
+    unsigned int n, nw, len, tot;
 #if !defined(OPENSSL_NO_MULTIBLOCK) && EVP_CIPH_FLAG_TLS1_1_MULTIBLOCK
     unsigned int max_send_fragment;
 #endif
@@ -729,7 +728,7 @@ int ssl3_writev_bytes(SSL *s, int type, const ssl_bucket *buckets,
      * compromise is considered worthy.
      */
     if (type == SSL3_RT_APPLICATION_DATA &&
-        len >= 4 * (int)(max_send_fragment = s->max_send_fragment) &&
+        len >= 4 * (max_send_fragment = s->max_send_fragment) &&
         s->compress == NULL && s->msg_callback == NULL &&
         SSL_USE_EXPLICIT_IV(s) &&
         EVP_CIPHER_flags(s->enc_write_ctx->cipher) &
@@ -750,7 +749,7 @@ int ssl3_writev_bytes(SSL *s, int type, const ssl_bucket *buckets,
                                           EVP_CTRL_TLS1_1_MULTIBLOCK_MAX_BUFSIZE,
                                           max_send_fragment, NULL);
 
-            if (len >= 8 * (int)max_send_fragment)
+            if (len >= 8 * max_send_fragment)
                 packlen *= 8;
             else
                 packlen *= 4;
@@ -901,7 +900,9 @@ int ssl3_writev_bytes(SSL *s, int type, const ssl_bucket *buckets,
 
 int ssl3_write_bytes(SSL *s, int type, const void *buf, int len)
 {
-    const ssl_bucket bucket = { (void*)buf, len };
+    ssl_bucket bucket;
+    bucket.iov_base = (void*)buf;
+    bucket.iov_len = len;
     return (ssl3_writev_bytes(s, type, &bucket, 1));
 }
 
@@ -1233,7 +1234,7 @@ int ssl3_readv_bytes(SSL *s, int type, const ssl_bucket *buckets,
         int copied = ssl_bucket_cpy_in(buckets, count,
                                        s->s3->handshake_fragment, 
                                        s->s3->handshake_fragment_len);
-        if (copied > 0 && copied < s->s3->handshake_fragment_len) {
+        if (copied > 0 && (unsigned)copied < s->s3->handshake_fragment_len) {
             s->s3->handshake_fragment_len -= copied;
             memmove(s->s3->handshake_fragment,
                     s->s3->handshake_fragment + copied,
@@ -1707,7 +1708,9 @@ int ssl3_readv_bytes(SSL *s, int type, const ssl_bucket *buckets,
 
 int ssl3_read_bytes(SSL *s, int type, unsigned char *buf, int len, int peek)
 {
-    ssl_bucket bucket = { buf, len };
+    ssl_bucket bucket;
+    bucket.iov_base = buf;
+    bucket.iov_len = len;
     return (ssl3_readv_bytes(s, type, &bucket, 1, peek));
 }
 

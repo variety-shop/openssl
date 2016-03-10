@@ -11,7 +11,8 @@
 
 size_t ssl_bucket_len(const ssl_bucket *buckets, int count)
 {
-    size_t len = 0, i;
+    size_t len = 0;
+    int i;
     for(i=0; i < count; ++i)
         len += buckets[i].iov_len;
     return len;
@@ -35,12 +36,12 @@ size_t ssl_bucket_cpy_out(void *buf, const ssl_bucket *buckets, int count, int o
     size_t copied = 0;
 
     if (count == 1) {
-        len = (len <= buckets[0].iov_len)? len : buckets[0].iov_len;
+        len = ((size_t)len <= buckets[0].iov_len) ? len : (int)buckets[0].iov_len;
         memcpy(buf, (unsigned char*)buckets[0].iov_base + offset, len);
         return (len);
     }
 
-    while (i < count && offset > buckets[i].iov_len) {
+    while (i < count && (size_t)offset > buckets[i].iov_len) {
         offset -= buckets[i].iov_len;
         ++i;
     }
@@ -61,10 +62,11 @@ size_t ssl_bucket_cpy_out(void *buf, const ssl_bucket *buckets, int count, int o
 
 size_t ssl_bucket_cpy_in(const ssl_bucket *buckets, int count, void *buf, int len)
 {
-    size_t copied = 0, i;
+    size_t copied = 0;
+    int i;
 
     if (count == 1) {
-        len = (len <= buckets[0].iov_len)? len : buckets[0].iov_len;
+        len = ((size_t)len <= buckets[0].iov_len) ? len : (int)buckets[0].iov_len;
         memcpy(buckets[0].iov_base, buf, len);
         return (len);
     }
@@ -85,8 +87,8 @@ unsigned char *ssl_bucket_get_pointer(const ssl_bucket *buckets, int count,
                                       int offset, unsigned int *nw)
 {
     int i = 0;
-    while (i < count && offset > buckets[i].iov_len) {
-        offset -= buckets[i].iov_len;
+    while (i < count && (size_t)offset > buckets[i].iov_len) {
+        offset -= (int)buckets[i].iov_len;
         ++i;
     }
 
