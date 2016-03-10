@@ -265,14 +265,14 @@ static unsigned int psk_server_callback(SSL *ssl, const char *identity,
 # define SHORT_APPDATA "TEST"
 # define SHORT_APPDATA_SIZE (sizeof(SHORT_APPDATA)-1)
 
-int short_appdata_size_cb(SSL *s, void *arg)
+static int short_appdata_size_cb(SSL *s, void *arg)
 {
     printf("short_appdata_size_cb: require bytes -> %d\n", (int)SHORT_APPDATA_SIZE);
     return SHORT_APPDATA_SIZE;
 }
 
-int short_appdata_append_cb(SSL *s, unsigned char* data_ptr, int limit_size,
-                            void *arg)
+static int short_appdata_append_cb(SSL *s, unsigned char* data_ptr, int limit_size,
+                                   void *arg)
 {
     printf("short_appdata_append_cb: limit bytes -> %d\n", limit_size);
     memcpy(data_ptr, SHORT_APPDATA, SHORT_APPDATA_SIZE);
@@ -280,8 +280,8 @@ int short_appdata_append_cb(SSL *s, unsigned char* data_ptr, int limit_size,
     return SHORT_APPDATA_SIZE;
 }
 
-int short_appdata_parse_cb(SSL *s, const unsigned char* data_ptr, int size,
-                           void *arg)
+static int short_appdata_parse_cb(SSL *s, const unsigned char* data_ptr, int size,
+                                  void *arg)
 {
     char *appdata;
     assert(size == SHORT_APPDATA_SIZE);
@@ -300,14 +300,14 @@ int short_appdata_parse_cb(SSL *s, const unsigned char* data_ptr, int size,
 # define HIT_LIMIT 		65270
 # define LOOPS			100
 
-int long_appdata_size_cb(SSL *s, void *arg)
+static int long_appdata_size_cb(SSL *s, void *arg)
 {
     printf("long_appdata_size_cb: require bytes -> %d\n", HIT_LIMIT);
     return HIT_LIMIT;
 }
 
-int long_appdata_append_cb(SSL *s, unsigned char* data_ptr, int limit_size,
-                           void *arg)
+static int long_appdata_append_cb(SSL *s, unsigned char* data_ptr, int limit_size,
+                                  void *arg)
 {
     int i = 0;
     printf("long_appdata_append_cb: limit bytes -> %d\n", limit_size);
@@ -321,8 +321,8 @@ int long_appdata_append_cb(SSL *s, unsigned char* data_ptr, int limit_size,
     return LONG_APPDATA_SIZE*LOOPS;
 }
 
-int long_appdata_parse_cb(SSL *s, const unsigned char* data_ptr, int size,
-                          void *arg)
+static int long_appdata_parse_cb(SSL *s, const unsigned char* data_ptr, int size,
+                                 void *arg)
 {
     char *appdata;
     int i = 0;
@@ -344,27 +344,27 @@ int long_appdata_parse_cb(SSL *s, const unsigned char* data_ptr, int size,
 }
 
 /* edge cases */
-int wontcall_appdata_append_cb(SSL *s, unsigned char* data_ptr, int limit_size, void *arg)
+static int wontcall_appdata_append_cb(SSL *s, unsigned char* data_ptr, int limit_size, void *arg)
 {
     printf("You should never see this message!!!\n");
     EXIT(1);
     return 0;
 }
 
-int wontcall_appdata_parse_cb(SSL *s, const unsigned char* data_ptr, int size, void *arg)
+static int wontcall_appdata_parse_cb(SSL *s, const unsigned char* data_ptr, int size, void *arg)
 {
     printf("You should never see this message!!!\n");
     EXIT(1);
     return 0;
 }
 
-int negative_appdata_size_cb(SSL *s, void *arg)
+static int negative_appdata_size_cb(SSL *s, void *arg)
 {
     printf("negative_appdata_size_cb: require bytes -> %d\n", -1);
     return -1;
 }
 
-int zero_appdata_size_cb(SSL *s, void *arg)
+static int zero_appdata_size_cb(SSL *s, void *arg)
 {
     printf("zero_appdata_size_cb: require bytes -> %d\n", 0);
     return 0;
@@ -372,21 +372,21 @@ int zero_appdata_size_cb(SSL *s, void *arg)
 
 # define NONZERO 8
 
-int non_zero_appdata_size_cb(SSL *s, void *arg)
+static int non_zero_appdata_size_cb(SSL *s, void *arg)
 {
     printf("non_zero_appdata_size_cb: require bytes -> %d\n", NONZERO);
     return NONZERO;
 }
 
-int zero_appdata_append_cb(SSL *s, unsigned char* data_ptr, int limit_size, void *arg)
+static int zero_appdata_append_cb(SSL *s, unsigned char* data_ptr, int limit_size, void *arg)
 {
     printf("zero_appdata_append_cb: written bytes -> %d\n", 0);
     return 0;
 }
 
-int session_ticket_key_cb(SSL* ssl, unsigned char key_name[16],
-                          unsigned char iv[EVP_MAX_IV_LENGTH],
-                          EVP_CIPHER_CTX *ctx, HMAC_CTX *hctx, int enc)
+static int session_ticket_key_cb(SSL* ssl, unsigned char key_name[16],
+                                 unsigned char iv[EVP_MAX_IV_LENGTH],
+                                 EVP_CIPHER_CTX *ctx, HMAC_CTX *hctx, int enc)
 {
     static unsigned char hmac_key[16];
     static unsigned char aes_key[16];
