@@ -264,8 +264,9 @@ $ssltest -bio_pair -tls1 -alpn_client baz -alpn_server bar,foo || exit 1
 #############################################################################
 # ALPN + SNI
 
-$ssltest, -bio_pair -alpn_client foo,bar -sn_client alice -alpn_server1 foo,123 -sn_server1 alice -alpn_server2 bar,456 -sn_server2 bob -alpn_expected foo || exit 1
-$ssltest, -bio_pair -alpn_client foo,bar -sn_client bob -alpn_server1 foo,123 -sn_server1 alice -alpn_server2 bar,456 -sn_server2 bob -alpn_expected bar || exit 1
+$ssltest -bio_pair -alpn_client foo,bar -sn_client alice -alpn_server1 foo,123 -sn_server1 alice -alpn_server2 bar,456 -sn_server2 bob -alpn_expected foo || exit 1
+$ssltest -bio_pair -alpn_client foo,bar -sn_client bob -alpn_server1 foo,123 -sn_server1 alice -alpn_server2 bar,456 -sn_server2 bob -alpn_expected bar || exit 1
+$ssltest -bio_pair -alpn_client foo,bar -sn_client bob -sn_server1 alice -alpn_server2 bar,456 -sn_server2 bob -alpn_expected bar || exit 1
 
 if ../util/shlib_wrap.sh ../apps/openssl no-srp; then
   echo skipping SRP tests
