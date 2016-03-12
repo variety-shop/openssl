@@ -1928,9 +1928,6 @@ static int tls1_alpn_handle_client_hello(SSL *s, const unsigned char *data,
     unsigned i;
     unsigned proto_len;
 
-    if (s->ctx->alpn_select_cb == NULL)
-        return 0;
-
     if (data_len < 2)
         goto parse_error;
 
@@ -2003,6 +2000,10 @@ static int tls1_alpn_handle_client_hello_late(SSL *s, int *ret, int *al)
             }
             memcpy(s->s3->alpn_selected, selected, selected_len);
             s->s3->alpn_selected_len = selected_len;
+# ifndef OPENSSL_NO_NEXTPROTONEG
+            /* ALPN takes precedence over NPN. */
+            s->s3->next_proto_neg_seen = 0;
+# endif
         }
     }
 
@@ -2028,6 +2029,12 @@ static int ssl_scan_clienthello_tlsext(SSL *s, unsigned char **p,
         OPENSSL_free(s->s3->alpn_selected);
         s->s3->alpn_selected = NULL;
     }
+    s->s3->alpn_selected_len = 0;
+    if (s->cert->alpn_proposed) {
+        OPENSSL_free(s->cert->alpn_proposed);
+        s->cert->alpn_proposed = NULL;
+    }
+    s->cert->alpn_proposed_len = 0;
 # ifndef OPENSSL_NO_HEARTBEATS
     s->tlsext_heartbeat &= ~(SSL_TLSEXT_HB_ENABLED |
                              SSL_TLSEXT_HB_DONT_SEND_REQUESTS);
@@ -2395,8 +2402,7 @@ static int ssl_scan_clienthello_tlsext(SSL *s, unsigned char **p,
 # endif
 # ifndef OPENSSL_NO_NEXTPROTONEG
         else if (type == TLSEXT_TYPE_next_proto_neg &&
-                 s->s3->tmp.finish_md_len == 0 &&
-                 s->s3->alpn_selected == NULL) {
+                 s->s3->tmp.finish_md_len == 0) {
             /*-
              * We shouldn't accept this extension on a
              * renegotiation.
@@ -2419,13 +2425,9 @@ static int ssl_scan_clienthello_tlsext(SSL *s, unsigned char **p,
 # endif
 
         else if (type == TLSEXT_TYPE_application_layer_protocol_negotiation &&
-                 s->ctx->alpn_select_cb && s->s3->tmp.finish_md_len == 0) {
+                 s->s3->tmp.finish_md_len == 0) {
             if (tls1_alpn_handle_client_hello(s, data, size, al) != 0)
                 return 0;
-# ifndef OPENSSL_NO_NEXTPROTONEG
-            /* ALPN takes precedence over NPN. */
-            s->s3->next_proto_neg_seen = 0;
-# endif
         }
 
         /* session ticket processed earlier */
