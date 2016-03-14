@@ -110,9 +110,9 @@ int MAIN(int argc, char **argv)
     char *passargin = NULL, *passargout = NULL;
     char *passin = NULL, *passout = NULL;
     int modulus = 0;
-
+#ifndef OPENSSL_NO_RC4
     int pvk_encr = 2;
-
+#endif
     apps_startup();
 
     if (bio_err == NULL)
@@ -164,12 +164,14 @@ int MAIN(int argc, char **argv)
             engine = *(++argv);
         }
 # endif
+# ifndef OPENSSL_NO_RC4
         else if (strcmp(*argv, "-pvk-strong") == 0)
             pvk_encr = 2;
         else if (strcmp(*argv, "-pvk-weak") == 0)
             pvk_encr = 1;
         else if (strcmp(*argv, "-pvk-none") == 0)
             pvk_encr = 0;
+# endif
         else if (strcmp(*argv, "-noout") == 0)
             noout = 1;
         else if (strcmp(*argv, "-text") == 0)
