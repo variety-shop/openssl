@@ -77,12 +77,13 @@ static BIO* bio_stdout = NULL;
 
 static const char rnd_seed[] = "string to make the random number generator think it has entropy";
 
-
+#if 0
+/* defined but not used, but we want to keep it, just-in-case */
 #ifndef HEXDUMP_COLS
 #define HEXDUMP_COLS 16
 #endif
 
-void hexdump(void *mem, size_t len)
+static void hexdump(void *mem, size_t len)
 {
     unsigned char* ptr = mem;
     size_t i, j;
@@ -117,6 +118,7 @@ void hexdump(void *mem, size_t len)
         }
     }
 }
+#endif
 
 static void sv_usage(void)
 {
@@ -266,7 +268,7 @@ static int check_ip4(SSL* ssl, struct sockaddr_in* sin4, int expect_success)
 static void print_ip6(struct in6_addr* ip6)
 {
     int i;
-    for (i = 0; i < sizeof(struct in6_addr); i++) {
+    for (i = 0; (size_t)i < sizeof(struct in6_addr); i++) {
         if (i)
             printf(":");
         printf("%2.2X", (unsigned char)ip6->s6_addr[i]);
@@ -307,7 +309,7 @@ static int check_ip6(SSL* ssl, struct sockaddr_in6* sin6, int expect_success)
     return 1;
 }
 
-int add_ip_to_cache(SSL_CTX* ctx, struct sockaddr_storage* sstorage)
+static int add_ip_to_cache(SSL_CTX* ctx, struct sockaddr_storage* sstorage)
 {
     int ret = 0;
     int err;
@@ -343,7 +345,7 @@ int add_ip_to_cache(SSL_CTX* ctx, struct sockaddr_storage* sstorage)
     }
 
     if (ssl->session_ctx != ctx) {
-        printf("ssl->session_ctx=%p != ctx=%p\n", ssl->session_ctx, ctx);
+        printf("ssl->session_ctx=%p != ctx=%p\n", (void*)ssl->session_ctx, (void*)ctx);
         goto end;
     }
 
@@ -370,27 +372,27 @@ int add_ip_to_cache(SSL_CTX* ctx, struct sockaddr_storage* sstorage)
     return ret;
 }
 
-void random_ip6(struct sockaddr_in6* sin6)
+static void random_ip6(struct sockaddr_in6* sin6)
 {
     RAND_bytes((void*)&sin6->sin6_addr, sizeof(sin6->sin6_addr));
     RAND_bytes((void*)&sin6->sin6_port, sizeof(sin6->sin6_port));
     sin6->sin6_family = AF_INET6;
 }
 
-void zero_ip6(struct sockaddr_in6* sin6)
+static void zero_ip6(struct sockaddr_in6* sin6)
 {
     memset(sin6, 0, sizeof(struct sockaddr_in6));
     sin6->sin6_family = AF_INET6;
 }
 
-void random_ip4(struct sockaddr_in* sin4)
+static void random_ip4(struct sockaddr_in* sin4)
 {
     RAND_bytes((void*)&sin4->sin_addr, sizeof(sin4->sin_addr));
     RAND_bytes((void*)&sin4->sin_port, sizeof(sin4->sin_port));
     sin4->sin_family = AF_INET;
 }
 
-void zero_ip4(struct sockaddr_in* sin4)
+static void zero_ip4(struct sockaddr_in* sin4)
 {
     memset(sin4, 0, sizeof(struct sockaddr_in));
     sin4->sin_family = AF_INET;

@@ -43,8 +43,8 @@ static volatile int SSL_SOCKADDR_IDX = -1;         /**< EX_DATA index for SSL so
  * @param @c argp pointer value passed to CRYPTO_get_ex_new_index
  * @return 1 on success, 0 on failure
  */
-int ssl_sockaddr_new(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
-                     int idx, long argl, void* argp)
+static int ssl_sockaddr_new(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
+                            int idx, long argl, void* argp)
 {
     struct sockaddr_storage* saddr = OPENSSL_malloc(sizeof(*saddr));
 #ifdef AKAMAI_DEBUG_SOCKADDR
@@ -72,8 +72,8 @@ int ssl_sockaddr_new(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
  * @param @c argp pointer value passed to CRYPTO_get_ex_new_index
  * @return @c void
  */
-void ssl_sockaddr_free(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
-                       int idx, long arlg, void* argp)
+static void ssl_sockaddr_free(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
+                              int idx, long arlg, void* argp)
 {
 # ifdef AKAMAI_DEBUG_SOCKADDR
     if (argp)
@@ -105,8 +105,8 @@ void ssl_sockaddr_free(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
  * @param @c argp pointer value passed to CRYPTO_get_ex_new_index
  * @return 1 on success, 0 on failure
  */
-int ssl_sockaddr_dup(CRYPTO_EX_DATA* to, CRYPTO_EX_DATA* from, void* from_d,
-                     int idx, long arlg, void* argp)
+static int ssl_sockaddr_dup(CRYPTO_EX_DATA* to, CRYPTO_EX_DATA* from, void* from_d,
+                            int idx, long arlg, void* argp)
 {
     /**
      * from_d is actually the address of the pointer put into the ex_data,
@@ -475,7 +475,7 @@ int SSL_SESSION_set_timeout_update_cache(const SSL *s, long t)
  * @param @c data SSL_SESSION to hash
  * @return @<unsigned long@> hash value
  */
-unsigned long SSL_SESSION_client_hash(const void *data)
+static unsigned long SSL_SESSION_client_hash(const void *data)
 {
     unsigned long hash = 0;
     const SSL_SESSION *a = (const SSL_SESSION*)data;
