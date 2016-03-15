@@ -23,10 +23,12 @@ static int test_default(TestContext *tctx, const char *cipher)
 
 static int test_client_list(TestContext *tctx, const char *cipher_list, const char *expected)
 {
+    SSL *s_ssl;
+    SSL *c_ssl;
     (void)TESTASSERT(tctx, SSL_CTX_set_cipher_list(tctx->c_ctx, cipher_list), "cipher set in client");
 
-    SSL *s_ssl = SSL_new(tctx->s_ctx);
-    SSL *c_ssl = SSL_new(tctx->c_ctx);
+    s_ssl = SSL_new(tctx->s_ctx);
+    c_ssl = SSL_new(tctx->c_ctx);
     c_ssl->debug = tctx->debug;
 
     (void)TESTASSERT(tctx, chatter(tctx, s_ssl, c_ssl, 1024) == 0, "data transfered");
