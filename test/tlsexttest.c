@@ -6,7 +6,7 @@
 
 #include "testharness.c"
 
-static const int SLEN = 1024;
+#define SLEN 1024
 
 static int invocations;
 
@@ -56,14 +56,17 @@ static int async_cb(SSL *s, int *al, void *arg)
 static int test_server(TestContext *tctx, const char *variant, int (*cb)(SSL*, int*, void*))
 {
     char buffer[SLEN];
+    SSL *s_ssl;
+    SSL *c_ssl;
+
     snprintf(buffer, SLEN, "test_task_cb(server, %s)", variant);
     TESTCASE(tctx, buffer);
 	
     invocations = 0;
     SSL_CTX_set_tlsext_servername_callback(tctx->s_ctx, cb);
 	
-    SSL *s_ssl = SSL_new(tctx->s_ctx);
-    SSL *c_ssl = SSL_new(tctx->c_ctx);
+    s_ssl = SSL_new(tctx->s_ctx);
+    c_ssl = SSL_new(tctx->c_ctx);
 	
     if (!strcmp("fail", variant))
         (void)TESTASSERT(tctx, chatter(tctx, s_ssl, c_ssl, 1024) != 0, "data transfer failed");
