@@ -87,8 +87,6 @@ my @known_algorithms = ( "RC2", "RC4", "RC5", "IDEA", "DES", "BF",
 			 "MDC2", "WHIRLPOOL", "RSA", "DSA", "DH", "EC", "ECDH", "ECDSA", "EC2M",
 			 "HMAC", "AES", "CAMELLIA", "SEED", "GOST",
                          "CHACHA", "POLY1305",
-			 # Akamai-specific
-			 "AKAMAI", "SECURE_HEAP",
 			 # EC_NISTP_64_GCC_128
 			 "EC_NISTP_64_GCC_128",
 			 # Envelope "algorithms"
@@ -130,6 +128,14 @@ my @known_algorithms = ( "RC2", "RC4", "RC5", "IDEA", "DES", "BF",
 			 "SRTP",
 			 # SSL TRACE
 		 	 "SSL_TRACE",
+			 # AKAMAI
+			 "AKAMAI",
+			 "SECURE_HEAP",
+			 "IOVEC",
+			 "AKAMAI_ASYNC",
+			 "AKAMAI_CLIENT_CACHE",
+			 "AKAMAI_GHOST_HIGH",
+			 "AKAMAI_ASYNC_RSALG",
 			 # Unit testing
 			 "UNIT_TEST");
 
@@ -298,6 +304,8 @@ my $ssl="ssl/ssl.h";
 $ssl.=" ssl/kssl.h";
 $ssl.=" ssl/tls1.h";
 $ssl.=" ssl/srtp.h";
+$ssl.=" ssl/ssl_akamai_post.h";
+$ssl.=" ssl/ssl_akamai_pre.h";
 
 my $crypto ="crypto/crypto.h";
 $crypto.=" crypto/cryptlib.h";
