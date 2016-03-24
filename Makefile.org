@@ -502,6 +502,9 @@ errors:
 stacks:
 	$(PERL) util/mkstack.pl -write
 
+openssl.ld: util/libeay.num util/ssleay.num
+	awk 'BEGIN { print "OPENSSL_102 {\n\tglobal:\n"; } { print "\t\t" $$1 ";" } END { print "\tlocal:\n\t\t*;\n};\n"; }' $^ > $@
+
 util/libeay.num::
 	$(PERL) util/mkdef.pl crypto update
 
