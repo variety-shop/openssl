@@ -383,6 +383,9 @@ SSL_SESSION *d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
 {
     int ssl_version = 0, i;
     long id;
+#ifndef OPENSSL_NO_AKAMAI
+    int version;
+#endif
     ASN1_INTEGER ai, *aip;
     ASN1_OCTET_STRING os, *osp;
     M_ASN1_D2I_vars(a, SSL_SESSION *, SSL_SESSION_new);
@@ -396,6 +399,9 @@ SSL_SESSION *d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
     ai.data = NULL;
     ai.length = 0;
     M_ASN1_D2I_get_x(ASN1_INTEGER, aip, d2i_ASN1_INTEGER);
+#ifndef OPENSSL_NO_AKAMAI
+    version = (int)ASN1_INTEGER_get(aip);
+#endif
     if (ai.data != NULL) {
         OPENSSL_free(ai.data);
         ai.data = NULL;
@@ -403,6 +409,15 @@ SSL_SESSION *d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
     }
 
     /* we don't care about the version right now :-) */
+#ifndef OPENSSL_NO_AKAMAI
+    /* Yes we do! */
+    if (version != SSL_SESSION_ASN1_VERSION) {
+        c.error = SSL_R_UNKNOWN_SSL_VERSION;
+        c.line = __LINE__;
+        goto err;
+    }
+#endif
+
     M_ASN1_D2I_get_x(ASN1_INTEGER, aip, d2i_ASN1_INTEGER);
     ssl_version = (int)ASN1_INTEGER_get(aip);
     ret->ssl_version = ssl_version;
