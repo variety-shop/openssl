@@ -547,18 +547,18 @@ void *CRYPTO_remalloc(void *addr, int num, const char *file, int line);
 
 # ifndef OPENSSL_NO_SECURE_HEAP
 #  define OPENSSL_secure_malloc(num) \
-        CRYPTO_secure_malloc((int)num,__FILE__,__LINE__)
+        CRYPTO_secure_malloc((size_t)num,__FILE__,__LINE__)
 #  define OPENSSL_secure_free(addr) \
         CRYPTO_secure_free(addr)
 
 int CRYPTO_secure_malloc_init(size_t sz, int minsize);
 void CRYPTO_secure_malloc_done(void);
-void *CRYPTO_secure_malloc(int num, const char *file, int line);
+void *CRYPTO_secure_malloc(size_t num, const char *file, int line);
 void CRYPTO_secure_free(void *ptr);
 int CRYPTO_secure_allocated(const void *ptr);
 void *CRYPTO_secure_realloc(void *ptr, size_t size, const char *file, int line);
 int CRYPTO_secure_malloc_initialized(void);
-int CRYPTO_secure_actual_size(void *ptr);
+size_t CRYPTO_secure_actual_size(void *ptr);
 
 int CRYPTO_set_secure_mem_functions(void *(*m)(size_t), void (*f)(void *));
 int CRYPTO_set_secure_mem_ex_functions(void *(*m)(size_t,const char *,int),
