@@ -4222,12 +4222,20 @@ long ssl3_ctx_ctrl(SSL_CTX *ctx, int cmd, long larg, void *parg)
             }
             if (cmd == SSL_CTRL_SET_TLSEXT_TICKET_KEYS) {
                 memcpy(ctx->tlsext_tick_key_name, keys, 16);
+#ifdef OPENSSL_NO_AKAMAI
                 memcpy(ctx->tlsext_tick_hmac_key, keys + 16, 16);
                 memcpy(ctx->tlsext_tick_aes_key, keys + 32, 16);
+#else
+                memcpy(ctx->tlsext_tick_sec_mem_key, keys + 16, 32);
+#endif
             } else {
                 memcpy(keys, ctx->tlsext_tick_key_name, 16);
+#ifdef OPENSSL_NO_AKAMAI
                 memcpy(keys + 16, ctx->tlsext_tick_hmac_key, 16);
                 memcpy(keys + 32, ctx->tlsext_tick_aes_key, 16);
+#else
+                memcpy(keys + 16, ctx->tlsext_tick_sec_mem_key, 32);
+#endif
             }
             return 1;
         }

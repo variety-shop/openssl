@@ -3804,12 +3804,21 @@ int ssl3_send_newsession_ticket(SSL *s)
         } else {
             if (RAND_bytes(iv, 16) <= 0)
                 goto err;
+#ifdef OPENSSL_NO_AKAMAI
             if (!EVP_EncryptInit_ex(&ctx, EVP_aes_128_cbc(), NULL,
                                     tctx->tlsext_tick_aes_key, iv))
                 goto err;
             if (!HMAC_Init_ex(&hctx, tctx->tlsext_tick_hmac_key, 16,
                               tlsext_tick_md(), NULL))
                 goto err;
+#else
+            if (!EVP_EncryptInit_ex(&ctx, EVP_aes_128_cbc(), NULL,
+                                    tctx->tlsext_tick_sec_mem_key + 16, iv))
+                goto err;
+            if (!HMAC_Init_ex(&hctx, tctx->tlsext_tick_sec_mem_key, 16,
+                              tlsext_tick_md(), NULL))
+                goto err;
+#endif
             memcpy(key_name, tctx->tlsext_tick_key_name, 16);
         }
 
