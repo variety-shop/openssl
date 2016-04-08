@@ -3804,6 +3804,9 @@ long ssl3_ctx_ctrl(SSL_CTX *ctx, int cmd, long larg, void *parg)
     case SSL_CTRL_SET_TLSEXT_TICKET_KEYS:
     case SSL_CTRL_GET_TLSEXT_TICKET_KEYS:
         {
+#ifndef OPENSSL_NO_AKAMAI
+            SSL_CTX_EX_DATA_AKAMAI* ex_data = SSL_CTX_get_ex_data_akamai(ctx);
+#endif
             unsigned char *keys = parg;
             long tick_keylen = (sizeof(ctx->ext.tick_key_name) +
                                 sizeof(ctx->ext.tick_hmac_key) +
@@ -3817,6 +3820,7 @@ long ssl3_ctx_ctrl(SSL_CTX *ctx, int cmd, long larg, void *parg)
             if (cmd == SSL_CTRL_SET_TLSEXT_TICKET_KEYS) {
                 memcpy(ctx->ext.tick_key_name, keys,
                        sizeof(ctx->ext.tick_key_name));
+#ifdef OPENSSL_NO_AKAMAI
                 memcpy(ctx->ext.tick_hmac_key,
                        keys + sizeof(ctx->ext.tick_key_name),
                        sizeof(ctx->ext.tick_hmac_key));
@@ -3824,9 +3828,19 @@ long ssl3_ctx_ctrl(SSL_CTX *ctx, int cmd, long larg, void *parg)
                        keys + sizeof(ctx->ext.tick_key_name) +
                        sizeof(ctx->ext.tick_hmac_key),
                        sizeof(ctx->ext.tick_aes_key));
+#else
+                memcpy(ex_data->tlsext_tick_hmac_key,
+                       keys + sizeof(ctx->ext.tick_key_name),
+                       sizeof(ctx->ext.tick_hmac_key));
+                memcpy(ex_data->tlsext_tick_aes_key,
+                       keys + sizeof(ctx->ext.tick_key_name) +
+                       sizeof(ctx->ext.tick_hmac_key),
+                       sizeof(ctx->ext.tick_aes_key));
+#endif
             } else {
                 memcpy(keys, ctx->ext.tick_key_name,
                        sizeof(ctx->ext.tick_key_name));
+#ifdef OPENSSL_NO_AKAMAI
                 memcpy(keys + sizeof(ctx->ext.tick_key_name),
                        ctx->ext.tick_hmac_key,
                        sizeof(ctx->ext.tick_hmac_key));
@@ -3834,6 +3848,15 @@ long ssl3_ctx_ctrl(SSL_CTX *ctx, int cmd, long larg, void *parg)
                        sizeof(ctx->ext.tick_hmac_key),
                        ctx->ext.tick_aes_key,
                        sizeof(ctx->ext.tick_aes_key));
+#else
+                memcpy(keys + sizeof(ctx->ext.tick_key_name),
+                       ex_data->tlsext_tick_hmac_key,
+                       sizeof(ctx->ext.tick_hmac_key));
+                memcpy(keys + sizeof(ctx->ext.tick_key_name) +
+                       sizeof(ctx->ext.tick_hmac_key),
+                       ex_data->tlsext_tick_aes_key,
+                       sizeof(ctx->ext.tick_aes_key));
+#endif
             }
             return 1;
         }
