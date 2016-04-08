@@ -3131,6 +3131,7 @@ int tls_construct_new_session_ticket(SSL *s)
         iv_len = EVP_CIPHER_iv_length(cipher);
         if (RAND_bytes(iv, iv_len) <= 0)
             goto err;
+#if defined(OPENSSL_NO_AKAMAI) || defined(OPENSSL_NO_SECURE_HEAP)
         if (!EVP_EncryptInit_ex(ctx, cipher, NULL,
                                 tctx->tlsext_tick_aes_key, iv))
             goto err;
@@ -3138,6 +3139,15 @@ int tls_construct_new_session_ticket(SSL *s)
                           sizeof(tctx->tlsext_tick_hmac_key),
                           EVP_sha256(), NULL))
             goto err;
+#else
+        if (!EVP_EncryptInit_ex(ctx, cipher, NULL,
+                                ex_data->tlsext_tick_aes_key, iv))
+            goto err;
+        if (!HMAC_Init_ex(hctx, ex_data->tlsext_tick_hmac_key,
+                          sizeof(tctx->tlsext_tick_hmac_key),
+                          EVP_sha256(), NULL))
+            goto err;
+#endif
         memcpy(key_name, tctx->tlsext_tick_key_name,
                sizeof(tctx->tlsext_tick_key_name));
     }
