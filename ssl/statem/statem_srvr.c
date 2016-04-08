@@ -3383,6 +3383,9 @@ int tls_construct_new_session_ticket(SSL *s, WPACKET *pkt)
         unsigned char age_add_c[sizeof(uint32_t)];
         uint32_t age_add;
     } age_add_u;
+#ifndef OPENSSL_NO_AKAMAI
+    SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(tctx);
+#endif
 
     if (SSL_IS_TLS13(s)) {
         if (RAND_bytes(age_add_u.age_add_c, sizeof(age_add_u)) <= 0)
@@ -3496,6 +3499,7 @@ int tls_construct_new_session_ticket(SSL *s, WPACKET *pkt)
         iv_len = EVP_CIPHER_iv_length(cipher);
         if (RAND_bytes(iv, iv_len) <= 0)
             goto err;
+#if defined(OPENSSL_NO_AKAMAI)
         if (!EVP_EncryptInit_ex(ctx, cipher, NULL,
                                 tctx->ext.tick_aes_key, iv))
             goto err;
@@ -3503,6 +3507,15 @@ int tls_construct_new_session_ticket(SSL *s, WPACKET *pkt)
                           sizeof(tctx->ext.tick_hmac_key),
                           EVP_sha256(), NULL))
             goto err;
+#else
+        if (!EVP_EncryptInit_ex(ctx, cipher, NULL,
+                                ex_data->tlsext_tick_aes_key, iv))
+            goto err;
+        if (!HMAC_Init_ex(hctx, ex_data->tlsext_tick_hmac_key,
+                          sizeof(tctx->ext.tick_hmac_key),
+                          EVP_sha256(), NULL))
+            goto err;
+#endif
         memcpy(key_name, tctx->ext.tick_key_name,
                sizeof(tctx->ext.tick_key_name));
     }
