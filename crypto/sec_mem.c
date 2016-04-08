@@ -38,7 +38,6 @@ static pthread_mutex_t secure_allocation_lock = PTHREAD_MUTEX_INITIALIZER;
 size_t secure_mem_used;
 
 static int secure_mem_initialized;
-static int too_late;
 
 /*
  * These are the functions that must be implemented by a secure heap (sh).
@@ -47,17 +46,14 @@ static int sh_init(size_t size, int minsize);
 static char *sh_malloc(size_t size);
 static void sh_free(char *ptr);
 static void sh_done(void);
-static int sh_actual_size(char *ptr);
+static size_t sh_actual_size(char *ptr);
 static int sh_allocated(const char *ptr);
 
 int CRYPTO_secure_malloc_init(size_t size, int minsize)
 {
     int ret = 0;
 
-    if (too_late)
-        return 0;
     LOCK();
-    OPENSSL_assert(!secure_mem_initialized);
     if (!secure_mem_initialized) {
         ret = sh_init(size, minsize);
         secure_mem_initialized = 1;
@@ -79,13 +75,12 @@ int CRYPTO_secure_malloc_initialized(void)
     return secure_mem_initialized;
 }
 
-void *CRYPTO_secure_malloc(int num, const char *file, int line)
+void *CRYPTO_secure_malloc(size_t num, const char *file, int line)
 {
     void *ret;
     size_t actual_size;
 
     if (!secure_mem_initialized) {
-        too_late = 1;
         return CRYPTO_malloc(num, file, line);
     }
     LOCK();
@@ -102,7 +97,7 @@ void *CRYPTO_secure_realloc(void *ptr, size_t size, const char *file, int line)
     void *newptr;
 
     if (ptr == NULL)
-        return CRYPTO_secure_malloc((int)size, file, line);
+        return CRYPTO_secure_malloc(size, file, line);
     if (size == 0) {
         CRYPTO_secure_free(ptr);
         return NULL;
@@ -123,7 +118,7 @@ void *CRYPTO_secure_realloc(void *ptr, size_t size, const char *file, int line)
          */
         if (size >= oldsize / 2)
             return ptr;
-        newptr = CRYPTO_secure_malloc((int)size, file, line);
+        newptr = CRYPTO_secure_malloc(size, file, line);
         if (newptr == NULL)
             /* Couldn't alloocate a smaller chunk, so just
              * give them back their existing chunk. */
@@ -133,7 +128,7 @@ void *CRYPTO_secure_realloc(void *ptr, size_t size, const char *file, int line)
         return newptr;
     }
 
-    newptr = CRYPTO_secure_malloc((int)size, file, line);
+    newptr = CRYPTO_secure_malloc(size, file, line);
     if (newptr != NULL) {
         /* copy and free existing chunk on success */
         memcpy(newptr, ptr, oldsize);
@@ -142,7 +137,7 @@ void *CRYPTO_secure_realloc(void *ptr, size_t size, const char *file, int line)
     return newptr;
 }
 
-int CRYPTO_secure_actual_size(void *ptr)
+size_t CRYPTO_secure_actual_size(void *ptr)
 {
     return sh_actual_size(ptr);
 }
@@ -153,7 +148,7 @@ void CRYPTO_secure_free(void *ptr)
 
     if (ptr == NULL)
         return;
-    if (!secure_mem_initialized) {
+    if (!CRYPTO_secure_allocated(ptr)) {
         CRYPTO_free(ptr);
         return;
     }
@@ -201,9 +196,11 @@ int CRYPTO_secure_allocated(const void *ptr)
  * place.
  */
 
-# define TESTBIT(t, b)  (t[(b) >> 3] &  (1 << ((b) & 7)))
-# define SETBIT(t, b)   (t[(b) >> 3] |= (1 << ((b) & 7)))
-# define CLEARBIT(t, b) (t[(b) >> 3] &= (0xFF & ~(1 << ((b) & 7))))
+static const size_t one = 1;
+
+# define TESTBIT(t, b)  (t[(b) >> 3] &  (one << ((b) & 7)))
+# define SETBIT(t, b)   (t[(b) >> 3] |= (one << ((b) & 7)))
+# define CLEARBIT(t, b) (t[(b) >> 3] &= (0xFF & ~(one << ((b) & 7))))
 
 #define WITHIN_ARENA(p) \
     ((char*)(p) >= sh.arena && (char*)(p) < sh.arena + sh.arena_size)
@@ -222,21 +219,21 @@ typedef struct sh_st
     char* map_result;
     size_t map_size;
     char *arena;
-    int arena_size;
+    size_t arena_size;
     char **freelist;
-    int freelist_size;
-    int minsize;
+    ssize_t freelist_size; /* initialized negative */
+    size_t minsize;
     unsigned char *bittable;
     unsigned char *bitmalloc;
-    int bittable_size; /* size in bits */
+    size_t bittable_size; /* size in bits */
 } SH;
 
 static SH sh;
 
-static int sh_getlist(char *ptr)
+static size_t sh_getlist(char *ptr)
 {
-    int list = sh.freelist_size - 1;
-    int bit = (sh.arena_size + ptr - sh.arena) / sh.minsize;
+    ssize_t list = sh.freelist_size - 1;
+    size_t bit = (sh.arena_size + ptr - sh.arena) / sh.minsize;
 
     for (; bit; bit >>= 1, list--) {
         if (TESTBIT(sh.bittable, bit))
@@ -250,22 +247,22 @@ static int sh_getlist(char *ptr)
 
 static int sh_testbit(char *ptr, int list, unsigned char *table)
 {
-    int bit;
+    size_t bit;
 
     OPENSSL_assert(list >= 0 && list < sh.freelist_size);
     OPENSSL_assert(((ptr - sh.arena) & ((sh.arena_size >> list) - 1)) == 0);
-    bit = (1 << list) + ((ptr - sh.arena) / (sh.arena_size >> list));
+    bit = (one << list) + ((ptr - sh.arena) / (sh.arena_size >> list));
     OPENSSL_assert(bit > 0 && bit < sh.bittable_size);
     return TESTBIT(table, bit);
 }
 
 static void sh_clearbit(char *ptr, int list, unsigned char *table)
 {
-    int bit;
+    size_t bit;
 
     OPENSSL_assert(list >= 0 && list < sh.freelist_size);
     OPENSSL_assert(((ptr - sh.arena) & ((sh.arena_size >> list) - 1)) == 0);
-    bit = (1 << list) + ((ptr - sh.arena) / (sh.arena_size >> list));
+    bit = (one << list) + ((ptr - sh.arena) / (sh.arena_size >> list));
     OPENSSL_assert(bit > 0 && bit < sh.bittable_size);
     OPENSSL_assert(TESTBIT(table, bit));
     CLEARBIT(table, bit);
@@ -273,11 +270,11 @@ static void sh_clearbit(char *ptr, int list, unsigned char *table)
 
 static void sh_setbit(char *ptr, int list, unsigned char *table)
 {
-    int bit;
+    size_t bit;
 
     OPENSSL_assert(list >= 0 && list < sh.freelist_size);
     OPENSSL_assert(((ptr - sh.arena) & ((sh.arena_size >> list) - 1)) == 0);
-    bit = (1 << list) + ((ptr - sh.arena) / (sh.arena_size >> list));
+    bit = (one << list) + ((ptr - sh.arena) / (sh.arena_size >> list));
     OPENSSL_assert(bit > 0 && bit < sh.bittable_size);
     OPENSSL_assert(!TESTBIT(table, bit));
     SETBIT(table, bit);
@@ -325,7 +322,7 @@ static void sh_remove_from_list(char *ptr, void *list)
  */
 static int sh_init(size_t size, int minsize)
 {
-    int i;
+    size_t i;
     size_t pgsize;
     size_t aligned;
 
@@ -429,21 +426,21 @@ static int sh_allocated(const char *ptr)
 
 static void *sh_find_my_buddy(char *ptr, int list)
 {
-    int bit;
+    size_t bit;
     void *chunk = NULL;
 
-    bit = (1 << list) + (ptr - sh.arena) / (sh.arena_size >> list);
+    bit = (one << list) + (ptr - sh.arena) / (sh.arena_size >> list);
     bit ^= 1;
 
     if (TESTBIT(sh.bittable, bit) && !TESTBIT(sh.bitmalloc, bit))
-        chunk = sh.arena + ((bit & ((1 << list) - 1)) * (sh.arena_size >> list));
+        chunk = sh.arena + ((bit & ((one << list) - 1)) * (sh.arena_size >> list));
 
     return chunk;
 }
 
 static char *sh_malloc(size_t size)
 {
-    int list, slist;
+    ssize_t list, slist;
     size_t i;
     char *chunk;
 
@@ -502,7 +499,7 @@ static char *sh_malloc(size_t size)
 
 static void sh_free(char *ptr)
 {
-    int list;
+    size_t list;
     char *buddy;
 
     if (ptr == NULL)
@@ -539,7 +536,7 @@ static void sh_free(char *ptr)
     }
 }
 
-static int sh_actual_size(char *ptr)
+static size_t sh_actual_size(char *ptr)
 {
     int list;
 
@@ -548,7 +545,7 @@ static int sh_actual_size(char *ptr)
         return 0;
     list = sh_getlist(ptr);
     OPENSSL_assert(sh_testbit(ptr, list, sh.bittable));
-    return sh.arena_size / (1 << list);
+    return sh.arena_size / (one << list);
 }
 
 #endif /* OPENSSL_NO_SECURE_HEAP */
