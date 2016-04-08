@@ -1268,12 +1268,16 @@ TICKET_RETURN tls_decrypt_ticket(SSL *s, const unsigned char *etick,
         if (rv == 2)
             renew_ticket = 1;
     } else {
+#ifndef OPENSSL_NO_AKAMAI
+        SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(tctx);
+#endif
         /* Check key name matches */
         if (memcmp(etick, tctx->ext.tick_key_name,
                    sizeof(tctx->ext.tick_key_name)) != 0) {
             ret = TICKET_NO_DECRYPT;
             goto err;
         }
+#ifdef OPENSSL_NO_AKAMAI
         if (HMAC_Init_ex(hctx, tctx->ext.tick_hmac_key,
                          sizeof(tctx->ext.tick_hmac_key),
                          EVP_sha256(), NULL) <= 0
@@ -1283,6 +1287,17 @@ TICKET_RETURN tls_decrypt_ticket(SSL *s, const unsigned char *etick,
                                   + sizeof(tctx->ext.tick_key_name)) <= 0) {
             goto err;
         }
+#else
+        if (HMAC_Init_ex(hctx, ex_data->tlsext_tick_hmac_key,
+                         sizeof(tctx->ext.tick_hmac_key),
+                         EVP_sha256(), NULL) <= 0
+            || EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL,
+                                  ex_data->tlsext_tick_aes_key,
+                                  etick
+                                  + sizeof(tctx->ext.tick_key_name)) <= 0) {
+            goto err;
+       }
+#endif
     }
     /*
      * Attempt to process session ticket, first conduct sanity and integrity

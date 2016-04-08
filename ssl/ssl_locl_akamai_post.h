@@ -51,6 +51,9 @@ struct ssl_ctx_ex_data_akamai_st
 
     /* count of preferred ciphers */
     int akamai_cipher_count;
+
+    unsigned char *tlsext_tick_hmac_key; /* points to alloc memory */
+    unsigned char *tlsext_tick_aes_key; /* points into alloc memory */
 };
 
 typedef struct ssl_ex_data_akamai_st SSL_EX_DATA_AKAMAI;
