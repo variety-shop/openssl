@@ -3159,12 +3159,16 @@ static int tls_decrypt_ticket(SSL *s, const unsigned char *etick,
         if (rv == 2)
             renew_ticket = 1;
     } else {
+#if !defined(OPENSSL_NO_AKAMAI) && !defined(OPENSSL_NO_SECURE_HEAP)
+        SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(tctx);
+#endif
         /* Check key name matches */
         if (memcmp(etick, tctx->tlsext_tick_key_name,
                    TLSEXT_KEYNAME_LENGTH) != 0) {
             ret = 2;
             goto err;
         }
+#if defined(OPENSSL_NO_AKAMAI) || defined(OPENSSL_NO_SECURE_HEAP)
         if (HMAC_Init_ex(hctx, tctx->tlsext_tick_hmac_key,
                          sizeof(tctx->tlsext_tick_hmac_key),
                          EVP_sha256(), NULL) <= 0
@@ -3173,6 +3177,17 @@ static int tls_decrypt_ticket(SSL *s, const unsigned char *etick,
                                   etick + TLSEXT_KEYNAME_LENGTH) <= 0) {
             goto err;
         }
+#else
+        if (HMAC_Init_ex(hctx, ex_data->tlsext_tick_hmac_key,
+                         sizeof(tctx->tlsext_tick_hmac_key),
+                         EVP_sha256(), NULL) <= 0
+                || EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL,
+                                      ex_data->tlsext_tick_aes_key,
+                                      etick + sizeof(tctx->tlsext_tick_key_name)) <=
+            0) {
+            goto err;
+       }
+#endif
     }
     /*
      * Attempt to process session ticket, first conduct sanity and integrity
