@@ -3622,12 +3622,21 @@ static int tls_decrypt_ticket(SSL *s, const unsigned char *etick,
         /* Check key name matches */
         if (memcmp(etick, tctx->tlsext_tick_key_name, 16))
             return 2;
+#if defined(OPENSSL_NO_AKAMAI) || defined(OPENSSL_NO_SECURE_HEAP)
         if (HMAC_Init_ex(&hctx, tctx->tlsext_tick_hmac_key, 16,
                          tlsext_tick_md(), NULL) <= 0
                 || EVP_DecryptInit_ex(&ctx, EVP_aes_128_cbc(), NULL,
                                       tctx->tlsext_tick_aes_key,
                                       etick + 16) <= 0) {
             goto err;
+#else
+        if (HMAC_Init_ex(&hctx, tctx->tlsext_tick_sec_mem_key, 16,
+                         tlsext_tick_md(), NULL) <= 0
+                || EVP_DecryptInit_ex(&ctx, EVP_aes_128_cbc(), NULL,
+                                      tctx->tlsext_tick_sec_mem_key + 16,
+                                      etick + 16) <= 0) {
+            goto err;
+#endif
        }
     }
     /*

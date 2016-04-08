@@ -2097,6 +2097,13 @@ SSL_CTX *SSL_CTX_new(const SSL_METHOD *meth)
     ret->preferred_cipher_list = NULL;
     ret->preferred_cipher_list_by_id = NULL;
 #endif
+#if !defined(OPENSSL_NO_SECURE_HEAP) && !defined(OPENSSL_NO_AKAMAI)
+    if ((ret->tlsext_tick_sec_mem_key = OPENSSL_secure_malloc(32)) == NULL)
+        goto err;
+    if (RAND_bytes(ret->tlsext_tick_sec_mem_key, 32) <= 0)
+        ret->options |= SSL_OP_NO_TICKET;
+
+#endif
 
     if ((ret->rsa_md5 = EVP_get_digestbyname("ssl2-md5")) == NULL) {
         SSLerr(SSL_F_SSL_CTX_NEW, SSL_R_UNABLE_TO_LOAD_SSL2_MD5_ROUTINES);
@@ -2295,6 +2302,10 @@ void SSL_CTX_free(SSL_CTX *a)
         sk_SSL_CIPHER_free(a->preferred_cipher_list);
     if (a->preferred_cipher_list_by_id != NULL)
         sk_SSL_CIPHER_free(a->preferred_cipher_list_by_id);
+#endif
+#if !defined(OPENSSL_NO_SECURE_HEAP) && !defined(OPENSSL_NO_AKAMAI)
+    if (a->tlsext_tick_sec_mem_key != NULL)
+        OPENSSL_secure_free(a->tlsext_tick_sec_mem_key);
 #endif
     if (a->cert != NULL)
         ssl_cert_free(a->cert);

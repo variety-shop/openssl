@@ -1289,8 +1289,10 @@ struct ssl_ctx_st {
     tlsext_ticket_appdata_parse_cb_fn tlsext_ticket_appdata_parse_cb;
     void *tlsext_ticket_appdata_arg;
 #endif /* OPENSSL_NO_AKAMAI */
-
-
+#   if !defined(OPENSSL_NO_AKAMAI) && !defined(OPENSSL_NO_SECURE_HEAP)
+    /* points to secure memory - always 32 bytes */
+    unsigned char *tlsext_tick_sec_mem_key;
+#   endif
 #  endif
 };
 
