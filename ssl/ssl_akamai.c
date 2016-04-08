@@ -19,6 +19,7 @@
 #ifdef OPENSSL_NO_AKAMAI
 NON_EMPTY_TRANSLATION_UNIT
 #else
+# include <openssl/rand.h>
 
 #ifndef OPENSSL_NO_AKAMAI
 # if defined(__GNUC__) || defined(__clang__)
@@ -36,6 +37,11 @@ static void ssl_ctx_ex_data_akamai_new(void* parent, void* ptr,
                                        int idx, long argl, void* argp)
 {
     SSL_CTX_EX_DATA_AKAMAI *ex_data = OPENSSL_zalloc(sizeof(*ex_data));
+    SSL_CTX *ctx; /* for sizeof */
+#ifndef OPENSSL_NO_SECURE_HEAP
+    const size_t keylen = (sizeof(ctx->tlsext_tick_hmac_key) + 
+                           sizeof(ctx->tlsext_tick_aes_key));
+#endif
     if (ex_data == NULL)
         goto err;
 
@@ -45,6 +51,16 @@ static void ssl_ctx_ex_data_akamai_new(void* parent, void* ptr,
     if (ex_data->session_list == NULL)
         goto err;
 
+#ifndef OPENSSL_NO_SECURE_HEAP
+    /* allocated as a single blob, "stored" as 2 pointers */
+    if ((ex_data->tlsext_tick_hmac_key = OPENSSL_secure_malloc(keylen)) == NULL)
+        goto err;
+    ex_data->tlsext_tick_aes_key = (ex_data->tlsext_tick_hmac_key + 
+                                    sizeof(ctx->tlsext_tick_hmac_key));
+    if (RAND_bytes(ex_data->tlsext_tick_hmac_key, keylen) <= 0)
+        goto err;
+#endif
+
     if (CRYPTO_set_ex_data(ad, idx, ex_data))
         ex_data = NULL;
 
@@ -52,6 +68,9 @@ static void ssl_ctx_ex_data_akamai_new(void* parent, void* ptr,
     if (ex_data != NULL) {
         /* Other cleanup here */
         SSL_CTX_SESSION_LIST_free(ex_data->session_list, NULL);
+#ifndef OPENSSL_NO_SECURE_HEAP
+        OPENSSL_secure_free(ex_data->tlsext_tick_hmac_key);
+#endif
         OPENSSL_free(ex_data);
     }
 }
@@ -67,6 +86,9 @@ static void ssl_ctx_ex_data_akamai_free(void* parent, void* ptr,
 
         /* Should have already been freed in SSL_CTX_free(). */
         SSL_CTX_SESSION_LIST_free(ex_data->session_list, NULL);
+#ifndef OPENSSL_NO_SECURE_HEAP
+        OPENSSL_secure_free(ex_data->tlsext_tick_hmac_key);
+#endif
         OPENSSL_free(ptr);
     }
     CRYPTO_set_ex_data(ad, idx, NULL);
@@ -109,6 +131,19 @@ static int ssl_ctx_ex_data_akamai_dup(CRYPTO_EX_DATA* to,
     new->session_list = session_list;
 
     /* make duplicates of pointer-based items */
+
+#ifndef OPENSSL_NO_SECURE_HEAP
+    if (new->tlsext_tick_hmac_key != NULL) {
+        SSL_CTX *ctx; /* for sizeof */
+        const size_t keylen = sizeof(ctx->tlsext_tick_hmac_key) + sizeof(ctx->tlsext_tick_aes_key);
+        if ((new->tlsext_tick_hmac_key = OPENSSL_secure_malloc(keylen)) == NULL)
+            ok = 0;
+        else {
+            memcpy(new->tlsext_tick_hmac_key, (*orig)->tlsext_tick_hmac_key, keylen);
+            new->tlsext_tick_aes_key = new->tlsext_tick_hmac_key + sizeof(ctx->tlsext_tick_hmac_key);
+        }
+    }
+#endif
 
     *orig = new;
     return ok;
