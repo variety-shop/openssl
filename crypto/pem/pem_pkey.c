@@ -85,7 +85,7 @@ EVP_PKEY *PEM_read_bio_PrivateKey(BIO *bp, EVP_PKEY **x, pem_password_cb *cb,
     int slen;
     EVP_PKEY *ret = NULL;
 
-#ifdef OPENSSL_NO_AKAMAI
+#if defined(OPENSSL_NO_AKAMAI) || defined(OPENSSL_NO_SECURE_HEAP)
     if (!PEM_bytes_read_bio(&data, &len, &nm, PEM_STRING_EVP_PKEY, bp, cb, u))
         return NULL;
 #else
@@ -146,7 +146,7 @@ EVP_PKEY *PEM_read_bio_PrivateKey(BIO *bp, EVP_PKEY **x, pem_password_cb *cb,
     if (ret == NULL)
         PEMerr(PEM_F_PEM_READ_BIO_PRIVATEKEY, ERR_R_ASN1_LIB);
  err:
-#ifdef OPENSSL_NO_AKAMAI
+#if defined(OPENSSL_NO_AKAMAI) || defined(OPENSSL_NO_SECURE_HEAP)
     OPENSSL_free(nm);
     OPENSSL_cleanse(data, len);
     OPENSSL_free(data);
