@@ -521,7 +521,11 @@ static LHASH_OF(ERR_STATE) *int_thread_get(int create)
         CRYPTO_pop_info();
     }
     if (int_thread_hash) {
+#ifdef OPENSSL_NO_AKAMAI
+        CRYPTO_add(&int_thread_hash_references, 1, CRYPTO_LOCK_ERR);
+#else
         CRYPTO_add(&int_thread_hash_references, 1, CRYPTO_LOCK_ERR_TH_HASH_REF);
+#endif
         ret = int_thread_hash;
     }
     CRYPTO_w_unlock(CRYPTO_LOCK_ERR);
@@ -535,7 +539,11 @@ static void int_thread_release(LHASH_OF(ERR_STATE) **hash)
     if (hash == NULL || *hash == NULL)
         return;
 
+#ifdef OPENSSL_NO_AKAMAI
+    i = CRYPTO_add(&int_thread_hash_references, -1, CRYPTO_LOCK_ERR);
+#else
     i = CRYPTO_add(&int_thread_hash_references, -1, CRYPTO_LOCK_ERR_TH_HASH_REF);
+#endif
 
 #ifdef REF_PRINT
     fprintf(stderr, "%4d:%s\n", int_thread_hash_references, "ERR");
@@ -600,15 +608,19 @@ static void int_thread_del_item(const ERR_STATE *d)
     CRYPTO_w_lock(CRYPTO_LOCK_ERR);
     p = lh_ERR_STATE_delete(hash, d);
     /* make sure we don't leak memory */
+#ifndef OPENSSL_NO_AKAMAI
     /* CRYPTO_LOCK_ERR_TH_HASH_REF is needed for access to
      * int_thread_hash_references. */
     CRYPTO_w_lock(CRYPTO_LOCK_ERR_TH_HASH_REF);
+#endif
     if (int_thread_hash_references == 1
         && int_thread_hash && lh_ERR_STATE_num_items(int_thread_hash) == 0) {
         lh_ERR_STATE_free(int_thread_hash);
         int_thread_hash = NULL;
     }
+#ifndef OPENSSL_NO_AKAMAI
     CRYPTO_w_unlock(CRYPTO_LOCK_ERR_TH_HASH_REF);
+#endif
     CRYPTO_w_unlock(CRYPTO_LOCK_ERR);
 
     ERRFN(thread_release) (&hash);
