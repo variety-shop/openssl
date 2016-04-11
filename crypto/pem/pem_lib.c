@@ -318,18 +318,22 @@ int PEM_bytes_read_bio(unsigned char **pdata, long *plen, char **pnm,
 #else /* OPENSSL_NO_AKAMAI */
 static void pem_flag_free(void *p, unsigned int flags)
 {
-    if (flags & PEM_FLAG_SECURE)
+# ifndef OPENSSL_NO_SECURE_HEAP
+    if (flags & PEM_FLAG_SECURE) {
         OPENSSL_secure_free(p);
-    else
-        OPENSSL_free(p);
+        return;
+    }
+# endif
+    OPENSSL_free(p);
 }
 
 static void *pem_flag_malloc(int num, unsigned int flags)
 {
+# ifndef OPENSSL_NO_SECURE_HEAP
     if (flags & PEM_FLAG_SECURE)
         return OPENSSL_secure_malloc(num);
-    else
-        return OPENSSL_malloc(num);
+# endif
+    return OPENSSL_malloc(num);
 }
 
 static int PEM_bytes_read_bio_flags(unsigned char **pdata, long *plen,
