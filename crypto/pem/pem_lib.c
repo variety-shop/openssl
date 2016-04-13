@@ -951,9 +951,9 @@ static int sanitize_line(char *linebuf, int len, unsigned int flags)
 static char const beginstr[] = "-----BEGIN ";
 static char const endstr[] = "-----END ";
 static char const tailstr[] = "-----\n";
-#define BEGINLEN (sizeof(beginstr) - 1)
-#define ENDLEN (sizeof(endstr) - 1)
-#define TAILLEN (sizeof(tailstr) - 1)
+#define BEGINLEN ((int)sizeof(beginstr) - 1)
+#define ENDLEN ((int)sizeof(endstr) - 1)
+#define TAILLEN ((int)sizeof(tailstr) - 1)
 static int get_name(BIO *bp, char **name, unsigned int flags)
 {
     char *linebuf;
