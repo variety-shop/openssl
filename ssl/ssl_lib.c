@@ -2288,7 +2288,7 @@ void SSL_CTX_free(SSL_CTX *a)
     if (a->preferred_cipher_list_by_id != NULL)
         sk_SSL_CIPHER_free(a->preferred_cipher_list_by_id);
 #endif
-#if !defined(OPENSSL_NO_SECURE_HEADP) && !defined(OPENSSL_NO_AKAMAI)
+#if !defined(OPENSSL_NO_SECURE_HEAP) && !defined(OPENSSL_NO_AKAMAI)
     if (a->tlsext_tick_sec_mem_key != NULL)
         OPENSSL_secure_free(a->tlsext_tick_sec_mem_key);
 #endif
