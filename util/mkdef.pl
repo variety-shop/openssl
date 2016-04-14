@@ -95,7 +95,7 @@ my @known_algorithms = ( "RC2", "RC4", "RC5", "IDEA", "DES", "BF",
 			 "EVP", "X509", "ASN1_TYPEDEFS",
 			 # Helper "algorithms"
 			 "BIO", "COMP", "BUFFER", "LHASH", "STACK", "ERR",
-			 "LOCKING",
+			 "LOCKING", "DSO",
 			 # External "algorithms"
 			 "FP_API", "STDIO", "SOCK", "KRB5", "DGRAM",
 			 # Engines
@@ -147,6 +147,7 @@ my $no_rc2; my $no_rc4; my $no_rc5; my $no_idea; my $no_des; my $no_bf;
 my $no_cast; my $no_whirlpool; my $no_camellia; my $no_seed;
 my $no_md2; my $no_md4; my $no_md5; my $no_sha; my $no_ripemd; my $no_mdc2;
 my $no_rsa; my $no_dsa; my $no_dh; my $no_hmac=0; my $no_aes; my $no_krb5;
+my $no_dso;
 my $no_ec; my $no_ecdsa; my $no_ecdh; my $no_engine; my $no_egd; my $no_hw;
 my $no_chacha; my $no_poly1305;
 my $no_fp_api; my $no_static_engine=1; my $no_gmp; my $no_deprecated;
