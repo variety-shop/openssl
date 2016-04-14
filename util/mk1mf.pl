@@ -122,6 +122,7 @@ and [options] can be one of
 	no-ssl2 no-ssl3	no-tls1 no-dtls1	- Skip this version of SSL
 	just-ssl				- remove all non-ssl keys/digest
 	no-asm 					- No x86 asm
+	no-dso					- No DSO
 	no-krb5					- No KRB5
 	no-srp					- No SRP
 	no-ec					- No EC
@@ -297,6 +298,7 @@ $cflags.=" -DOPENSSL_NO_TLS1" if $no_tls1;
 $cflags.=" -DOPENSSL_NO_SRP" if $no_srp;
 $cflags.=" -DOPENSSL_NO_CMS" if $no_cms;
 $cflags.=" -DOPENSSL_NO_ERR"  if $no_err;
+$cflags.=" -DOPENSSL_NO_DSO" if $no_dso;
 $cflags.=" -DOPENSSL_NO_KRB5" if $no_krb5;
 $cflags.=" -DOPENSSL_NO_EC"   if $no_ec;
 $cflags.=" -DOPENSSL_NO_ECDSA" if $no_ecdsa;
@@ -1254,6 +1256,7 @@ sub read_options
 		"no-weak-ssl-ciphers" => \$no_weak_ssl,
 		"no-err" => \$no_err,
 		"no-sock" => \$no_sock,
+		"no-dso" => \$no_dso,
 		"no-krb5" => \$no_krb5,
 		"no-ec" => \$no_ec,
 		"no-ecdsa" => \$no_ecdsa,
