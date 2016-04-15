@@ -186,3 +186,10 @@ pod2htmd.tmp
 # Windows manifest files
 *.manifest
 doc-nits
+
+# Coverity
+/coverity
+/clang
+
+# test
+test/core
