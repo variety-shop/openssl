@@ -4222,7 +4222,7 @@ long ssl3_ctx_ctrl(SSL_CTX *ctx, int cmd, long larg, void *parg)
             }
             if (cmd == SSL_CTRL_SET_TLSEXT_TICKET_KEYS) {
                 memcpy(ctx->tlsext_tick_key_name, keys, 16);
-#ifdef OPENSSL_NO_AKAMAI
+#if defined(OPENSSL_NO_AKAMAI) || defined(OPENSSL_NO_SECURE_HEAP)
                 memcpy(ctx->tlsext_tick_hmac_key, keys + 16, 16);
                 memcpy(ctx->tlsext_tick_aes_key, keys + 32, 16);
 #else
@@ -4230,7 +4230,7 @@ long ssl3_ctx_ctrl(SSL_CTX *ctx, int cmd, long larg, void *parg)
 #endif
             } else {
                 memcpy(keys, ctx->tlsext_tick_key_name, 16);
-#ifdef OPENSSL_NO_AKAMAI
+#if defined(OPENSSL_NO_AKAMAI) || defined(OPENSSL_NO_SECURE_HEAP)
                 memcpy(keys + 16, ctx->tlsext_tick_hmac_key, 16);
                 memcpy(keys + 32, ctx->tlsext_tick_aes_key, 16);
 #else

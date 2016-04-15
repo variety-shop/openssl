@@ -3804,7 +3804,7 @@ int ssl3_send_newsession_ticket(SSL *s)
         } else {
             if (RAND_bytes(iv, 16) <= 0)
                 goto err;
-#ifdef OPENSSL_NO_AKAMAI
+#if defined(OPENSSL_NO_AKAMAI) || defined(OPENSSL_NO_SECURE_HEAP)
             if (!EVP_EncryptInit_ex(&ctx, EVP_aes_128_cbc(), NULL,
                                     tctx->tlsext_tick_aes_key, iv))
                 goto err;
