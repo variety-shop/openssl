@@ -1,0 +1,134 @@
+#!/bin/bash
+
+# Options are:
+# all, clean, config, update, build, test
+ALL=yes
+CLEAN=no
+CONFIG=no
+UPDATE=no
+BUILD=no
+ANALYZE=no
+TEST=no
+
+for arg
+do
+    case $arg in
+	help)
+	    echo "Options: all clean config update build analyze test"
+	    exit 0
+	    ;;
+	clean)
+	    CLEAN=yes
+	    ALL=no
+	    ;;
+	config)
+	    CONFIG=yes
+	    ALL=no
+	    ;;
+	update)
+	    UPDATE=yes
+	    ALL=no
+	    ;;
+	build)
+	    BUILD=yes
+	    ALL=no
+	    ;;
+	analyze)
+	    ANALYZE=yes
+	    ALL=no
+	    ;;
+	test)
+	    TEST=yes
+	    ALL=no
+	    ;;
+	all)
+	    CLEAN=yes
+	    CONFIG=yes
+	    UPDATE=yes
+	    ANALYZE=no
+	    BUILD=yes
+	    TEST=yes
+	    ;;
+    esac
+done
+
+if [ $ANALYZE = yes ]
+then
+    CLEAN=yes
+    CONFIG=no
+    UPDATE=no
+    BUILD=no
+    ANALYZE=yes
+    TEST=no
+fi
+
+if [ $ALL = yes ]
+then
+    CLEAN=yes
+    CONFIG=yes
+    UPDATE=yes
+    BUILD=yes
+    ANALYZE=no
+    TEST=yes
+fi
+
+if [ -z "$CC" ]
+then
+    CC='ccache clang-3.6'
+fi
+CONFIGARGS="-d --strict-warnings"
+if [ -z "$ENABLES" ]
+then
+    ENABLES="enable-crypto-mdebug enable-crypto-mdebug-backtrace enable-ec_nistp_64_gcc_128 enable-chacha enable-poly1305"
+fi
+
+echo "** CC=$CC"
+echo "** CONFIGARGS=$CONFIGARGS"
+echo "** ENABLES=$ENABLES"
+
+if [ $CLEAN = yes ]
+then
+    echo CLEAN
+    make -s clean >/dev/null 2>&1
+    git clean -fdx >/dev/null 2>&1
+fi
+
+set -e
+
+if [ $CONFIG = yes ]
+then
+    echo CONFIG $CONFIGARGS $ENABLES
+    CC=$CC ./config $CONFIGARGS $ENABLES 2>&1
+    make -s depend
+fi
+
+if [ $UPDATE = yes ]
+then
+    echo UPDATE
+    make -s update 2>&1
+fi
+
+if [ $BUILD = yes ]
+then
+    echo BUILD
+    make -s -j
+fi
+
+if [ $ANALYZE = yes ]
+then
+    echo CONFIG $CONFIGARGS $ENABLES
+    scan-build-3.6 ./config $CONFIGARGS $ENABLES 2>&1
+    make -s depend
+    echo ANALYZE
+    scan-build-3.6 -o clang make -s -j
+    echo firefox clang/index.html
+fi
+
+if [ $TEST = yes ]
+then
+    echo TEST
+    make -s -j build_tests
+    make test
+fi
+
+echo SUCCESS
