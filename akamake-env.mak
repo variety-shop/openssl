@@ -56,7 +56,15 @@ $P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) akamai-ccmalloc
 else # ifneq ($(filter ccmalloc,$(MAKECMDGOALS)),)
 
 ifneq ($(filter debug,$(MAKECMDGOALS)),)
+ifneq ($(filter osx-10.6,$(BUILDENV.OS),)
 $P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) akamai-debug
+else # ifneq ($(filter osx-10.6,$(BUILDENV.OS),)
+ifeq ($(KERNEL_BITS),64)
+$P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) akamai-debug-darwin-x86_64
+else # ifeq ($(KERNEL_BITS),64)
+$P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) akamai-debug-darwin-i386
+endif # ifeq ($(KERNEL_BITS),64)
+endif # ifneq ($(filter osx-10.6,$(BUILDENV.OS),)
 
 else # ifneq ($(filter debug,$(MAKECMDGOALS)),)
 
