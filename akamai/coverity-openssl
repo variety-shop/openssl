@@ -1,0 +1,124 @@
+#!/bin/bash
+COVDIR=`echo ~/cov-analysis-linux64-8.0.0`
+INTDIR=coverity
+LICENSE=$COVDIR/license.dat.xml
+HOST=coverity-poc.akamai.com
+BRANCHNAME=`git symbolic-ref --short -q HEAD`
+BRANCHNAME=${BRANCHNAME:-HEAD}
+OPTIONS="--security --concurrency --enable-constraint-fpp --enable-callgraph-metrics --strip-path $PWD"
+export PATH=$PATH:$COVDIR
+
+# Options are:
+# all, clean, build, commit desktop
+DEFAULT=yes
+CLEAN=no
+BUILD=no
+ANALYZE=no
+COMMIT=no
+DESKTOP=no
+CONFIG=no
+BUILDOPT=
+
+for arg
+do
+    case $arg in
+	help)
+	    echo "Options: clean build commit desktop"
+	    echo "Default is build"
+	    echo "* clean deletes the intermediate directory and reconfigures OpenSSL if building"
+	    echo "* build makes the target and analysis"
+	    echo "* commit sends the results to the CIM/CC"
+	    echo "* desktop performs a desktop run - overrides all other options"
+	    echo "If the intermediate directory does not exist, then clean is assumed"
+	    exit 0
+	    ;;
+	clean)
+	    CLEAN=yes
+	    DEFAULT=no
+	    ;;
+	build)
+	    BUILD=yes
+	    ANALYZE=yes
+	    DEFAULT=no
+	    ;;
+	commit)
+	    COMMIT=yes
+	    DEFAULT=no
+	    ;;
+	desktop)
+	    DESKTOP=yes
+	    DEFAULT=no
+	    ;;
+    esac
+done
+
+
+if [ $DESKTOP = yes ]
+then
+    BUILDOPT="--desktop"
+    BUILD=yes
+    ANALYZE=no
+    COMMIT=no
+fi
+
+if [ $DEFAULT = yes ]
+then
+    BUILD=yes
+    ANALYZE=yes
+fi
+
+if [ ! -d $INTDIR ]
+then
+    CLEAN=yes
+fi
+
+if [ $CLEAN = yes -a $BUILD = yes ]
+then
+    CONFIG=yes
+fi
+
+if [ $CLEAN = yes ]
+then
+    echo CLEAN
+    make -s clean >/dev/null 2>&1
+    git clean -fdx >/dev/null 2>&1
+    rm -rf $INTDIR
+fi
+
+set -e
+
+if [ $CONFIG = yes ]
+then
+    echo CONFIG
+    ./config 2>&1
+    make -s depend
+fi
+
+if [ $BUILD = yes ]
+then
+    echo BUILD
+    cov-build --dir $INTDIR $BUILDOPT make
+    cov-build --dir $INTDIR $BUILDOPT make build_tests
+fi
+if [ $ANALYZE = yes ]
+then
+    cov-analyze --dir $INTDIR -sf $LICENSE $OPTIONS
+    # cov-format-errors may whine about previous output
+    rm -rf $INTDIR/html
+    cov-format-errors --dir $INTDIR -sf $LICENSE --html-output $INTDIR/html
+    echo firefox $INTDIR/html/index.html
+fi
+
+if [ $DESKTOP = yes ]
+then
+    cov-run-desktop --dir $INTDIR -sf $LICENSE --stream $BRANCHNAME --host $HOST --user $USER --scm git --analyze-scm-modified $OPTIONS
+fi
+
+if [ $COMMIT = yes ]
+then
+    echo STREAM=$BRANCHNAME
+    cov-commit-defects --dir $INTDIR --host $HOST -sf $LICENSE --dataport 9090 --user $USER --stream $BRANCHNAME --scm git
+fi
+
+echo SUCCESS
+echo CLEAN=$CLEAN CONFIG=$CONFIG BUILD=$BUILD ANALYZE=$ANALYZE DESKTOP=$DESKTOP COMMIT=$COMMIT
