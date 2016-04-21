@@ -88,10 +88,17 @@ extern "C" {
  * should only keep the versions that are binary compatible with the current.
  */
 # define SHLIB_VERSION_HISTORY ""
-# ifdef OPENSSL_NO_AKAMAI_DEBIAN
+# ifdef OPENSSL_NO_AKAMAI
 #  define SHLIB_VERSION_NUMBER "1.0.0"
 # else
-#  define SHLIB_VERSION_NUMBER "1.0.2"
+/* Akamai has lots of customizations and new APIs in our shared library,
+ * making it fundamentally a different thing than stock OpenSSL.  To
+ * indicate these differences and avoid collisions, use a vastly different
+ * numbering space for SONAMEs for Akamai versions.
+ * The "102" represents that this branch is based off of the OpenSSL 1.0.2
+ * series; a later version might use SONAME 110.0.0.
+ */
+#  define SHLIB_VERSION_NUMBER "102.0.0"
 # endif
 
 
