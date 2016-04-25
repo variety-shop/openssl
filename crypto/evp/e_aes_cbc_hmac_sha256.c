@@ -588,6 +588,7 @@ static int aesni_cbc_hmac_sha256_cipher(EVP_CIPHER_CTX *ctx,
             maxpad = len - (SHA256_DIGEST_LENGTH + 1);
             maxpad |= (255 - maxpad) >> (sizeof(maxpad) * 8 - 8);
             maxpad &= 255;
+            ret &= pad <= maxpad;
 
             inp_len = len - (SHA256_DIGEST_LENGTH + pad + 1);
             mask = (0 - ((inp_len - len) >> (sizeof(inp_len) * 8 - 1)));
