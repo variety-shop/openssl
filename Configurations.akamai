@@ -8,7 +8,7 @@ my $no_asm_filler="::::::::::::::::::void";
 "akamai-ccmalloc",     "gcc:-ggdb -O0 -Wall -DPURIFY::-D_REENTRANT::::${no_asm_filler}::::::::",
 "akamai-debug",        "gcc:-ggdb -O0 -Wall::-D_REENTRANT::::${no_asm_filler}::::::::",
 "akamai-debug-darwin-i386",        "cc:-arch i386 -ggdb3 -O0 -Wall::-D_REENTRANT:MACOSX:::${no_asm_filler}::::::::",
-"akamai-debug-darwin-x86_64",        "cc:-arch x86_64 -ggdb3 -O0 -Wall::-D_REENTRANT:MACOSX:::${no_asm_filler}::::::::",
+"akamai-debug-darwin-x86_64",        "cc:-arch x86_64 -ggdb3 -O0 -Wall::-D_REENTRANT:MACOSX::DES_INT:${no_asm_filler}::::::::",
 "akamai-linux-ppro-gcc33",     "gcc:-DL_ENDIAN -O3 -fomit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
 "akamai-linux-ppro-gcc33-no-fomit-frame-pointer",     "gcc:-DL_ENDIAN -O3 -ggdb -fno-omit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
 "akamai-linux-ppro-gcc34",     "gcc:-DL_ENDIAN -O3-fomit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
