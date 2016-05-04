@@ -102,6 +102,17 @@ struct ssl_ctx_ex_data_akamai_st
     tlsext_ticket_appdata_append_cb_fn tlsext_ticket_appdata_append_cb;
     tlsext_ticket_appdata_parse_cb_fn tlsext_ticket_appdata_parse_cb;
     void *tlsext_ticket_appdata_arg;
+
+#ifndef OPENSSL_NO_SECURE_HEAP
+    /*
+     * Secure memory to hold the session ticket encryption+mac keys.
+     * A fixed length, but must be allocated separately to use secmem.
+     * Only the hmac key is allocated; the aes key is just a convenience
+     * pointer 16 bytes past the hmac key.
+     */
+    unsigned char *tlsext_tick_hmac_key;
+    unsigned char *tlsext_tick_aes_key;
+#endif
 };
 
 typedef struct ssl_ex_data_akamai_st SSL_EX_DATA_AKAMAI;
