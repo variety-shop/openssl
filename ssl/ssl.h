@@ -1189,10 +1189,6 @@ struct ssl_ctx_st {
     size_t tlsext_ellipticcurvelist_length;
     unsigned char *tlsext_ellipticcurvelist;
 #   endif                       /* OPENSSL_NO_EC */
-#   if !defined(OPENSSL_NO_AKAMAI) && !defined(OPENSSL_NO_SECURE_HEAP)
-    /* points to secure memory - always 32 bytes */
-    unsigned char *tlsext_tick_sec_mem_key;
-#   endif
 #  endif
 };
 
