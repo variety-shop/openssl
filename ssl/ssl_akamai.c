@@ -36,6 +36,16 @@ static int ssl_ctx_ex_data_akamai_new(void* parent, void* ptr,
     }
     memset(ex_data->session_list, 0, sizeof(*ex_data->session_list));
     ex_data->session_list->references = 1;
+#ifndef OPENSSL_NO_SECURE_HEAP
+    /* allocated as 32-bytes, "stored" as 2 pointers */
+    ex_data->tlsext_tick_hmac_key = OPENSSL_secure_malloc(32);
+    if (ex_data->tlsext_tick_hmac_key == NULL) {
+        OPENSSL_free(ex_data->session_list);
+        free(ex_data);
+        return 0;
+    }
+    ex_data->tlsext_tick_aes_key = ex_data->tlsext_tick_hmac_key + 16;
+#endif
 
     return CRYPTO_set_ex_data(ad, idx, ex_data);
 }
@@ -54,6 +64,10 @@ static void ssl_ctx_ex_data_akamai_free(void* parent, void* ptr,
         sk_SSL_CIPHER_free(ex_data->preferred_cipher_list_by_id);
 
         /* NOTE: session_list freed separately */
+
+#ifndef OPENSSL_NO_SECURE_HEAP
+        OPENSSL_secure_free(ex_data->tlsext_tick_hmac_key);
+#endif
 
         OPENSSL_free(ptr);
     }
@@ -87,6 +101,9 @@ static int ssl_ctx_ex_data_akamai_dup(CRYPTO_EX_DATA* to,
     sk_SSL_CIPHER_free(new->ssl2_cipher_list_by_id);
     sk_SSL_CIPHER_free(new->preferred_cipher_list);
     sk_SSL_CIPHER_free(new->preferred_cipher_list_by_id);
+#ifndef OPENSSL_NO_SECURE_HEAP
+    OPENSSL_secure_free(new->tlsext_tick_hmac_key);
+#endif
 
     /*
      * no access to the SSL_CTX, so we can't flush the session_list
@@ -118,6 +135,17 @@ static int ssl_ctx_ex_data_akamai_dup(CRYPTO_EX_DATA* to,
         if ((new->ssl2_cipher_list_by_id =
              sk_SSL_CIPHER_dup((*orig)->ssl2_cipher_list_by_id)) == NULL)
             ok = 0;
+#ifndef OPENSSL_NO_SECURE_HEAP
+    if (new->tlsext_tick_hmac_key != NULL) {
+        new->tlsext_tick_hmac_key = OPENSSL_secure_malloc(32);
+        if (new->tlsext_tick_hmac_key == NULL)
+            ok = 0;
+        else {
+            new->tlsext_tick_aes_key = new->tlsext_tick_hmac_key + 16;
+            memcpy(new->tlsext_tick_hmac_key, (*orig)->tlsext_tick_hmac_key, 32);
+        }
+    }
+#endif
 
     *orig = new;
     return ok;

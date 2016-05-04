@@ -4224,6 +4224,9 @@ long ssl3_ctx_ctrl(SSL_CTX *ctx, int cmd, long larg, void *parg)
     case SSL_CTRL_SET_TLSEXT_TICKET_KEYS:
     case SSL_CTRL_GET_TLSEXT_TICKET_KEYS:
         {
+#if !defined(OPENSSL_NO_AKAMAI) && !defined(OPENSSL_NO_SECURE_HEAP)
+            SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(ctx);
+#endif
             unsigned char *keys = parg;
             if (!keys)
                 return 48;
@@ -4237,7 +4240,8 @@ long ssl3_ctx_ctrl(SSL_CTX *ctx, int cmd, long larg, void *parg)
                 memcpy(ctx->tlsext_tick_hmac_key, keys + 16, 16);
                 memcpy(ctx->tlsext_tick_aes_key, keys + 32, 16);
 #else
-                memcpy(ctx->tlsext_tick_sec_mem_key, keys + 16, 32);
+                memcpy(ex_data->tlsext_tick_hmac_key, keys + 16, 16);
+                memcpy(ex_data->tlsext_tick_aes_key, keys + 32, 16);
 #endif
             } else {
                 memcpy(keys, ctx->tlsext_tick_key_name, 16);
@@ -4245,7 +4249,8 @@ long ssl3_ctx_ctrl(SSL_CTX *ctx, int cmd, long larg, void *parg)
                 memcpy(keys + 16, ctx->tlsext_tick_hmac_key, 16);
                 memcpy(keys + 32, ctx->tlsext_tick_aes_key, 16);
 #else
-                memcpy(keys + 16, ctx->tlsext_tick_sec_mem_key, 32);
+                memcpy(keys + 16, ex_data->tlsext_tick_hmac_key, 16);
+                memcpy(keys + 32, ex_data->tlsext_tick_aes_key, 16);
 #endif
             }
             return 1;
