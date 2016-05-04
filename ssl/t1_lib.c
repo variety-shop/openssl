@@ -3584,6 +3584,9 @@ static int tls_decrypt_ticket(SSL *s, const unsigned char *etick,
                               int eticklen, const unsigned char *sess_id,
                               int sesslen, SSL_SESSION **psess)
 {
+#if !defined(OPENSSL_NO_AKAMAI) && !defined(OPENSSL_NO_SECURE_HEAP)
+    SSL_CTX_EX_DATA_AKAMAI *ex_data;
+#endif
     SSL_SESSION *sess;
     unsigned char *sdec;
     const unsigned char *p;
@@ -3625,10 +3628,11 @@ static int tls_decrypt_ticket(SSL *s, const unsigned char *etick,
                                       etick + 16) <= 0) {
             goto err;
 #else
-        if (HMAC_Init_ex(&hctx, tctx->tlsext_tick_sec_mem_key, 16,
+        ex_data = SSL_CTX_get_ex_data_akamai(tctx);
+        if (HMAC_Init_ex(&hctx, ex_data->tlsext_tick_hmac_key, 16,
                          tlsext_tick_md(), NULL) <= 0
                 || EVP_DecryptInit_ex(&ctx, EVP_aes_128_cbc(), NULL,
-                                      tctx->tlsext_tick_sec_mem_key + 16,
+                                      ex_data->tlsext_tick_aes_key,
                                       etick + 16) <= 0) {
             goto err;
 #endif

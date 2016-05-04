@@ -1921,6 +1921,9 @@ static IMPLEMENT_LHASH_COMP_FN(ssl_session, SSL_SESSION)
 
 SSL_CTX *SSL_CTX_new(const SSL_METHOD *meth)
 {
+#if !defined(OPENSSL_NO_AKAMAI) && !defined(OPENSSL_NO_SECURE_HEAP)
+    SSL_CTX_EX_DATA_AKAMAI *akamai;
+#endif
     SSL_CTX *ret = NULL;
 
     if (meth == NULL) {
@@ -2025,14 +2028,6 @@ SSL_CTX *SSL_CTX_new(const SSL_METHOD *meth)
     if (!ret->param)
         goto err;
 
-#if !defined(OPENSSL_NO_SECURE_HEAP) && !defined(OPENSSL_NO_AKAMAI)
-    if ((ret->tlsext_tick_sec_mem_key = OPENSSL_secure_malloc(32)) == NULL)
-        goto err;
-    if (RAND_bytes(ret->tlsext_tick_sec_mem_key, 32) <= 0)
-        ret->options |= SSL_OP_NO_TICKET;
-
-#endif
-
     if ((ret->rsa_md5 = EVP_get_digestbyname("ssl2-md5")) == NULL) {
         SSLerr(SSL_F_SSL_CTX_NEW, SSL_R_UNABLE_TO_LOAD_SSL2_MD5_ROUTINES);
         goto err2;
@@ -2054,6 +2049,11 @@ SSL_CTX *SSL_CTX_new(const SSL_METHOD *meth)
 #else
     if (!CRYPTO_new_ex_data(CRYPTO_EX_INDEX_SSL_CTX, ret, &ret->ex_data))
         goto err;
+# if !defined(OPENSSL_NO_SECURE_HEAP)
+    akamai = SSL_CTX_get_ex_data_akamai(ret);;
+    if (RAND_bytes(akamai->tlsext_tick_hmac_key, 32) <= 0)
+        ret->options |= SSL_OP_NO_TICKET;
+# endif
 #endif
 
     ret->extra_certs = NULL;
@@ -2233,10 +2233,6 @@ void SSL_CTX_free(SSL_CTX *a)
         sk_SSL_CIPHER_free(a->cipher_list);
     if (a->cipher_list_by_id != NULL)
         sk_SSL_CIPHER_free(a->cipher_list_by_id);
-#if !defined(OPENSSL_NO_SECURE_HEAP) && !defined(OPENSSL_NO_AKAMAI)
-    if (a->tlsext_tick_sec_mem_key != NULL)
-        OPENSSL_secure_free(a->tlsext_tick_sec_mem_key);
-#endif
     if (a->cert != NULL)
         ssl_cert_free(a->cert);
     if (a->client_CA != NULL)
