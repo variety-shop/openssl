@@ -1583,9 +1583,14 @@ int ssl3_get_client_hello_post_app(SSL *s, int retry_cert)
         c = NULL;
         preferred_ciphers = SSL_get_preferred_ciphers(s);
         if (preferred_ciphers) {
+            int use_opt = !(SSL_get_options(s) & SSL_OP_CIPHER_SERVER_PREFERENCE);
             /* Tries to choose a cipher based on our preferences. */
             /* These ciphers are normally limited to a min. strength of 128 bits. */
-            c = ssl3_choose_cipher(s, preferred_ciphers, s->session->ciphers);
+            if (use_opt)
+                SSL_set_options(s, SSL_OP_CIPHER_SERVER_PREFERENCE);
+            c = ssl3_choose_cipher(s, s->session->ciphers, preferred_ciphers);
+            if (use_opt)
+                SSL_clear_options(s, SSL_OP_CIPHER_SERVER_PREFERENCE);
         }
         if (!c) {
             /* Tries to choose a cipher based on the client's preferences. */
