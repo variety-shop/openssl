@@ -1400,7 +1400,7 @@ int ssl3_get_client_hello_post_app(SSL *s, int retry_cert)
 #endif
     SSL_CIPHER *c;
     STACK_OF(SSL_CIPHER) *ciphers = s->s3->tmp.ciphers;
-#ifndef OPENSSL_NO_AKAMAI
+#ifndef OPENSSL_NO_AKAMAI_GHOST_HIGH
     STACK_OF(SSL_CIPHER) *preferred_ciphers;
 #endif
 
@@ -1588,17 +1588,22 @@ int ssl3_get_client_hello_post_app(SSL *s, int retry_cert)
             }
             s->rwstate = SSL_NOTHING;
         }
-#ifdef OPENSSL_NO_AKAMAI
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
         c = ssl3_choose_cipher(s, s->session->ciphers, SSL_get_ciphers(s));
 #else
         c = NULL;
         preferred_ciphers = SSL_get_preferred_ciphers(s);
-        if (preferred_ciphers) {
+        if (preferred_ciphers != NULL) {
+            int use_opt = !(SSL_get_options(s) & SSL_OP_CIPHER_SERVER_PREFERENCE);
             /* Tries to choose a cipher based on our preferences. */
             /* These ciphers are normally limited to a min. strength of 128 bits. */
-            c = ssl3_choose_cipher(s, preferred_ciphers, s->session->ciphers);
+            if (use_opt)
+                SSL_set_options(s, SSL_OP_CIPHER_SERVER_PREFERENCE);
+            c = ssl3_choose_cipher(s, s->session->ciphers, preferred_ciphers);
+            if (use_opt)
+                SSL_clear_options(s, SSL_OP_CIPHER_SERVER_PREFERENCE);
         }
-        if (!c) {
+        if (c == NULL) {
             /* Tries to choose a cipher based on the client's preferences. */
             /* This is normally a broader list than preferred_ciphers. */
             c = ssl3_choose_cipher(s, s->session->ciphers, SSL_get_ciphers(s));
