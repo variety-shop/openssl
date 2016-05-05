@@ -130,10 +130,6 @@ int SSL_get_event_result(SSL *s);
 
 # endif /* OPENSSL_NO_AKAMAI_ASYNC */
 
-int SSL_CTX_set_ciphers_ex(SSL_CTX *,const char *str, unsigned long flags);
-# define SSL_CTX_set_preferred_ciphers(ctx,str) \
-        SSL_CTX_set_ciphers_ex(ctx,str,SSL_OP_CIPHER_SERVER_PREFERENCE)
-
 size_t SSL_BUCKET_len(const SSL_BUCKET *buckets, int count);
 int SSL_BUCKET_same(const SSL_BUCKET *buckets1, int count1,
                     const SSL_BUCKET *buckets2, int count2);
@@ -219,17 +215,12 @@ int SSL_INTERNAL_get_sigandhash(unsigned char *p, const EVP_PKEY *pk,
 # endif
 
 /* Akamai Cipher changes */
-STACK_OF(SSL_CIPHER) *SSL_get_ssl2_ciphers(SSL *s);
-STACK_OF(SSL_CIPHER) *SSL_get_ssl2_ciphers_by_id(SSL *s);
-STACK_OF(SSL_CIPHER) *SSL_CTX_get_ssl2_ciphers(SSL_CTX*);
-STACK_OF(SSL_CIPHER) *SSL_CTX_get_ssl2_ciphers_by_id(SSL_CTX*);
+# ifndef OPENSSL_NO_AKAMAI_GHOST_HIGH
 STACK_OF(SSL_CIPHER) *SSL_get_preferred_ciphers(SSL *s);
-STACK_OF(SSL_CIPHER) *SSL_get_preferred_ciphers_by_id(SSL *s);
 STACK_OF(SSL_CIPHER) *SSL_CTX_get_preferred_ciphers(SSL_CTX*);
-STACK_OF(SSL_CIPHER) *SSL_CTX_get_preferred_ciphers_by_id(SSL_CTX*);
-int SSL_CTX_set_ssl2_cipher_list(SSL_CTX *ctx, const char *str);
 int SSL_CTX_set_preferred_cipher_list(SSL_CTX *ctx, const char *str);
 int SSL_set_preferred_cipher_list(SSL *s, const char *str);
+# endif
 
 typedef int (*tlsext_ticket_appdata_size_cb_fn) (SSL *s, void *arg);
 typedef int (*tlsext_ticket_appdata_append_cb_fn) (SSL *s,

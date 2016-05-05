@@ -62,7 +62,7 @@ int test_run(TestContext *tctx)
      * The chosen cipher is always chosen from the intersection of the
      * lists in server and client. Unless specified otherwise, client
      * ordering has precedence.
-     * For SSLv3/TLS: SSL_CTX_set_preferred_ciphers() in the server context
+     * For SSLv3/TLS: SSL_OP_CIPHER_SERVER_PREFERENCE in the server context
      *    should override any client ordering
      * For SSLv2: server sends its list to client, client choses. If client
      *    has proper options set, it honors the server ordering
@@ -84,7 +84,8 @@ int test_run(TestContext *tctx)
 
         reset_ssl_ctx(tctx);
         TESTCASE(tctx, "test_cipher tls1_2, server preference");
-        (void)TESTASSERT(tctx, SSL_CTX_set_preferred_ciphers(tctx->s_ctx, "ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA"), "ciphers set in server context");
+        SSL_CTX_set_options(tctx->s_ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+        (void)TESTASSERT(tctx, SSL_CTX_set_cipher_list(tctx->s_ctx, "ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA"), "ciphers set in server context");
         ret |= test_default(tctx, "ECDHE-RSA-AES256-SHA");
         ret |= test_client_single(tctx, "ECDHE-RSA-AES128-SHA");
         ret |= test_client_single(tctx, "ECDHE-RSA-AES256-SHA");
@@ -106,7 +107,8 @@ int test_run(TestContext *tctx)
 
         reset_ssl_ctx(tctx);
         TESTCASE(tctx, "test_cipher sslv3, server preference");
-        (void)TESTASSERT(tctx, SSL_CTX_set_preferred_ciphers(tctx->s_ctx, "ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA"), "ciphers set in server context");
+        SSL_CTX_set_options(tctx->s_ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+        (void)TESTASSERT(tctx, SSL_CTX_set_cipher_list(tctx->s_ctx, "ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA"), "ciphers set in server context");
         ret |= test_default(tctx, "ECDHE-RSA-AES256-SHA");
         ret |= test_client_single(tctx, "ECDHE-RSA-AES128-SHA");
         ret |= test_client_single(tctx, "ECDHE-RSA-AES256-SHA");
@@ -128,7 +130,8 @@ int test_run(TestContext *tctx)
 
         reset_ssl_ctx(tctx);
         TESTCASE(tctx, "test_cipher sslv2, server preference");
-        (void)TESTASSERT(tctx, SSL_CTX_set_preferred_ciphers(tctx->s_ctx, "DES-CBC3-MD5:IDEA-CBC-MD5"), "ciphers set in server context");
+        SSL_CTX_set_options(tctx->s_ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+        (void)TESTASSERT(tctx, SSL_CTX_set_cipher_list(tctx->s_ctx, "DES-CBC3-MD5:IDEA-CBC-MD5"), "ciphers set in server context");
         ret |= test_default(tctx, "DES-CBC3-MD5");
         ret |= test_client_single(tctx, "DES-CBC3-MD5");
         ret |= test_client_single(tctx, "IDEA-CBC-MD5");

@@ -92,11 +92,9 @@ struct ssl_ctx_ex_data_akamai_st
      * These allow us an override with a fallback to the original cipher_list
      * defined on the top of this struct.
      */
-    STACK_OF(SSL_CIPHER) *ssl2_cipher_list;
-    STACK_OF(SSL_CIPHER) *ssl2_cipher_list_by_id; /* sorted for lookup */
+# ifndef OPENSSL_NO_AKAMAI_GHOST_HIGH
     STACK_OF(SSL_CIPHER) *preferred_cipher_list;
-    STACK_OF(SSL_CIPHER) *preferred_cipher_list_by_id; /* sorted for lookup */
-
+# endif
     /* Callbacks to support appending data after session ticket */
     tlsext_ticket_appdata_size_cb_fn tlsext_ticket_appdata_size_cb;
     tlsext_ticket_appdata_append_cb_fn tlsext_ticket_appdata_append_cb;
@@ -135,8 +133,9 @@ struct ssl_ex_data_akamai_st
     int (*app_verify_callback)(X509_STORE_CTX*, void*);
     void *app_verify_arg;
 
+# ifndef OPENSSL_NO_AKAMAI_GHOST_HIGH
     STACK_OF(SSL_CIPHER) *preferred_cipher_list;
-    STACK_OF(SSL_CIPHER) *preferred_cipher_list_by_id; /* sorted for lookup */
+# endif
 };
 
 /* Used to initialize and get the akamai EX_DATA structures in one fell swoop */
