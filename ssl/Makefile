@@ -47,13 +47,10 @@ LIBOBJ= \
 
 SRC= $(LIBSRC)
 
-EXHEADER= ssl.h ssl2.h ssl3.h ssl23.h tls1.h dtls1.h kssl.h srtp.h
-HEADER=	$(EXHEADER) ssl_locl.h kssl_lcl.h
-
-ifndef OPENSSL_NO_AKAMAI
-EXHEADER += ssl_akamai_post.h ssl_akamai_pre.h
-HEADER += ssl_akamai_post.h ssl_akamai_pre.h ssl_locl_akamai.h ssl_locl_akamai_pre.h
-endif
+EXHEADER= ssl.h ssl2.h ssl3.h ssl23.h tls1.h dtls1.h kssl.h srtp.h \
+	ssl_akamai_pre.h ssl_akamai_post.h
+HEADER=	$(EXHEADER) ssl_locl.h kssl_lcl.h \
+	ssl_locl_akamai_pre.h ssl_locl_akamai_post.h
 
 ALL=    $(GENERAL) $(SRC) $(HEADER)
 
