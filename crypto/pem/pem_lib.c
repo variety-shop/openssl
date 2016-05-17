@@ -1046,7 +1046,7 @@ static int get_header_and_data(BIO *bp, BIO **header, BIO **data, char *name,
             p = linebuf + ENDLEN;
             namelen = strlen(name);
             if (strncmp(p, name, namelen) != 0 ||
-                strncmp(p + namelen, tailstr, TAILLEN != 0)) {
+                strncmp(p + namelen, tailstr, TAILLEN) != 0) {
                 PEMerr(PEM_F_PEM_READ_BIO, PEM_R_BAD_END_LINE);
                 goto err;
             }
