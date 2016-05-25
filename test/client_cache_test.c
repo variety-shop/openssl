@@ -63,7 +63,7 @@
                                       Do not try to put it earlier, or IPv6 includes
                                       get screwed... */
 
-#ifndef OPENSSL_NO_AKAMAI_CLIENT_CACHE
+#if !defined(OPENSSL_NO_AKAMAI_CLIENT_CACHE) && defined(OPENSSL_NO_SHARED)
 
 #ifdef OPENSSL_SYS_WINDOWS
 #include <winsock.h>
@@ -526,11 +526,11 @@ end:
     BIO_free(bio_stdout);
     return ret;
 }
-#else /* OPENSSL_NO_AKAMAI_CLIENT_CACHE */
+#else /* !defined(OPENSSL_NO_AKAMAI_CLIENT_CACHE) && defined(OPENSSL_NO_SHARED) */
 
 int main(int argc, char *argv[])
 {
     return 0;
 }
 
-#endif /* OPENSSL_NO_AKAMAI_CLIENT_CACHE */
+#endif /* !defined(OPENSSL_NO_AKAMAI_CLIENT_CACHE) && defined(OPENSSL_NO_SHARED) */
