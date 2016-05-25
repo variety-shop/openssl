@@ -61,7 +61,7 @@
 				     get screwed...
 				  */
 
-#ifndef OPENSSL_NO_AKAMAI_CLIENT_CACHE
+#if !defined(OPENSSL_NO_AKAMAI_CLIENT_CACHE) && defined(OPENSSL_NO_SHARED)
 
 #ifdef OPENSSL_SYS_WINDOWS
 #include <winsock.h>
