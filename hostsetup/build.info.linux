@@ -1,3 +1,5 @@
 D openssl /usr/local/akamai/bin			akamai akamai 0755
 F openssl /usr/local/akamai/bin/openssl		akamai akamai 0755
+D openssl /etc/ld.so.conf.d			root root 0755
+F openssl /etc/ld.so.conf.d/akamai-openssl.conf	root root 0644
 
