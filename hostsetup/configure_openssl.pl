@@ -5,6 +5,13 @@ use strict;
 use akamailog;
 use config qw( $global_conf_data );
 
+sub special {
+    my ($installed_root, $temp_root, $request) = @_;
+    # Run ldconfig to pick up /etc/ld.conf.so.d/akamai-openssl.conf
+    system("/sbin/ldconfig");
+    1;
+}
+
 sub install_openssl_here {
     1;
 }
