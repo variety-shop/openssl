@@ -10,6 +10,11 @@
 
     <bundle name="openssl.tgz" os="linux" type="software">
       <file source="apps/openssl" target="/usr/local/akamai/bin/openssl"/>
+      <file source="hostsetup/ld.so.conf.d.akamai-openssl" target="/etc/ld.so.conf.d/akamai-openssl.conf"/>
+    </bundle>
+
+    <bundle name="openssl-ld.so.conf.tgz" os="alsi-lite" type="software">
+      <file source="hostsetup/ld.so.conf.d.akamai-openssl" target="/etc/ld.so.conf.d/akamai-openssl.conf"/>
     </bundle>
 
     <bundle name="openssl-config.tgz" os="common" type="configure">
