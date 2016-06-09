@@ -33,7 +33,9 @@ static pthread_mutex_t secure_allocation_lock = PTHREAD_MUTEX_INITIALIZER;
 #  define UNLOCK()    CRYPTO_w_unlock(CRYPTO_LOCK_MALLOC)
 #  define CLEAR(p, s) OPENSSL_cleanse(p, s)
 # endif
-# define PAGE_SIZE    4096
+# ifndef PAGE_SIZE
+#  define PAGE_SIZE    4096
+# endif
 
 size_t secure_mem_used;
 
