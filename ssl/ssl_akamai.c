@@ -20,6 +20,11 @@
 # include <openssl/md5.h>
 # include <openssl/sha.h>
 
+#ifndef OPENSSL_NO_AKAMAI
+char OPENSSL_PERFORCE_ID_SSL[] = "$Id: $";
+char OPENSSL_VERSION_ID_SSL[] = "$" "Id: Akamai-" OPENSSL_VERSION_TEXT " $";
+#endif
+
 /* AKAMAI EX_DATA: EXTENSIONS TO THE SSL/SSL_CTX DATA STRUCTURES THAT ARE ABI COMPLIANT */
 static int ssl_ctx_ex_data_akamai_new(void* parent, void* ptr,
                                       CRYPTO_EX_DATA* ad,
