@@ -938,14 +938,13 @@ static int sanitize_line(char *linebuf, int len, unsigned int flags)
         /* EVP_DecodeBlock strips leading and trailing whitespace, so just check
          * for control characters. */
         for (i = 0; i < len; ++i) {
-            if (iscntrl(linebuf[i])) {
-                linebuf[i] = '\n';
-                /* The caller allocated LINESIZE+1, so this is safe. */
-                linebuf[i + 1] = '\0';
-                len = i + 1;
+            if (iscntrl(linebuf[i]))
                 break;
-            }
         }
+        linebuf[i] = '\n';
+        /* The caller allocated LINESIZE+1, so this is safe. */
+        linebuf[i + 1] = '\0';
+        len = i + 1;
     }
     return len;
 }
