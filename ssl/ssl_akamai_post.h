@@ -215,12 +215,9 @@ int SSL_INTERNAL_get_sigandhash(unsigned char *p, const EVP_PKEY *pk,
 # endif
 
 /* Akamai Cipher changes */
-# ifndef OPENSSL_NO_AKAMAI_GHOST_HIGH
-STACK_OF(SSL_CIPHER) *SSL_get_preferred_ciphers(SSL *s);
-STACK_OF(SSL_CIPHER) *SSL_CTX_get_preferred_ciphers(SSL_CTX*);
-int SSL_CTX_set_preferred_cipher_list(SSL_CTX *ctx, const char *str);
-int SSL_set_preferred_cipher_list(SSL *s, const char *str);
-# endif
+int SSL_akamai_get_preferred_cipher_count(SSL *s);
+int SSL_akamai_set_cipher_list(SSL *s, const char *pref, const char *must);
+int SSL_CTX_akamai_set_cipher_list(SSL_CTX *ctx, const char *pref, const char *must);
 
 typedef int (*tlsext_ticket_appdata_size_cb_fn) (SSL *s, void *arg);
 typedef int (*tlsext_ticket_appdata_append_cb_fn) (SSL *s,
@@ -245,6 +242,9 @@ int SSL_use_cert_and_key(SSL *ssl, X509 *x509, EVP_PKEY *privatekey,
                          STACK_OF(X509) *extra, int override);
 int SSL_CTX_use_cert_and_key(SSL_CTX *ctx, X509 *x509, EVP_PKEY *privatekey,
                              STACK_OF(X509) *extra, int override);
+
+int SSL_akamai_fixup_cipher_strength_bits(int bits, const char* ciphers);
+int SSL_akamai_fixup_cipher_strength(const char* level, const char* ciphers);
 
 # ifdef  __cplusplus
 }
