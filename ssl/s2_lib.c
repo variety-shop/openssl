@@ -121,7 +121,7 @@ const char ssl2_version_str[] = "SSLv2" OPENSSL_VERSION_PTEXT;
 # define SSL2_NUM_CIPHERS (sizeof(ssl2_ciphers)/sizeof(SSL_CIPHER))
 
 /* list of available SSLv2 ciphers (sorted by id) */
-OPENSSL_GLOBAL const SSL_CIPHER ssl2_ciphers[] = {
+OPENSSL_GLOBAL SSL_CIPHER ssl2_ciphers[] = {
 # if 0
 /* NULL_WITH_MD5 v3 */
     {
@@ -256,11 +256,7 @@ OPENSSL_GLOBAL const SSL_CIPHER ssl2_ciphers[] = {
      SSL_SSLV2,
      SSL_NOT_DEFAULT | SSL_NOT_EXP | SSL_MEDIUM,
      0,
-#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
      112,
-#else
-     168,
-#endif
      168,
      },
 
