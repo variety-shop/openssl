@@ -28,8 +28,8 @@ $P/BUILDENV.linux.FILE_OFFSET_BITS-supported := ALL
 $P/BUILDENV.windows.CC-supported := ALL
 $P/BUILDENV.windows.FILE_OFFSET_BITS-supported := ALL
 
-$($P/O)/configure.ts : CONFIGFLAGS := $(filter-out no-$($P/A),$(CONFIGFLAGS)) enable-$($P/A)
-$($P/O)/configure.ts : CONFIGFLAGS := $(filter-out no-$($P/B),$(CONFIGFLAGS)) enable-$($P/B)
+$($P/O)/configure.ts : $($P/O)/CONFIGFEATURES := $(filter-out no-$($P/A),$($($P/O)/CONFIGFEATURES)) enable-$($P/A)
+$($P/O)/configure.ts : $($P/O)/CONFIGFEATURES := $(filter-out no-$($P/B),$($($P/O)/CONFIGFEATURES)) enable-$($P/B)
 
 include $(AKAMAKE)/akamake.m.master
 
