@@ -298,6 +298,9 @@ build_tests: build_libs
 build_tools: build_libs
 	@dir=tools; target=all; $(BUILD_ONE_CMD)
 
+default_shared: all
+default_static: build_crypto
+
 all_testapps: build_libs build_testapps
 build_testapps:
 	@dir=crypto; target=testapps; $(BUILD_ONE_CMD)
