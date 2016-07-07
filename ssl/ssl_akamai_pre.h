@@ -28,28 +28,34 @@
 extern "C" {
 # endif
 
-# ifndef OPENSSL_NO_IOVEC
+/*
+ * This file is not included if OPENSSL_NO_AKAMAI is defined, but mkdef.pl does
+ * not follow conditionals across files, so duplicate it here.
+ */
+# ifndef OPENSSL_NO_AKAMAI
+
+#  ifndef OPENSSL_NO_IOVEC
 
 typedef struct iovec SSL_BUCKET;
 
-#  ifndef WIN32
-#   include <sys/uio.h>
-#  else
-#   ifndef HAVE_STRUCT_IOVEC
+#   ifndef WIN32
+#    include <sys/uio.h>
+#   else
+#    ifndef HAVE_STRUCT_IOVEC
 struct iovec {
     void *iov_base;     /* Pointer to data.  */
     size_t iov_len;     /* Length of data.  */
 };
-#    define HAVE_STRUCT_IOVEC
-#   endif /* HAVE_STRUCT_IOVEC */
-#  endif /* !WIN32 */
+#     define HAVE_STRUCT_IOVEC
+#    endif /* HAVE_STRUCT_IOVEC */
+#   endif /* !WIN32 */
 
-#  define SSL_BUCKET_MAX 32
+#   define SSL_BUCKET_MAX 32
 
 int SSL_readv(SSL *ssl, const SSL_BUCKET *buckets, int count);
 int SSL_writev(SSL *ssl, const SSL_BUCKET *buckets, int count);
 
-# else  /* !OPENSSL_NO_IOVEC */
+#  else  /* !OPENSSL_NO_IOVEC */
 
 typedef struct ssl_bucket_st SSL_BUCKET;
 
@@ -58,25 +64,27 @@ struct ssl_bucket_st {
     size_t iov_len;
 };
 
-#  define SSL_BUCKET_MAX 1
+#   define SSL_BUCKET_MAX 1
 
-# endif /* OPENSSL_NO_IOVEC */
+#  endif /* OPENSSL_NO_IOVEC */
 
 /* for extending protocol methods */
 struct ssl_akamai_method_st
 {
-# ifndef OPENSSL_NO_IOVEC
+#  ifndef OPENSSL_NO_IOVEC
     int (*ssl_readv)(SSL *s, const SSL_BUCKET *buckets, int count);
     int (*ssl_writev)(SSL *s, const SSL_BUCKET *buckets, int count);
     int (*ssl_readv_bytes)(SSL *s, int type, const SSL_BUCKET *buckets,
                            int count, int peek);
     int (*ssl_writev_bytes)(SSL *s, int type, const SSL_BUCKET *buckets,
                             int count);
-# endif
+#  endif
 };
 
-# ifdef  __cplusplus
+#  ifdef  __cplusplus
 }
-# endif
+#  endif
+
+# endif /* OPENSSL_NO_AKAMAI */
 
 #endif /* HEADER_SSL_AKAMAI_PRE_H */
