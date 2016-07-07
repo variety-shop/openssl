@@ -324,7 +324,6 @@ my %disabled = ( # "what"         => "comment" [or special keyword "experimental
 		 "buf-freelists"  => "akamai-default",
 		 "camellia"	  => "akamai-default",
 		 "cast"		  => "akamai-default",
-		 "chacha"	  => "akamai-default",
 		 "comp"		  => "akamai-default",
 		 "dso"		  => "akamai-default",
 		 "dtls1"	  => "akamai-default",
@@ -342,7 +341,6 @@ my %disabled = ( # "what"         => "comment" [or special keyword "experimental
 		 "md2"            => "default",
 		 "md4"		  => "akamai-default",
 		 "mdc2"		  => "akamai-default",
-		 "poly1305"	  => "akamai-default",
 		 "psk"		  => "akamai-default",
 		 "rc2"            => "akamai-default",
 		 "rc4"		  => "akamai-default",
@@ -581,7 +579,7 @@ PROCESS_ARGS:
 			}
 		else
 			{
-#Akamai			die "target already defined - $target (offending arg: $_)\n" if ($target ne "");
+			die "target already defined - $target (offending arg: $_)\n" if ($target ne "");
 			$target=$_;
 			}
 
