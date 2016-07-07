@@ -2,7 +2,7 @@
 # -*- Makefile -*-
 magic_startup_code=a; cd `echo "$0" | sed 's@^[^/]*$@.@; s@/[^/]*$@@;'` && exec make -f `basename $0` ${1+"$@"}
 
-C := openssl/disable/110-compat
+C := openssl/enable/static
 
 all: build
 BASE_PATH := $(firstword $(BASE_PATH) $(subst /$C-xx,,$(CURDIR)-xx))
@@ -10,13 +10,13 @@ REF_PATH := $(firstword $(REF_PATH) NoValidPath)
 AKAMAKE := $(firstword $(wildcard $(BASE_PATH)/Akamake) $(REF_PATH)/Akamake)
 P := $(BASE_PATH)/$C
 $P/O := $(BASE_PATH)/openssl
-$P/A := akamai-110-compat
+$P/A := shared
 
 $P/MODULES := NO-OP
 
 M := NO-OP
 
-$P/$M-DEP-COMP := openssl
+$P/$M-DEP-COMP := openssl-static
 
 $P/$M-3RD-PARTY := $P/no-op
 
@@ -24,12 +24,12 @@ $P/no-op:
 
 $P/BUILDENV.linux.CC-supported := ALL
 $P/BUILDENV.linux.FILE_OFFSET_BITS-supported := ALL
+$P/BUILDENV.linux.OPENSSL_LINKAGE-supported := static
 $P/BUILDENV.windows.CC-supported := ALL
 $P/BUILDENV.windows.FILE_OFFSET_BITS-supported := ALL
 
-# This disables 'static inline' functions only, so it's compatible with shared or static builds
 $($P/O)/configure.ts : $($P/O)/CONFIGFEATURES := $(filter-out enable-$($P/A),$($($P/O)/CONFIGFEATURES)) no-$($P/A)
-$($P/O)/configure.ts : $($P/O)/SHAREDFEATURES := $(filter-out enable-$($P/A),$($($P/O)/SHAREDFEATURES)) no-$($P/A)
+$($P/O)/configure.ts : $($P/O)/NOSHARED := $($($P/O)/NOSHARED) static
 
 include $(AKAMAKE)/akamake.m.master
 
@@ -38,4 +38,3 @@ ifndef ATTR_ONLY
 # 1.31 lacks this call.  Oh, well.  It's a good demo, at any rate.
 $(call assert_min_version,Akamake,1.30)
 endif
-
