@@ -382,13 +382,13 @@ endif
 ifdef AKAMAKE-VC9-BUILD
 $P/VC=VC9
 ifdef AKAMAKE-WIN64-BUILD
-$P/VCFG=VC-WIN64A
+$P/VCFG=akamai-VC-WIN64A
 else
-$P/VCFG=VC-WIN32
+$P/VCFG=akamai-VC-WIN32
 endif
 else
 $P/VC=VC7
-$P/VCFG=VC-WIN32
+$P/VCFG=akamai-VC-WIN32
 endif
 
 $P/CONFIGURE_PREREQUISITES := $P/Configure $P/Makefile.org $P/akamake $P/util/mk1mf.pl $P/util/mkfiles.pl $P/ms/do_aka_nt.bat

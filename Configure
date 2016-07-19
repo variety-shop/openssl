@@ -213,6 +213,7 @@ foreach ( glob($pattern) ) {
 }
 
 my @MK1MF_Builds=qw(VC-WIN64I VC-WIN64A
+		    akamai-VC-WIN32 akamai-VC-WIN64A
 		    debug-VC-WIN64I debug-VC-WIN64A
 		    VC-NT VC-CE VC-WIN32 debug-VC-WIN32
 		    BC-32 
