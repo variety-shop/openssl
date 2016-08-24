@@ -41,12 +41,8 @@ ifndef ATTR_ONLY
 -include $(AKAMAKE)/akamake-env.mak
 endif
 
-# Get locations of co-dependent components
-OPENSSL-SSLV2 := $(call get-component-path,openssl-sslv2)
-OPENSSL-SSLV3 := $(call get-component-path,openssl-sslv3)
-OPENSSL-TLSV1 := $(call get-component-path,openssl-tlsv1)
-OPENSSL-DTLSV1 := $(call get-component-path,openssl-dtlsv1)
-OPENSSL-CRYPTO-ONLY := $(call get-component-path,openssl-crypto-only)
+# We need this earlier than most akamake files
+$P/%: P := $P
 
 # Disable OpenSSL ciphers/prototools
 # See Configure script to see automatically disabled/enabled features
@@ -132,16 +128,6 @@ endif
 $P/HEADERS-LOCAL-DIRECTORY := include/openssl
 $P/HEADERS-COMMON-DIRECTORY := openssl
 
-# $P/configure.ts-generated headers to be exported
-$P/CONFIG-GEN-HEADERS :=
-
-# Static headers to be exported
-$P/STATIC-HEADERS :=
-
-# $P/HEADERS: List of export header files (relative to HEADERS_LOCAL_DIRECTORY)
-$P/HEADERS := $($P/CONFIG-GEN-HEADERS) $($P/STATIC-HEADERS)
-$P/HEADERS: $P/build.ts
-
 #     LIBS_LOCAL_DIRECTORY: relative directory of exported library files
 $P/LIBS-LOCAL-DIRECTORY :=
 
@@ -156,10 +142,24 @@ $P/EXP-LIBS := libopenssl.lib libcrypto.lib libopenssl.dll_lib libcrypto.dll_lib
 $(call declare-lib-deps, openssl, crypto)
 endif
 
-# TODO: add any unique export INSTALL rules here
-$P/export_install.ts: $P/configure.ts
-	cd $P && $(SYSTEM_MAKE) -f akamake.export_install export_install
-	@touch $@
+# The headers are determined by the output of the configure step. This rule
+# creates a makefile that calculates the list of headers, which causes make to
+# (eventually) restart so we can have a properly-populated $P/HEADERS. Because
+# the configure prerequisite is order-only, make will restart only if
+# akamake-headers.mak didn't exist previously, even if configure is re-run. As
+# a result, adding headers without cleaning may result in new headers not being
+# installed.
+.DELETE_ON_ERROR: $P/akamake-headers.mak
+$P/akamake-headers.mak: | $P/configure.ts
+	echo '$$P/HEADERS := $$(patsubst $$P/$$($$P/HEADERS-LOCAL-DIRECTORY)/%,%,$$(wildcard $$P/$$($$P/HEADERS-LOCAL-DIRECTORY)/*.h))' >$@
+
+ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
+ifdef IN_AKAMAKE
+ifndef ATTR_ONLY
+include $P/akamake-headers.mak
+endif # ifndef ATTR_ONLY
+endif # ifdef IN_AKAMAKE
+endif # ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 
 #********************************************************************
 #**** Section 4:  Prerequisites (dependencies)
@@ -193,12 +193,14 @@ $P/clean:
 	$(CLEAN-LOCAL)
 	$(CLEAN-COMMON)
 	-cd $P && $(SYSTEM_MAKE) clean
-	-rm -f $P/configure.ts $P/build.ts $P/export_install.ts
+	-rm -f $P/configure.ts $P/build.ts
 	-rm -rf $P/obj32 $P/lib32 $P/dll_obj32 $P/dll_lib32
 	-rm -f $P/*.lib $P/*.dll_lib
 	-rm -f $P/buildenv.*
 	-rm -f $P/MINFO
 	-rm -f $P/ms/version32.rc
+	-rm -f $P/akamake-dynamic-build-deps.mak
+	-rm -f $P/akamake-headers.mak
 	-find $P -name "Makefile.save" -delete
 	-find $P -name "*.gc??" -delete
 
@@ -227,7 +229,7 @@ $P/distclean: $P/clean
 #           commands for the rules.   The values are invalid by the
 #           time the rules execute.  Used Implied Rule variables.
 
-ifeq ($(filter clean subclean allclean distclean subdistclean alldistclean, $(MAKECMDGOALS)),)
+ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 
 ifndef AKAMAKE-WIN-BUILD
 
@@ -313,11 +315,11 @@ FIPS_LIBDIR=$P/module/$(OSTYPE)
 $P/% : FIPSFLAGS = fips --with-fipsdir=$P/../fipscanister/module/$(OSTYPE)/ --with-fipslibdir=$P/../fipscanister/module/$(OSTYPE)/lib/
 $P/buildenv.FIPS:
 	echo "FIPS build enabled" > $P/buildenv.FIPS
-else
+else # ifdef FIPSBUILD
 $P/% : FIPSFLAGS =
 $P/buildenv.FIPS:
 	echo "FIPS build disabled" > $P/buildenv.FIPS
-endif
+endif # ifdef FIPSBUILD
 
 # SPOILER ALERT!  Do not read this if you want to spend a long time
 # figuring out how config picks a platform!  "./config" is an openssl
@@ -354,12 +356,12 @@ OPENSSL-CC = CC="$(COMMON)/bin/fipsld" FIPSLD_CC="$(MUSL_CC)"
 else
 OPENSSL-CC = CC="$(MUSL_CC)"
 endif
-else
+else # ifdef MUSL_CC
 ifdef FIPSBUILD
 # FIPS requires their own linker to build correctly so we're doing that here - sverasch 7/24/14
 OPENSSL-CC = CC="$(COMMON)/bin/fipsld" FIPSLD_CC="$(CC)"
 endif
-endif
+endif # ifdef MUSL_CC
 
 # Next line intentional "=" - krose, 12/10/2001
 $P/% : MAKE_STEP = cd $P && $(SYSTEM_MAKE) $(OPENSSL_MFLAGS) $(OPENSSL-CC) $(OPENSSL-TARGET)
@@ -370,7 +372,8 @@ $P/% : CONFIGURE_STEP = cd $P && (./config $(CONFIGFLAGS) $(FIPSFLAGS))
 $P/% : DEPEND_STEP = cd $P && ($(SYSTEM_MAKE) CC="$(CC)" depend)
 $P/% : EXTRA_STEP :=
 $P/% : TEST_STEP = cd $P && $(SYSTEM_MAKE) $(OPENSSL-CC) test
-else
+
+else # ifndef AKAMAKE-WIN-BUILD
 
 #### WIN32 ####
 ifndef ATTR_ONLY
@@ -402,10 +405,12 @@ $P/% : EXTRA_STEP := \
  cp $P/dll_lib32/ssleay32.dll_lib $P/libopenssl.dll_lib
 $P/% : TEST_STEP := cd $P && $(NMAKE) -f ms/nt.mak test && $(NMAKE) -f ms/ntdll_lib.mak test
 
-endif
+endif # ifndef AKAMAKE-WIN-BUILD
 
 #### COMMON ####
 $P/third-party: $P/build.ts
+
+$P/component-configure: $P/configure.ts
 
 # ./config step
 $P/configure.ts: $($P/CONFIGURE_PREREQUISITES)
@@ -413,33 +418,28 @@ $P/configure.ts: $($P/CONFIGURE_PREREQUISITES)
 	$(DEPEND_STEP)
 	@echo $(CONFIGFLAGS) > $@
 
+.DELETE_ON_ERROR: $P/akamake-dynamic-build-deps.mak
+$P/akamake-dynamic-build-deps.mak:
+	(echo '$$P/build.ts: \' && find $P -name '*.[ch]' | sort | sed -e 's ^$P $$P ;s/$$/ \\/' && echo) >$@
 
-$P/static-build-deps.mak : $P/component-configure
+#' Fix for syntax highlighting fail in vim/emacs
 
-$P/component-configure: $P/configure.ts $P/export_install.ts
-
-$(addprefix $(call get-headers-local-path)/,$($P/CONFIG-GEN-HEADERS)) : $P/configure.ts $P/build.ts
-	@if [ ! -e $@ ]; then \
-		echo '**** ERROR: Header file $@ missing.  Please re-run akamake.'; \
-		rm -f $P/configure.ts $P/build.ts; \
-		exit 1; \
-	fi
-	@touch $@
+ifdef IN_AKAMAKE
+ifndef ATTR_ONLY
+include $P/akamake-dynamic-build-deps.mak
+endif # ifndef ATTR_ONLY
+endif # ifdef IN_AKAMAKE
 
 # make step
-$P/build.ts: $P/configure.ts $P/export_install.ts
+$P/build.ts: $P/configure.ts
 	$(MAKE_STEP)
 	$(EXTRA_STEP)
 	@touch $@
 
-# Just in case
-ifndef ATTR_ONLY
--include $P/static-build-deps.mak
-endif
-
 # if ar cq fails, force creation of an empty archive
 $P/libcrypto.a $P/libssl.a: $P/build.ts
 	@ar qc $@ || (ar qc $@ $P/crypto/cversion.o && ar d $@ cversion.o)
+	@touch $@
 
 $P/libopenssl.a: $P/libcrypto.a $P/libssl.a
 	rm -f $P/libopenssl.a
@@ -449,14 +449,11 @@ $P/libopenssl.a: $P/libcrypto.a $P/libssl.a
 	rm -rf $P/libmake-tmp
 	ranlib $P/libopenssl.a
 
-else
+else # ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 
 ### NON-BUILDS ###########################################################
 
-$P/libopenssl.a $P/libcrypto.a $P/libssl.a:
-	@echo "Make of $@ bypassed for clean"
-
-endif
+endif # ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 
 # BUILD ENVIRONMENT
 #
