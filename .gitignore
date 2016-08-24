@@ -127,3 +127,5 @@ component-configure
 configure.ts
 export_install.ts
 third-party
+akamake-dynamic-build-deps.mak
+akamake-headers.mak
