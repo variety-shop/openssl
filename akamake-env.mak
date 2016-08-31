@@ -51,6 +51,16 @@ endif # AKAMAKE-LINUX-BUILD-64
 
 else # ifdef AKAMAKE-ALSI8-BUILD/AKAMAKE-ALSI8-LITE-BUILD
 
+ifneq (,$(AKAMAKE-ALSI9-BUILD)$(AKAMAKE-ALSI9-LITE-BUILD))
+
+ifdef AKAMAKE-LINUX-BUILD-64
+$P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) akamai-linux-x86_64-alsi9$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION))
+else # AKAMAKE-LINUX-BUILD-64
+$P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) akamai-linux-i686-alsi9$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION))
+endif # AKAMAKE-LINUX-BUILD-64
+
+else # ifdef AKAMAKE-ALSI9-BUILD/AKAMAKE-ALSI9-LITE-BUILD
+
 ifneq ($(filter ccmalloc,$(MAKECMDGOALS)),)
 $P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) akamai-ccmalloc
 else # ifneq ($(filter ccmalloc,$(MAKECMDGOALS)),)
@@ -68,6 +78,7 @@ endif # ifneq ($(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION)),)
 
 endif # ifneq ($(filter debug,$(MAKECMDGOALS)),)
 endif # ifneq ($(filter ccmalloc,$(MAKECMDGOALS)),)
+endif # ifdef AKAMAKE-ALSI9-BUILD/AKAMAKE-ALSI9-LITE-BUILD
 endif # ifdef AKAMAKE-ALSI8-BUILD/AKAMAKE-ALSI8-LITE-BUILD
 endif # ifdef AKAMAKE-ALSI7-BUILD/AKAMAKE-ALSI7-LITE-BUILD
 endif # ifdef AKAMAKE-ALSI6-BUILD
