@@ -3041,6 +3041,9 @@ static int ssl_check_clienthello_tlsext_early(SSL *s)
 {
     int ret = SSL_TLSEXT_ERR_NOACK;
     int al = SSL_AD_UNRECOGNIZED_NAME;
+# ifdef OPENSSL_NO_AKAMAI
+    int was_ticket;
+# endif
 
 # ifndef OPENSSL_NO_EC
     /*
@@ -3053,6 +3056,8 @@ static int ssl_check_clienthello_tlsext_early(SSL *s)
      */
 # endif
 # ifdef OPENSSL_NO_AKAMAI
+    was_ticket = (SSL_get_options(s) & SSL_OP_NO_TICKET) == 0;
+
     if (s->ctx != NULL && s->ctx->tlsext_servername_callback != 0)
         ret =
             s->ctx->tlsext_servername_callback(s, &al,
@@ -3063,6 +3068,17 @@ static int ssl_check_clienthello_tlsext_early(SSL *s)
             s->initial_ctx->tlsext_servername_callback(s, &al,
                                                        s->
                                                        initial_ctx->tlsext_servername_arg);
+    /*
+     * If we're expecting to send a ticket and tickets were previously enabled,
+     * and now tickets are disabled, then turn off expected ticket.
+     * Also if this is not a resumption, create a new session.
+     */
+    if (s->tlsext_ticket_expected && was_ticket &&
+        (SSL_get_options(s) & SSL_OP_NO_TICKET) != 0) {
+        s->tlsext_ticket_expected = 0;
+        if (!s->hit)
+            ssl_get_new_session(s, 1);
+    }
 # endif
 # ifdef TLSEXT_TYPE_opaque_prf_input
     {
@@ -3152,6 +3168,7 @@ int ssl_check_clienthello_tlsext_async(SSL *s)
 {
     int ret = SSL_TLSEXT_ERR_NOACK;
     int al = SSL_AD_UNRECOGNIZED_NAME;
+    int was_ticket = (SSL_get_options(s) & SSL_OP_NO_TICKET) == 0;
 
     s->rwstate = SSL_EVENT_TLSEXT_SERVERNAME_READY;
     if (s->ctx != NULL && s->ctx->tlsext_servername_callback != 0)
@@ -3164,6 +3181,17 @@ int ssl_check_clienthello_tlsext_async(SSL *s)
             s->initial_ctx->tlsext_servername_callback(s, &al,
                                                        s->
                                                        initial_ctx->tlsext_servername_arg);
+    /*
+     * If we're expecting to send a ticket and tickets were previously enabled,
+     * and now tickets are disabled, then turn off expected ticket.
+     * Also if this is not a resumption, create a new session.
+     */
+    if (s->tlsext_ticket_expected && was_ticket &&
+        (SSL_get_options(s) & SSL_OP_NO_TICKET) != 0) {
+        s->tlsext_ticket_expected = 0;
+        if (!s->hit)
+            ssl_get_new_session(s, 1);
+    }
     if (ret == SSL_TLSEXT_ERR_WAIT_FOR_EVENT)
         /* we shall wait for event SSL_EVENT_TLSEXT_SERVERNAME_READY */
         return -1;
