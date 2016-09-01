@@ -48,6 +48,14 @@ typedef enum {
     SSL_TEST_SESSION_TICKET_BROKEN /* Special test */
 } ssl_session_ticket_t;
 
+#ifndef OPENSSL_NO_AKAMAI
+typedef enum {
+    SSL_TEST_SESSION_ID_IGNORE = 0, /* Default */
+    SSL_TEST_SESSION_ID_YES,
+    SSL_TEST_SESSION_ID_NO
+} ssl_session_id_t;
+#endif
+
 typedef enum {
     SSL_TEST_METHOD_TLS = 0, /* Default */
     SSL_TEST_METHOD_DTLS
@@ -163,6 +171,10 @@ typedef struct {
     int resumption_expected;
     /* Expected temporary key type */
     int expected_tmp_key_type;
+#ifndef OPENSSL_NO_AKAMAI
+    /* Whether to expect a session id from the server */
+    ssl_session_id_t session_id_expected;
+#endif
 } SSL_TEST_CTX;
 
 const char *ssl_test_result_name(ssl_test_result_t result);
@@ -173,6 +185,9 @@ const char *ssl_servername_name(ssl_servername_t server);
 const char *ssl_servername_callback_name(ssl_servername_callback_t
                                          servername_callback);
 const char *ssl_session_ticket_name(ssl_session_ticket_t server);
+#ifndef OPENSSL_NO_AKAMAI
+const char *ssl_session_id_name(ssl_session_id_t server);
+#endif
 const char *ssl_test_method_name(ssl_test_method_t method);
 const char *ssl_handshake_mode_name(ssl_handshake_mode_t mode);
 const char *ssl_ct_validation_name(ssl_ct_validation_t mode);

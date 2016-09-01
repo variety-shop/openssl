@@ -959,6 +959,10 @@ static HANDSHAKE_RESULT *do_handshake_internal(
     handshake_status_t status = HANDSHAKE_RETRY;
     const unsigned char* tick = NULL;
     size_t tick_len = 0;
+#ifndef OPENSSL_NO_AKAMAI
+    const unsigned char* sess_id= NULL;
+    unsigned int sess_id_len = 0;
+#endif
     SSL_SESSION* sess = NULL;
     const unsigned char *proto = NULL;
     /* API dictates unsigned int rather than size_t. */
@@ -1100,12 +1104,25 @@ static HANDSHAKE_RESULT *do_handshake_internal(
     ret->server_protocol = SSL_version(server.ssl);
     ret->client_protocol = SSL_version(client.ssl);
     ret->servername = server_ex_data.servername;
+#ifdef OPENSSL_NO_AKAMAI
     if ((sess = SSL_get0_session(client.ssl)) != NULL)
         SSL_SESSION_get0_ticket(sess, &tick, &tick_len);
+#else
+    if ((sess = SSL_get0_session(client.ssl)) != NULL) {
+        SSL_SESSION_get0_ticket(sess, &tick, &tick_len);
+        sess_id = SSL_SESSION_get_id(sess, &sess_id_len);
+    }
+#endif
     if (tick == NULL || tick_len == 0)
         ret->session_ticket = SSL_TEST_SESSION_TICKET_NO;
     else
         ret->session_ticket = SSL_TEST_SESSION_TICKET_YES;
+#ifndef OPENSSL_NO_AKAMAI
+    if (sess_id == NULL || sess_id_len == 0)
+        ret->session_id = SSL_TEST_SESSION_ID_NO;
+    else
+        ret->session_id = SSL_TEST_SESSION_ID_YES;
+#endif
     ret->session_ticket_do_not_call = server_ex_data.session_ticket_do_not_call;
 
 #ifndef OPENSSL_NO_NEXTPROTONEG
