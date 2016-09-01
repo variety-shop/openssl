@@ -61,6 +61,7 @@ my %conf_dependent_tests = (
 # configurations. Default is $no_tls but some tests have different skip
 # conditions.
 my %skip = (
+  "06-sni-ticket.conf" => disabled("akamai"),
   "07-dtls-protocol-version.conf" => $no_dtls,
   "08-npn.conf" => $no_tls || $no_npn,
   "10-resumption.conf" => disabled("tls1_1") || disabled("tls1_2"),

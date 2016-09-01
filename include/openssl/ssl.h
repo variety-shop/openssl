@@ -2160,6 +2160,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_SSL_CERT_DUP                               221
 # define SSL_F_SSL_CERT_NEW                               162
 # define SSL_F_SSL_CERT_SET0_CHAIN                        340
+# define SSL_F_SSL_CHECK_CLIENTHELLO_TLSEXT_EARLY         4086
 # define SSL_F_SSL_CHECK_PRIVATE_KEY                      163
 # define SSL_F_SSL_CHECK_SERVERHELLO_TLSEXT               280
 # define SSL_F_SSL_CHECK_SRVR_ECC_CERT_AND_ALG            279
@@ -2514,9 +2515,9 @@ int ERR_load_SSL_strings(void);
 # define SSL_R_SSL_SECTION_NOT_FOUND                      136
 # define SSL_R_SSL_SESSION_ID_CALLBACK_FAILED             301
 # define SSL_R_SSL_SESSION_ID_CONFLICT                    302
-# define SSL_R_SSL_SESSION_ID_TOO_LONG                    408
 # define SSL_R_SSL_SESSION_ID_CONTEXT_TOO_LONG            273
 # define SSL_R_SSL_SESSION_ID_HAS_BAD_LENGTH              303
+# define SSL_R_SSL_SESSION_ID_TOO_LONG                    408
 # define SSL_R_SSL_SESSION_VERSION_MISMATCH               210
 # define SSL_R_TLSV1_ALERT_ACCESS_DENIED                  1049
 # define SSL_R_TLSV1_ALERT_DECODE_ERROR                   1050

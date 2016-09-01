@@ -49,6 +49,8 @@ typedef struct handshake_result {
     /* Did the write/read match? */
     int client_read;
     int server_read;
+    /* Session id status */
+    ssl_session_id_t session_id;
 #endif
 } HANDSHAKE_RESULT;
 
