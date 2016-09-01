@@ -821,6 +821,9 @@ static int final_server_name(SSL *s, unsigned int context, int sent,
 {
     int ret = SSL_TLSEXT_ERR_NOACK;
     int altmp = SSL_AD_UNRECOGNIZED_NAME;
+#ifndef OPENSSL_NO_AKAMAI
+    int was_ticket = (SSL_get_options(s) & SSL_OP_NO_TICKET) == 0;
+#endif
 
     if (s->ctx != NULL && s->ctx->ext.servername_cb != 0)
         ret = s->ctx->ext.servername_cb(s, &altmp,
@@ -829,6 +832,36 @@ static int final_server_name(SSL *s, unsigned int context, int sent,
              && s->session_ctx->ext.servername_cb != 0)
         ret = s->session_ctx->ext.servername_cb(s, &altmp,
                                        s->session_ctx->ext.servername_arg);
+
+#ifndef OPENSSL_NO_AKAMAI
+    /*
+     * If we're expecting to send a ticket, and tickets were previously enabled,
+     * and now tickets are disabled, then turn off expected ticket.
+     * Also, if this is not a resumption, create a new session ID
+     */
+    if (s->ext.ticket_expected && was_ticket &&
+        (SSL_get_options(s) & SSL_OP_NO_TICKET) != 0) {
+        s->ext.ticket_expected = 0;
+        if (!s->hit) {
+            SSL_SESSION* ss = SSL_get_session(s);
+            if (ss != NULL) {
+                OPENSSL_free(ss->ext.tick);
+                ss->ext.tick = NULL;
+                ss->ext.ticklen = 0;
+                ss->ext.tick_lifetime_hint = 0;
+                ss->ext.tick_age_add = 0;
+                ss->ext.tick_identity = 0;
+                if (!ssl_generate_session_id(s, ss)) {
+                    ret = SSL_TLSEXT_ERR_ALERT_FATAL;
+                    altmp = SSL_AD_INTERNAL_ERROR;
+                }
+            } else {
+                ret = SSL_TLSEXT_ERR_ALERT_FATAL;
+                altmp = SSL_AD_INTERNAL_ERROR;
+            }
+        }
+    }
+#endif
 
     switch (ret) {
     case SSL_TLSEXT_ERR_ALERT_FATAL:
