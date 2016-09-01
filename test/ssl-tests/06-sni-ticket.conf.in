@@ -22,7 +22,8 @@ sub generate_tests() {
 	foreach my $s1 ("SessionTicket", "-SessionTicket") {
 	    foreach my $s2 ("SessionTicket", "-SessionTicket") {
 		foreach my $n ("server1", "server2") {
-		    my $result = expected_result($c, $s1, $s2, $n);
+		    my $ticket_result = expected_result($c, $s1, $s2, $n);
+		    my $session_id_result = "Yes"; # always, even with a ticket
                     push @tests, {
                         "name" => "sni-session-ticket",
                         "client" => {
@@ -44,7 +45,8 @@ sub generate_tests() {
                         "test" => {
                             "ExpectedServerName" => $n,
                             "ExpectedResult" => "Success",
-			    "SessionTicketExpected" => $result,
+			    "SessionIdExpected" => "Yes", # $session_id_result,
+			    "SessionTicketExpected" => $ticket_result,
                         }
                     };
                 }
