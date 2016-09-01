@@ -282,6 +282,34 @@ const char *ssl_session_ticket_name(ssl_session_ticket_t server)
                      server);
 }
 
+#ifndef OPENSSL_NO_AKAMAI
+/* SessionIdExpected */
+
+static const test_enum ssl_session_id[] = {
+    {"Ignore", SSL_TEST_SESSION_ID_IGNORE},
+    {"Yes", SSL_TEST_SESSION_ID_YES},
+    {"No", SSL_TEST_SESSION_ID_NO},
+};
+
+__owur static int parse_session_id(SSL_TEST_CTX *test_ctx, const char *value)
+{
+    int ret_value;
+    if (!parse_enum(ssl_session_id, OSSL_NELEM(ssl_session_id),
+                    &ret_value, value)) {
+        return 0;
+    }
+    test_ctx->session_id_expected = ret_value;
+    return 1;
+}
+
+const char *ssl_session_id_name(ssl_session_id_t server)
+{
+    return enum_name(ssl_session_id,
+                     OSSL_NELEM(ssl_session_id),
+                     server);
+}
+#endif
+
 /* Method */
 
 static const test_enum ssl_test_methods[] = {
@@ -446,6 +474,9 @@ static const ssl_test_ctx_option ssl_test_ctx_options[] = {
     { "ExpectedProtocol", &parse_protocol },
     { "ExpectedServerName", &parse_expected_servername },
     { "SessionTicketExpected", &parse_session_ticket },
+#ifndef OPENSSL_NO_AKAMAI
+    { "SessionIdExpected", &parse_session_id },
+#endif
     { "Method", &parse_test_method },
     { "ExpectedNPNProtocol", &parse_test_expected_npn_protocol },
     { "ExpectedALPNProtocol", &parse_test_expected_alpn_protocol },
