@@ -94,6 +94,8 @@ static int testctx_eq(SSL_TEST_CTX *ctx, SSL_TEST_CTX *ctx2)
 #ifndef OPENSSL_NO_AKAMAI
             || !TEST_str_eq(ctx->expected_cipher,
                             ctx2->expected_cipher)
+            || !TEST_int_eq(ctx->session_id_expected,
+                            ctx2->session_id_expected)
 #endif
             || !TEST_int_eq(ctx->resumption_expected,
                             ctx2->resumption_expected))
@@ -170,6 +172,9 @@ static int test_good_configuration(void)
     fixture->expected_ctx->expected_servername = SSL_TEST_SERVERNAME_SERVER2;
     fixture->expected_ctx->session_ticket_expected = SSL_TEST_SESSION_TICKET_YES;
     fixture->expected_ctx->compression_expected = SSL_TEST_COMPRESSION_NO;
+#ifndef OPENSSL_NO_AKAMAI
+    fixture->expected_ctx->session_id_expected = SSL_TEST_SESSION_ID_IGNORE;
+#endif
     fixture->expected_ctx->resumption_expected = 1;
 
     fixture->expected_ctx->extra.client.verify_callback =
@@ -211,6 +216,9 @@ static const char *bad_configurations[] = {
     "ssltest_unknown_servername_callback",
     "ssltest_unknown_session_ticket_expected",
     "ssltest_unknown_compression_expected",
+#ifndef OPENSSL_NO_AKAMAI
+    "ssltest_unknown_session_id_expected",
+#endif
     "ssltest_unknown_method",
     "ssltest_unknown_handshake_mode",
     "ssltest_unknown_resumption_expected",
