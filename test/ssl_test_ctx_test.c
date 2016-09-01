@@ -172,6 +172,14 @@ static int SSL_TEST_CTX_equal(SSL_TEST_CTX *ctx, SSL_TEST_CTX *ctx2)
                 ssl_session_ticket_name(ctx2->session_ticket_expected));
         return 0;
     }
+#ifndef OPENSSL_NO_AKAMAI
+    if (ctx->session_id_expected != ctx2->session_id_expected) {
+        fprintf(stderr, "SessionIdExpected mismatch: %s vs %s.\n",
+                ssl_session_id_name(ctx->session_id_expected),
+                ssl_session_id_name(ctx2->session_id_expected));
+        return 0;
+    }
+#endif
     if (!strings_equal("ExpectedNPNProtocol", ctx->expected_npn_protocol,
                        ctx2->expected_npn_protocol))
         return 0;
@@ -266,6 +274,9 @@ static int test_good_configuration()
     fixture.expected_ctx->expected_protocol = TLS1_1_VERSION;
     fixture.expected_ctx->expected_servername = SSL_TEST_SERVERNAME_SERVER2;
     fixture.expected_ctx->session_ticket_expected = SSL_TEST_SESSION_TICKET_YES;
+#ifndef OPENSSL_NO_AKAMAI
+    fixture.expected_ctx->session_id_expected = SSL_TEST_SESSION_ID_IGNORE;
+#endif
     fixture.expected_ctx->resumption_expected = 1;
 
     fixture.expected_ctx->extra.client.verify_callback =
@@ -300,6 +311,9 @@ static const char *bad_configurations[] = {
     "ssltest_unknown_servername",
     "ssltest_unknown_servername_callback",
     "ssltest_unknown_session_ticket_expected",
+#ifndef OPENSSL_NO_AKAMAI
+    "ssltest_unknown_session_id_expected",
+#endif
     "ssltest_unknown_method",
     "ssltest_unknown_handshake_mode",
     "ssltest_unknown_resumption_expected",

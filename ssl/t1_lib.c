@@ -2673,6 +2673,9 @@ static int ssl_check_clienthello_tlsext_early(SSL *s)
 {
     int ret = SSL_TLSEXT_ERR_NOACK;
     int al = SSL_AD_UNRECOGNIZED_NAME;
+#ifndef OPENSSL_NO_AKAMAI
+    int was_ticket = (SSL_get_options(s) & SSL_OP_NO_TICKET) == 0;
+#endif
 
 #ifndef OPENSSL_NO_EC
     /*
@@ -2695,6 +2698,20 @@ static int ssl_check_clienthello_tlsext_early(SSL *s)
             s->initial_ctx->tlsext_servername_callback(s, &al,
                                                        s->
                                                        initial_ctx->tlsext_servername_arg);
+#ifndef OPENSSL_NO_AKAMAI
+    /*
+     * If we're expecting to send a ticket, and tickets were previously enabled,
+     * and now tickets are disabled, then turn off expected ticket.
+     * Also, if this is not a resumption, create a new session that
+     * has a session id.
+     */
+    if (s->tlsext_ticket_expected && was_ticket &&
+        (SSL_get_options(s) & SSL_OP_NO_TICKET) != 0) {
+        s->tlsext_ticket_expected = 0;
+        if (!s->hit)
+            (void)ssl_get_new_session(s, 1);
+    }
+#endif
 
     switch (ret) {
     case SSL_TLSEXT_ERR_ALERT_FATAL:
