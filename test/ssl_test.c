@@ -152,10 +152,33 @@ static int check_session_ticket(HANDSHAKE_RESULT *result, SSL_TEST_CTX *test_ctx
         fprintf(stderr, "Client SessionTicketExpected mismatch, expected %s, got %s\n.",
                 ssl_session_ticket_name(test_ctx->session_ticket_expected),
                 ssl_session_ticket_name(result->session_ticket));
+#ifndef OPENSSL_NO_AKAMAI
+        fprintf(stderr, "Client SessionIdExpected, expected %s, got %s\n.",
+                ssl_session_id_name(test_ctx->session_id_expected),
+                ssl_session_id_name(result->session_id));
+#endif
         return 0;
     }
     return 1;
 }
+
+#ifndef OPENSSL_NO_AKAMAI
+static int check_session_id(HANDSHAKE_RESULT *result, SSL_TEST_CTX *test_ctx)
+{
+    if (test_ctx->session_id_expected == SSL_TEST_SESSION_ID_IGNORE)
+        return 1;
+    if (result->session_id != test_ctx->session_id_expected) {
+        fprintf(stderr, "Client SessionIdExpected mismatch, expected %s, got %s\n.",
+                ssl_session_id_name(test_ctx->session_id_expected),
+                ssl_session_id_name(result->session_id));
+        fprintf(stderr, "Client SessionTicketExpected, expected %s, got %s\n.",
+                ssl_session_ticket_name(test_ctx->session_ticket_expected),
+                ssl_session_ticket_name(result->session_ticket));
+        return 0;
+    }
+    return 1;
+}
+#endif
 
 #ifndef OPENSSL_NO_NEXTPROTONEG
 static int check_npn(HANDSHAKE_RESULT *result, SSL_TEST_CTX *test_ctx)
@@ -238,6 +261,9 @@ static int check_test(HANDSHAKE_RESULT *result, SSL_TEST_CTX *test_ctx)
         ret &= check_protocol(result, test_ctx);
         ret &= check_servername(result, test_ctx);
         ret &= check_session_ticket(result, test_ctx);
+#ifndef OPENSSL_NO_AKAMAI
+        ret &= check_session_id(result, test_ctx);
+#endif
         ret &= (result->session_ticket_do_not_call == 0);
 #ifndef OPENSSL_NO_NEXTPROTONEG
         ret &= check_npn(result, test_ctx);
