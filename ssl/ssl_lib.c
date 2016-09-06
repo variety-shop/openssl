@@ -2196,13 +2196,15 @@ void SSL_CTX_free(SSL_CTX *a)
     {
         SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(a);
         SSL_CTX_SESSION_LIST* session_list = NULL;
-        i = CRYPTO_add(&ex_data->session_list->references, -1,
-                       CRYPTO_LOCK_SSL_CTX);
-        if (i == 0) {
-            if (a->sessions != NULL)
-                SSL_CTX_flush_sessions(a, 0);
-            session_list = ex_data->session_list;
-            ex_data->session_list = NULL;
+        if (ex_data != NULL) {
+            i = CRYPTO_add(&ex_data->session_list->references, -1,
+                           CRYPTO_LOCK_SSL_CTX);
+            if (i == 0) {
+                if (a->sessions != NULL)
+                    SSL_CTX_flush_sessions(a, 0);
+                session_list = ex_data->session_list;
+                ex_data->session_list = NULL;
+            }
         }
 
         CRYPTO_free_ex_data(CRYPTO_EX_INDEX_SSL_CTX, a, &a->ex_data);
