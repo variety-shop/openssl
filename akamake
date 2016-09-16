@@ -70,11 +70,18 @@ ifndef MASTER
 # only enable TLSv1, keep DTLSv1/SSLv3/v2 disabled
 $P/OPENSSL-TARGET := all $($P/OPENSSL-TARGET)
 $P/BUILDENV.linux.OPENSSL_LINKAGE-master := shared
+ifeq ($(BUILDENV.BASEOS),linux)
 ifndef BUILDENV.OPENSSL_LINKAGE-master
 BUILDENV.OPENSSL_LINKAGE-master := shared
-endif
+endif # ifndef BUILDENV.OPENSSL_LINKAGE-master
+else # ifeq ($(BUILDENV.BASEOS),linux)
+$P/NOSHARED := $($P/NOSHARED) non-linux
+ifndef BUILDENV.OPENSSL_LINKAGE-master
+BUILDENV.OPENSSL_LINKAGE-master := static
+endif # ifndef BUILDENV.OPENSSL_LINKAGE-master
+endif # ifeq ($(BUILDENV.BASEOS),linux)
 
-else
+else # ifndef MASTER
 # Compiling OpenSSL as a component
 
 # We need to determine whether we're building static libraries or shared libraries.
@@ -590,6 +597,7 @@ endif
 # Next line intentional "=" - krose, 12/10/2001
 $P/% : MAKE_STEP = cd $P && $(SYSTEM_MAKE) $(OPENSSL_MFLAGS) $($P/OPENSSL-CC) $(if $($P/NOSHARED),$(subst default_shared,default_static,$($P/OPENSSL-TARGET)))
 # configure the system for options
+$P/% : CONFIGURE_STEP = $(if $($P/NOSHARED),$(CONFIGURE_STATIC),$(CONFIGURE_SHARED))
 $P/% : CONFIGURE_SHARED = cd $P && (./Configure $($P/SHAREDFEATURES) $($P/CONFIGFLAGS) $(FIPSFLAGS))
 $P/% : CONFIGURE_STATIC = cd $P && (./Configure $($P/CONFIGFEATURES) $($P/CONFIGFLAGS) $(FIPSFLAGS))
 $P/% : DEPEND_STEP = cd $P && ($(SYSTEM_MAKE) $(OPENSSL-CC) depend)
@@ -618,8 +626,7 @@ $P/VCFG=akamai-VC-WIN32
 endif
 
 $P/CONFIGURE_PREREQUISITES := $P/Configure $P/Makefile.org $P/akamake $P/util/mk1mf.pl $P/util/mkfiles.pl $P/ms/do_aka_nt.bat
-$P/% : CONFIGURE_SHARED = cd $P && perl Configure $($P/VCFG) $($P/SHAREDFEATURES) $($P/CONFIGFLAGS) && ms/do_aka_nt.bat $($P/SHAREDFEATURES) $($P/CONFIGFLAGS) $($P/VC)
-$P/% : CONFIGURE_STATIC = cd $P && perl Configure $($P/VCFG) $($P/CONFIGFEATURES) $($P/CONFIGFLAGS) && ms/do_aka_nt.bat $($P/CONFIGFEATURES) $($P/CONFIGFLAGS) $($P/VC)
+$P/% : CONFIGURE_STEP = cd $P && perl Configure $($P/VCFG) $($P/CONFIGFEATURES) $($P/CONFIGFLAGS) && ms/do_aka_nt.bat $($P/CONFIGFEATURES) $($P/CONFIGFLAGS) $($P/VC)
 $P/% : DEPEND_STEP := cd $P  && $(NMAKE) -f ms/nt.mak headers
 $P/% : MAKE_STEP := cd $P && $(NMAKE) -f ms/nt.mak && $(NMAKE) -f ms/ntdll_lib.mak
 $P/% : EXTRA_STEP := \
@@ -652,7 +659,6 @@ endif
 # which would otherwise drop us into an inconsistent state w.r.t. our EXP-LIBS
 # and such
 $P/% : CHECK_STATIC_FLAGS = $(if $(filter $(BASE_PATH)/openssl/enable/static/,$($(MASTER)/REC-DEP-COMPS)),$(if $(filter shared,$(BUILDENV.OPENSSL_LINKAGE-master)),$(error A component depends on openssl/enable/static but the master component does not; the master component must do so to enable a static openssl build)))
-$P/% : CONFIGURE_STEP = $(if $($P/NOSHARED),$(CONFIGURE_STATIC),$(CONFIGURE_SHARED))
 
 # ./config step
 $P/configure.ts: $($P/CONFIGURE_PREREQUISITES)
