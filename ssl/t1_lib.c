@@ -2323,6 +2323,15 @@ static int ssl_scan_clienthello_tlsext(SSL *s, unsigned char **p,
             if (s->tlsext_status_type == TLSEXT_STATUSTYPE_ocsp) {
                 const unsigned char *sdata;
                 int dsize;
+
+                /* Free any OCSP_RESPIDs from previous handshake. */
+                sk_OCSP_RESPID_pop_free(s->tlsext_ocsp_ids, OCSP_RESPID_free);
+                s->tlsext_ocsp_ids = sk_OCSP_RESPID_new_null();
+                if (s->tlsext_ocsp_ids == NULL) {
+                    *al = SSL_AD_INTERNAL_ERROR;
+                    return 0;
+                }
+
                 /* Read in responder_id_list */
                 n2s(data, dsize);
                 size -= 2;
@@ -2346,13 +2355,6 @@ static int ssl_scan_clienthello_tlsext(SSL *s, unsigned char **p,
                     if (data != sdata) {
                         OCSP_RESPID_free(id);
                         goto err;
-                    }
-                    if (!s->tlsext_ocsp_ids
-                        && !(s->tlsext_ocsp_ids =
-                             sk_OCSP_RESPID_new_null())) {
-                        OCSP_RESPID_free(id);
-                        *al = SSL_AD_INTERNAL_ERROR;
-                        return 0;
                     }
                     if (!sk_OCSP_RESPID_push(s->tlsext_ocsp_ids, id)) {
                         OCSP_RESPID_free(id);
