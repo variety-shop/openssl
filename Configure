@@ -365,21 +365,35 @@ my %deprecated_disablables = (
 
 our %disabled = ( # "what"         => "comment"
                   "asan"		=> "default",
+                  "bf"		        => "sgx",
+		  "camellia"            => "sgx",
+		  "cast"                => "sgx",
 		  "crypto-mdebug"       => "default",
 		  "crypto-mdebug-backtrace" => "default",
+		  "dso"                 => "sgx",
 		  "ec_nistp_64_gcc_128" => "default",
+		  "ec2m"                => "sgx",
 		  "egd"                 => "default",
 		  "fuzz-libfuzzer"	=> "default",
 		  "fuzz-afl"		=> "default",
 		  "heartbeats"          => "default",
+		  "hw"                  => "sgx",
+		  "idea"                => "sgx",
 		  "md2"                 => "default",
+		  "md4"                 => "sgx",
+		  "mdc2"                => "sgx",
                   "msan"                => "default",
+		  "rc4"                 => "sgx",
 		  "rc5"                 => "default",
+		  "shared"              => "sgx",
 		  "sctp"                => "default",
+		  "srp"                 => "default",
 		  "ssl-trace"           => "default",
 		  "ssl3"                => "default",
 		  "ssl3-method"         => "default",
+		  "stdio"               => "sgx",
                   "ubsan"		=> "default",
+                  "ui"     		=> "ui",
 		  "unit-test"           => "default",
 		  "weak-ssl-ciphers"    => "default",
 		  "zlib"                => "default",
@@ -471,8 +485,8 @@ my $no_sse2=0;
 
 &usage if ($#ARGV < 0);
 
-my $user_cflags="";
-my @user_defines=();
+my $user_cflags="-include crypto/include/internal/bypass_to_sgxssl.h";
+my @user_defines=("GETPID_IS_MEANINGLESS");
 $config{openssl_api_defines}=[];
 $config{openssl_algorithm_defines}=[];
 $config{openssl_thread_defines}=[];
