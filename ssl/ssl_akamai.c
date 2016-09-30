@@ -1187,6 +1187,14 @@ int SSL_akamai_fixup_cipher_strength(const char* level, const char* ciphers)
     return ssl_akamai_fixup_cipher_strength_helper(flag, 0, ciphers);
 }
 
+void ssl_sync_default_ciphers(void)
+{
+    /* set NOT_DEFAULT to all ciphers */
+    (void)ssl_akamai_fixup_cipher_strength_helper(SSL_NOT_DEFAULT, 0, "ALL:COMPLEMENTOFALL");
+    /* clear NOT_DEFAULT from the default ciphers */
+    (void)ssl_akamai_fixup_cipher_strength_helper(0, SSL_NOT_DEFAULT, SSL_DEFAULT_CIPHER_LIST);
+}
+
 #else /* OPENSSL_NO_AKAMAI */
 
 # if PEDANTIC
