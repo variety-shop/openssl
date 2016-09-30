@@ -154,5 +154,8 @@ int SSL_library_init(void)
 #endif
     /* initialize cipher/digest methods table */
     ssl_load_ciphers();
+#ifndef OPENSSL_NO_AKAMAI
+    ssl_sync_default_ciphers();
+#endif
     return (1);
 }
