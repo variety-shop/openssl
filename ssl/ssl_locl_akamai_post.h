@@ -161,4 +161,7 @@ void SSL_CTX_flush_sessions_lock(SSL_CTX *ctx, long tm, int lock);
 # define APPDATA_LENGTH_BYTES           2
 # define APPDATA_MAG_LEN_BYTES          (APPDATA_MAG_BYTES + APPDATA_LENGTH_BYTES)
 
+/* sync the DEFAULT ciphers */
+void ssl_sync_default_ciphers(void);
+
 #endif /* HEADER_SSL_LOCL_AKAMAI_POST_H */

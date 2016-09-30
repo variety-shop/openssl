@@ -604,7 +604,7 @@ Note: these ciphers can also be used in SSL v3.
  SSL_CK_DES_64_CBC_WITH_MD5              Not implemented.
  SSL_CK_DES_192_EDE3_CBC_WITH_MD5        DES-CBC3-MD5
 
-=head2 ChaCha20-Poly1305 cipher suites from draft-ietf-tls-chacha20-poly1305-04, extending TLS v1.2
+=head2 ChaCha20-Poly1305 cipher suites from RFC7905, extending TLS v1.2
 
  TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256      ECDHE-RSA-CHACHA20-POLY1305
  TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256    ECDHE-ECDSA-CHACHA20-POLY1305
