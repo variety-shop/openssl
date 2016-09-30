@@ -537,7 +537,7 @@ static int decrypt_client_master_key(SSL *s)
         return -1;
     } else {
         SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
-        SSL_rsa_decrypt_ctx *ctx = &ex_data->task.ctx.rsa_decrypt;
+        SSL_RSA_DECRYPT_CTX *ctx = &ex_data->task.ctx.rsa_decrypt;
         ctx->src = &(p[s->s2->tmp.clear]);
         ctx->dest = &(p[s->s2->tmp.clear]);
         ctx->src_len = s->s2->tmp.enc;
@@ -547,7 +547,7 @@ static int decrypt_client_master_key(SSL *s)
 
         s->state = SSL2_ST_GET_CLIENT_MASTER_KEY_C;
         i = ssl_schedule_task(s, SSL_EVENT_KEY_EXCH_DECRYPT_DONE, ctx,
-                              (SSL_task_fn *)ssl_task_rsa_decrypt);
+                              (SSL_TASK_FN *)ssl_task_rsa_decrypt);
         if (i < 0) {
             ssl2_return_error(s,SSL2_PE_UNDEFINED_ERROR);
             SSLerr(SSL_F_GET_CLIENT_MASTER_KEY,SSL_R_DECRYPTION_FAILED);
