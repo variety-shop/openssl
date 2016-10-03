@@ -1266,7 +1266,10 @@ if ($strict_warnings)
 		}
 	}
 
+# The BSD/OS X linker doesn't accept --version-script
+if ($target =~ /linux.*/) {
 $shared_ldflag .= " -Wl,--version-script=openssl.ld";
+}
 
 open(IN,'<Makefile.org') || die "unable to read Makefile.org:$!\n";
 unlink("$Makefile.new") || die "unable to remove old $Makefile.new:$!\n" if -e "$Makefile.new";
