@@ -815,6 +815,9 @@ __owur int SSL_extension_supported(unsigned int ext_type);
 # define SSL_X509_LOOKUP        4
 # define SSL_ASYNC_PAUSED       5
 # define SSL_ASYNC_NO_JOBS      6
+# ifndef OPENSSL_NO_AKAMAI
+#  define SSL_EARLY_WORK        7
+# endif
 
 /* These will only be used when doing non-blocking IO */
 # define SSL_want_nothing(s)     (SSL_want(s) == SSL_NOTHING)
@@ -823,6 +826,9 @@ __owur int SSL_extension_supported(unsigned int ext_type);
 # define SSL_want_x509_lookup(s) (SSL_want(s) == SSL_X509_LOOKUP)
 # define SSL_want_async(s)       (SSL_want(s) == SSL_ASYNC_PAUSED)
 # define SSL_want_async_job(s)   (SSL_want(s) == SSL_ASYNC_NO_JOBS)
+# ifndef OPENSSL_NO_AKAMAI
+#  define SSL_want_early(s)      (SSL_want(s) == SSL_EARLY_WORK)
+# endif
 
 # define SSL_MAC_FLAG_READ_MAC_STREAM 1
 # define SSL_MAC_FLAG_WRITE_MAC_STREAM 2
@@ -1055,6 +1061,9 @@ DECLARE_PEM_rw(SSL_SESSION, SSL_SESSION)
 # define SSL_ERROR_WANT_ACCEPT           8
 # define SSL_ERROR_WANT_ASYNC            9
 # define SSL_ERROR_WANT_ASYNC_JOB       10
+# ifndef OPENSSL_NO_AKAMAI
+#  define SSL_ERROR_WANT_EARLY          11
+# endif
 # define SSL_CTRL_SET_TMP_DH                     3
 # define SSL_CTRL_SET_TMP_ECDH                   4
 # define SSL_CTRL_SET_TMP_DH_CB                  6
@@ -2155,6 +2164,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_SSL_BAD_METHOD                             160
 # define SSL_F_SSL_BUILD_CERT_CHAIN                       332
 # define SSL_F_SSL_BYTES_TO_CIPHER_LIST                   161
+# define SSL_F_SSL_CACHE_CIPHERLIST                       520
 # define SSL_F_SSL_CERT_ADD0_CHAIN_CERT                   346
 # define SSL_F_SSL_CERT_DUP                               221
 # define SSL_F_SSL_CERT_NEW                               162
@@ -2208,6 +2218,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_SSL_GET_SERVER_CERT_INDEX                  322
 # define SSL_F_SSL_GET_SIGN_PKEY                          183
 # define SSL_F_SSL_INIT_WBIO_BUFFER                       184
+# define SSL_F_SSL_INTERNAL_BYTES_TO_CIPHER_LIST          4085
 # define SSL_F_SSL_LOAD_CLIENT_CA_FILE                    185
 # define SSL_F_SSL_MODULE_INIT                            392
 # define SSL_F_SSL_NEW                                    186
@@ -2271,6 +2282,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_TLS1_SETUP_KEY_BLOCK                       211
 # define SSL_F_TLS1_SET_SERVER_SIGALGS                    335
 # define SSL_F_TLS_CLIENT_KEY_EXCHANGE_POST_WORK          354
+# define SSL_F_TLS_COLLECT_EXTENSIONS                     435
 # define SSL_F_TLS_CONSTRUCT_CERTIFICATE_REQUEST          372
 # define SSL_F_TLS_CONSTRUCT_CKE_DHE                      404
 # define SSL_F_TLS_CONSTRUCT_CKE_ECDHE                    405
@@ -2289,6 +2301,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_TLS_CONSTRUCT_SERVER_DONE                  375
 # define SSL_F_TLS_CONSTRUCT_SERVER_HELLO                 376
 # define SSL_F_TLS_CONSTRUCT_SERVER_KEY_EXCHANGE          377
+# define SSL_F_TLS_EARLY_POST_PROCESS_CLIENT_HELLO        521
 # define SSL_F_TLS_GET_MESSAGE_BODY                       351
 # define SSL_F_TLS_GET_MESSAGE_HEADER                     387
 # define SSL_F_TLS_POST_PROCESS_CLIENT_HELLO              378

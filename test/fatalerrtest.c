@@ -56,7 +56,7 @@ static int test_fatalerr(void)
         goto err;
     }
 
-    if (create_ssl_connection(sssl, cssl)) {
+    if (create_ssl_connection(sssl, cssl, SSL_ERROR_NONE)) {
         printf("Unexpected success creating a connection\n");
         goto err;
     }

@@ -55,6 +55,9 @@
 #include <openssl/rand.h>
 
 #define SSL3_NUM_CIPHERS        OSSL_NELEM(ssl3_ciphers)
+#ifndef OPENSSL_NO_AKAMAI
+#define SSL3_NUM_SCSVS          OSSL_NELEM(ssl3_scsvs)
+#endif /* OPENSSL_NO_AKAMAI */
 
 /*
  * The list of available ciphers, mostly organized into the following
@@ -2720,6 +2723,28 @@ static SSL_CIPHER ssl3_ciphers[] = {
 
 };
 
+#ifndef OPENSSL_NO_AKAMAI
+/*
+ * The list of known Signalling Cipher-Suite Value "ciphers", non-valid
+ * values stuffed into the ciphers field of the wire protocol for signalling
+ * purposes.
+ */
+static SSL_CIPHER ssl3_scsvs[] = {
+    {
+     0,
+     "TLS_EMPTY_RENEGOTIATION_INFO_SCSV",
+     SSL3_CK_SCSV,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    },
+    {
+     0,
+     "TLS_FALLBACK_SCSV",
+     SSL3_CK_FALLBACK_SCSV,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    },
+};
+#endif /* OPENSSL_NO_AKAMAI */
+
 static int cipher_compare(const void *a, const void *b)
 {
     const SSL_CIPHER *ap = (const SSL_CIPHER *)a;
@@ -2734,6 +2759,9 @@ void ssl_sort_cipher_list(void)
 {
     qsort(ssl3_ciphers, OSSL_NELEM(ssl3_ciphers), sizeof(ssl3_ciphers[0]),
           cipher_compare);
+#ifndef OPENSSL_NO_AKAMAI
+    qsort(ssl3_scsvs, SSL3_NUM_SCSVS, sizeof ssl3_scsvs[0], cipher_compare);
+#endif
 }
 
 static int ssl_undefined_function_1(SSL *ssl, unsigned char *r, size_t s,
@@ -3592,7 +3620,13 @@ const SSL_CIPHER *ssl3_get_cipher_by_char(const unsigned char *p)
     id = 0x03000000 | ((uint32_t)p[0] << 8L) | (uint32_t)p[1];
     c.id = id;
     cp = OBJ_bsearch_ssl_cipher_id(&c, ssl3_ciphers, SSL3_NUM_CIPHERS);
+#ifdef OPENSSL_NO_AKAMAI
     return cp;
+#else
+    if (cp != NULL)
+        return cp;
+    return OBJ_bsearch_ssl_cipher_id(&c, ssl3_scsvs, SSL3_NUM_SCSVS);
+#endif
 }
 
 int ssl3_put_cipher_by_char(const SSL_CIPHER *c, unsigned char *p)

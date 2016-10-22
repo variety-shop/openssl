@@ -1251,6 +1251,243 @@ int SSL_akamai_reset_fragment_size(SSL *s, unsigned int size)
     return 1;
 }
 
+#define SSLV2_CIPHER_LEN    3
+
+int ssl_cache_cipherlist(SSL *s, PACKET *cipher_suites, int sslv2format,
+                         int *al)
+{
+    int n;
+
+    n = sslv2format ? SSLV2_CIPHER_LEN : TLS_CIPHER_LEN;
+
+    if (PACKET_remaining(cipher_suites) == 0) {
+        SSLerr(SSL_F_SSL_CACHE_CIPHERLIST, SSL_R_NO_CIPHERS_SPECIFIED);
+        *al = SSL_AD_ILLEGAL_PARAMETER;
+        return 0;
+    }
+
+    if (PACKET_remaining(cipher_suites) % n != 0) {
+        SSLerr(SSL_F_SSL_CACHE_CIPHERLIST, SSL_R_ERROR_IN_RECEIVED_CIPHER_LIST);
+        *al = SSL_AD_DECODE_ERROR;
+        return 0;
+    }
+
+    OPENSSL_free(s->s3->tmp.ciphers_raw);
+    s->s3->tmp.ciphers_raw = NULL;
+    s->s3->tmp.ciphers_rawlen = 0;
+
+    if (sslv2format) {
+        size_t numciphers = PACKET_remaining(cipher_suites) / n;
+        PACKET sslv2ciphers = *cipher_suites;
+        unsigned int leadbyte;
+        unsigned char *raw;
+
+        /*
+         * We store the raw ciphers list in SSLv3+ format so we need to do some
+         * preprocessing to convert the list first. If there are any SSLv2 only
+         * ciphersuites with a non-zero leading byte then we are going to
+         * slightly over allocate because we won't store those. But that isn't a
+         * problem.
+         */
+        raw = OPENSSL_zalloc(numciphers * TLS_CIPHER_LEN);
+        s->s3->tmp.ciphers_raw = raw;
+        if (raw == NULL) {
+            *al = SSL_AD_INTERNAL_ERROR;
+            goto err;
+        }
+        for (s->s3->tmp.ciphers_rawlen = 0;
+             PACKET_remaining(&sslv2ciphers) > 0;
+             raw += TLS_CIPHER_LEN) {
+            if (!PACKET_get_1(&sslv2ciphers, &leadbyte)
+                    || (leadbyte == 0
+                        && !PACKET_copy_bytes(&sslv2ciphers, raw,
+                                              TLS_CIPHER_LEN))
+                    || (leadbyte != 0
+                        && !PACKET_forward(&sslv2ciphers, TLS_CIPHER_LEN))) {
+                *al = SSL_AD_INTERNAL_ERROR;
+                OPENSSL_free(s->s3->tmp.ciphers_raw);
+                s->s3->tmp.ciphers_raw = NULL;
+                s->s3->tmp.ciphers_rawlen = 0;
+                goto err;
+            }
+            if (leadbyte == 0)
+                s->s3->tmp.ciphers_rawlen += TLS_CIPHER_LEN;
+        }
+    } else if (!PACKET_memdup(cipher_suites, &s->s3->tmp.ciphers_raw,
+                           &s->s3->tmp.ciphers_rawlen)) {
+        *al = SSL_AD_INTERNAL_ERROR;
+        goto err;
+    }
+    return 1;
+ err:
+    return 0;
+}
+
+int SSL_bytes_to_cipher_list(SSL *s, const unsigned char *bytes, size_t len,
+                             int isv2format, STACK_OF(SSL_CIPHER) **sk,
+                             STACK_OF(SSL_CIPHER) **scsvs)
+{
+    int alert;
+    PACKET pkt;
+
+    if (!PACKET_buf_init(&pkt, bytes, len))
+        return 0;
+    return ssl_internal_bytes_to_cipher_list(s, &pkt, sk, scsvs, isv2format, &alert);
+}
+
+int ssl_internal_bytes_to_cipher_list(SSL *s, PACKET *cipher_suites,
+                                      STACK_OF(SSL_CIPHER) **skp,
+                                      STACK_OF(SSL_CIPHER) **scsvs_out,
+                                      int sslv2format, int *al)
+{
+    const SSL_CIPHER *c;
+    STACK_OF(SSL_CIPHER) *sk = NULL;
+    STACK_OF(SSL_CIPHER) *scsvs = NULL;
+    int n;
+    /* 3 = SSLV2_CIPHER_LEN > TLS_CIPHER_LEN = 2. */
+    unsigned char cipher[SSLV2_CIPHER_LEN];
+
+    n = sslv2format ? SSLV2_CIPHER_LEN : TLS_CIPHER_LEN;
+
+    if (PACKET_remaining(cipher_suites) == 0) {
+        SSLerr(SSL_F_SSL_INTERNAL_BYTES_TO_CIPHER_LIST, SSL_R_NO_CIPHERS_SPECIFIED);
+        *al = SSL_AD_ILLEGAL_PARAMETER;
+        return 0;
+    }
+
+    if (PACKET_remaining(cipher_suites) % n != 0) {
+        SSLerr(SSL_F_SSL_INTERNAL_BYTES_TO_CIPHER_LIST,
+               SSL_R_ERROR_IN_RECEIVED_CIPHER_LIST);
+        *al = SSL_AD_DECODE_ERROR;
+        return 0;
+    }
+
+    sk = sk_SSL_CIPHER_new_null();
+    scsvs = sk_SSL_CIPHER_new_null();
+    if (sk == NULL || scsvs == NULL) {
+        SSLerr(SSL_F_SSL_INTERNAL_BYTES_TO_CIPHER_LIST, ERR_R_MALLOC_FAILURE);
+        *al = SSL_AD_INTERNAL_ERROR;
+        goto err;
+    }
+
+    while (PACKET_copy_bytes(cipher_suites, cipher, n)) {
+        /*
+         * SSLv3 ciphers wrapped in an SSLv2-compatible ClientHello have the
+         * first byte set to zero, while true SSLv2 ciphers have a non-zero
+         * first byte. We don't support any true SSLv2 ciphers, so skip them.
+         */
+        if (sslv2format && cipher[0] != '\0')
+            continue;
+
+        /* For SSLv2-compat, ignore leading 0-byte. */
+        c = ssl_get_cipher_by_char(s, sslv2format ? &cipher[1] : cipher, 1);
+        if (c != NULL) {
+            if ((c->valid && !sk_SSL_CIPHER_push(sk, c)) ||
+                (!c->valid && !sk_SSL_CIPHER_push(scsvs, c))) {
+                SSLerr(SSL_F_SSL_INTERNAL_BYTES_TO_CIPHER_LIST, ERR_R_MALLOC_FAILURE);
+                *al = SSL_AD_INTERNAL_ERROR;
+                goto err;
+            }
+        }
+    }
+    if (PACKET_remaining(cipher_suites) > 0) {
+        *al = SSL_AD_INTERNAL_ERROR;
+        SSLerr(SSL_F_SSL_INTERNAL_BYTES_TO_CIPHER_LIST, ERR_R_INTERNAL_ERROR);
+        goto err;
+    }
+
+    if (skp != NULL)
+        *skp = sk;
+    else
+        sk_SSL_CIPHER_free(sk);
+    if (scsvs_out != NULL)
+        *scsvs_out = scsvs;
+    else
+        sk_SSL_CIPHER_free(scsvs);
+    return 1;
+ err:
+    sk_SSL_CIPHER_free(sk);
+    sk_SSL_CIPHER_free(scsvs);
+    return 0;
+}
+
+void SSL_CTX_set_early_cb(SSL_CTX *c, SSL_early_cb_fn cb, void *arg)
+{
+    c->early_cb = cb;
+    c->early_cb_arg = arg;
+}
+
+int SSL_early_isv2(SSL *s)
+{
+    if (s->clienthello == NULL)
+        return 0;
+    return s->clienthello->isv2;
+}
+
+unsigned int SSL_early_get0_legacy_version(SSL *s)
+{
+    if (s->clienthello == NULL)
+        return 0;
+    return s->clienthello->version;
+}
+
+size_t SSL_early_get0_random(SSL *s, const unsigned char **out)
+{
+    if (s->clienthello == NULL)
+        return 0;
+    if (out != NULL)
+        *out = s->clienthello->random;
+    return SSL3_RANDOM_SIZE;
+}
+
+size_t SSL_early_get0_session_id(SSL *s, const unsigned char **out)
+{
+    if (s->clienthello == NULL)
+        return 0;
+    if (out != NULL)
+        *out = s->clienthello->session_id;
+    return s->clienthello->session_id_len;
+}
+
+size_t SSL_early_get0_ciphers(SSL *s, const unsigned char **out)
+{
+    if (s->clienthello == NULL)
+        return 0;
+    if (out != NULL)
+        *out = PACKET_data(&s->clienthello->ciphersuites);
+    return PACKET_remaining(&s->clienthello->ciphersuites);
+}
+
+size_t SSL_early_get0_compression_methods(SSL *s, const unsigned char **out)
+{
+    if (s->clienthello == NULL)
+        return 0;
+    if (out != NULL)
+        *out = s->clienthello->compressions;
+    return s->clienthello->compressions_len;
+}
+
+int SSL_early_get0_ext(SSL *s, unsigned int type, const unsigned char **out,
+                       size_t *outlen)
+{
+    size_t i;
+    RAW_EXTENSION *r;
+
+    if (s->clienthello == NULL)
+        return 0;
+    for (i = 0; i < s->clienthello->num_extensions; ++i) {
+        r = s->clienthello->pre_proc_exts + i;
+        if (r->type == type) {
+            if (out != NULL)
+                *out = PACKET_data(&r->data);
+            if (outlen != NULL)
+                *outlen = PACKET_remaining(&r->data);
+            return 1;
+        }
+    }
+    return 0;
+}
+
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b)
 {
     SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(ctx);
