@@ -463,6 +463,15 @@ SSL_akamai_get_tmp_cipher               10063	1_1_0c	EXIST::FUNCTION:AKAMAI
 SSL_akamai_get_cert_type                10066	1_1_0d	EXIST::FUNCTION:AKAMAI
 SSL_akamai_remove_session               10067	1_1_0d	EXIST::FUNCTION:AKAMAI
 SSL_akamai_reset_fragment_size          10069	1_1_0d	EXIST::FUNCTION:AKAMAI
+SSL_bytes_to_cipher_list                10070	1_1_0e	EXIST::FUNCTION:AKAMAI
+SSL_CTX_set_early_cb                    10071	1_1_0e	EXIST::FUNCTION:AKAMAI
+SSL_early_get0_legacy_version           10072	1_1_0e	EXIST::FUNCTION:AKAMAI
+SSL_early_get0_random                   10073	1_1_0e	EXIST::FUNCTION:AKAMAI
+SSL_early_get0_session_id               10074	1_1_0e	EXIST::FUNCTION:AKAMAI
+SSL_early_isv2                          10075	1_1_0e	EXIST::FUNCTION:AKAMAI
+SSL_early_get0_compression_methods      10076	1_1_0e	EXIST::FUNCTION:AKAMAI
+SSL_early_get0_ext                      10077	1_1_0e	EXIST::FUNCTION:AKAMAI
+SSL_early_get0_ciphers                  10078	1_1_0e	EXIST::FUNCTION:AKAMAI
 SSL_rsalg_get_server_random             10079	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
 SSL_akamai_get_prf                      10080	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
 SSL_CTX_akamai_session_stats_bio        10085	1_1_0e	EXIST::FUNCTION:AKAMAI

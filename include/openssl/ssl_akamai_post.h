@@ -240,6 +240,25 @@ __owur int SSL_akamai_remove_session(SSL *s);
 /* Updates send fragment size and frees SSL read/write buffers. */
 int SSL_akamai_reset_fragment_size(SSL *s, unsigned int size);
 
+int SSL_bytes_to_cipher_list(SSL *s, const unsigned char *bytes, size_t len,
+                             int isv2format, STACK_OF(SSL_CIPHER) **sk,
+                             STACK_OF(SSL_CIPHER) **scsvs);
+
+/*
+ * Early callback and helpers.
+ * Backported from master aka 1.1.1, so no "akamai" in the name.
+ */
+typedef int (*SSL_early_cb_fn) (SSL *s, int *al, void *arg);
+void SSL_CTX_set_early_cb(SSL_CTX *c, SSL_early_cb_fn cb, void *arg);
+int SSL_early_isv2(SSL *s);
+unsigned int SSL_early_get0_legacy_version(SSL *s);
+size_t SSL_early_get0_random(SSL *s, const unsigned char **out);
+size_t SSL_early_get0_session_id(SSL *s, const unsigned char **out);
+size_t SSL_early_get0_ciphers(SSL *s, const unsigned char **out);
+size_t SSL_early_get0_compression_methods(SSL *s, const unsigned char **out);
+int SSL_early_get0_ext(SSL *s, unsigned int type, const unsigned char **out,
+                       size_t *outlen);
+
 /* Replaces SSL_CTX_sessions() and OPENSSL_LH_stats_bio() for shared session cache. */
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b);
 
