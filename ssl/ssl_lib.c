@@ -1050,6 +1050,7 @@ void SSL_free(SSL *s)
 #endif
     OPENSSL_free(s->tlsext_ocsp_resp);
     OPENSSL_free(s->alpn_client_proto_list);
+    OPENSSL_free(s->clienthello);
 
     sk_X509_NAME_pop_free(s->client_CA, X509_NAME_free);
 
@@ -3093,6 +3094,11 @@ int SSL_get_error(const SSL *s, int i)
         if (SSL_want_async_job(s)) {
             return SSL_ERROR_WANT_ASYNC_JOB;
         }
+#ifndef OPENSSL_NO_AKAMAI
+        if (SSL_want_early(s)) {
+            return SSL_ERROR_WANT_EARLY;
+        }
+#endif
     }
 
     if (i == 0) {
