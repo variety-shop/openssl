@@ -589,7 +589,7 @@ int ssl_get_new_session(SSL *s, int session)
  *   - Both for new and resumed sessions, s->tlsext_ticket_expected is set to 1
  *     if the server should issue a new session ticket (to 0 otherwise).
  */
-int ssl_get_prev_session(SSL *s, const PACKET *ext, const PACKET *session_id)
+int ssl_get_prev_session(SSL *s, CLIENTHELLO_MSG *hello)
 {
     /* This is used only by servers. */
 
@@ -598,11 +598,11 @@ int ssl_get_prev_session(SSL *s, const PACKET *ext, const PACKET *session_id)
     int try_session_cache = 1;
     int r;
 
-    if (PACKET_remaining(session_id) == 0)
+    if (hello->session_id_len == 0)
         try_session_cache = 0;
 
-    /* sets s->tlsext_ticket_expected and extended master secret flag */
-    r = tls_check_serverhello_tlsext_early(s, ext, session_id, &ret);
+    /* sets s->tlsext_ticket_expected */
+    r = tls_get_ticket_from_client(s, hello, &ret);
     switch (r) {
     case -1:                   /* Error during processing */
         fatal = 1;
@@ -623,14 +623,12 @@ int ssl_get_prev_session(SSL *s, const PACKET *ext, const PACKET *session_id)
         !(s->session_ctx->session_cache_mode &
           SSL_SESS_CACHE_NO_INTERNAL_LOOKUP)) {
         SSL_SESSION data;
-        size_t local_len;
+
         data.ssl_version = s->version;
         memset(data.session_id, 0, sizeof(data.session_id));
-        if (!PACKET_copy_all(session_id, data.session_id,
-                             sizeof(data.session_id), &local_len)) {
-            goto err;
-        }
-        data.session_id_length = local_len;
+        memcpy(data.session_id, hello->session_id, hello->session_id_len);
+        data.session_id_length = hello->session_id_len;
+
         CRYPTO_THREAD_read_lock(s->session_ctx->lock);
 #ifdef OPENSSL_NO_AKAMAI
         ret = lh_SSL_SESSION_retrieve(s->session_ctx->sessions, &data);
@@ -649,8 +647,8 @@ int ssl_get_prev_session(SSL *s, const PACKET *ext, const PACKET *session_id)
     if (try_session_cache &&
         ret == NULL && s->session_ctx->get_session_cb != NULL) {
         int copy = 1;
-        ret = s->session_ctx->get_session_cb(s, PACKET_data(session_id),
-                                             PACKET_remaining(session_id),
+        ret = s->session_ctx->get_session_cb(s, hello->session_id,
+                                             hello->session_id_len,
                                              &copy);
 
         if (ret != NULL) {
@@ -722,9 +720,9 @@ int ssl_get_prev_session(SSL *s, const PACKET *ext, const PACKET *session_id)
         l = ret->cipher_id;
         l2n(l, p);
         if ((ret->ssl_version >> 8) >= SSL3_VERSION_MAJOR)
-            ret->cipher = ssl_get_cipher_by_char(s, &(buf[2]));
+            ret->cipher = ssl_get_cipher_by_char(s, &(buf[2]), 0);
         else
-            ret->cipher = ssl_get_cipher_by_char(s, &(buf[1]));
+            ret->cipher = ssl_get_cipher_by_char(s, &(buf[1]), 0);
         if (ret->cipher == NULL)
             goto err;
     }

@@ -984,7 +984,7 @@ MSG_PROCESS_RETURN tls_process_server_hello(SSL *s, PACKET *pkt)
                                      NULL, &pref_cipher,
                                      s->tls_session_secret_cb_arg)) {
             s->session->cipher = pref_cipher ?
-                pref_cipher : ssl_get_cipher_by_char(s, cipherchars);
+                pref_cipher : ssl_get_cipher_by_char(s, cipherchars, 0);
         } else {
             SSLerr(SSL_F_TLS_PROCESS_SERVER_HELLO, ERR_R_INTERNAL_ERROR);
             al = SSL_AD_INTERNAL_ERROR;
@@ -1036,7 +1036,7 @@ MSG_PROCESS_RETURN tls_process_server_hello(SSL *s, PACKET *pkt)
         goto f_err;
     }
 
-    c = ssl_get_cipher_by_char(s, cipherchars);
+    c = ssl_get_cipher_by_char(s, cipherchars, 0);
     if (c == NULL) {
         /* unknown cipher */
         al = SSL_AD_ILLEGAL_PARAMETER;
