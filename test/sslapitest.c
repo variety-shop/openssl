@@ -33,6 +33,91 @@ static X509 *ocspcert = NULL;
 
 #define NUM_EXTRA_CERTS 40
 
+#ifndef OPENSSL_NO_AKAMAI
+static int full_early_callback(SSL *s, int *al, void *arg)
+{
+    int *ctr = arg;
+    const unsigned char *p;
+    /* We only configure two ciphers, but the SCSV is added automatically. */
+#ifdef OPENSSL_NO_EC
+    const unsigned char expected_ciphers[] = {0x00, 0x3d, 0x00, 0xff};
+#else
+    const unsigned char expected_ciphers[] = {0x00, 0x3d, 0xc0, 0x2c, 0x00, 0xff};
+#endif
+    size_t len;
+
+    /* Make sure we can defer processing and get called back. */
+    if ((*ctr)++ == 0)
+        return -1;
+
+    len = SSL_early_get0_ciphers(s, &p);
+    if (len != sizeof(expected_ciphers) ||
+        memcmp(p, expected_ciphers, len) != 0) {
+        printf("Early callback expected ciphers mismatch\n");
+        return 0;
+    }
+    len = SSL_early_get0_compression_methods(s, &p);
+    if (len != 1 || *p != 0) {
+        printf("Early callback expected comperssion methods mismatch\n");
+        return 0;
+    }
+    return 1;
+}
+
+static int test_early_cb(void) {
+    SSL_CTX *cctx = NULL, *sctx = NULL;
+    SSL *clientssl = NULL, *serverssl = NULL;
+    int testctr = 0, testresult = 0;
+
+    if (!create_ssl_ctx_pair(TLS_server_method(), TLS_client_method(),
+                             TLS1_VERSION, TLS_MAX_VERSION,
+                             &sctx, &cctx, cert, privkey)) {
+        printf("Unable to create SSL_CTX pair\n");
+        goto end;
+    }
+
+    SSL_CTX_set_early_cb(sctx, full_early_callback, &testctr);
+    /* The gimpy cipher list we configure can't do TLS 1.3. */
+    SSL_CTX_set_max_proto_version(cctx, TLS1_2_VERSION);
+    if (!SSL_CTX_set_cipher_list(cctx,
+            "AES256-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384")) {
+        printf("Failed to set cipher list\n");
+        goto end;
+    }
+
+    if (!create_ssl_objects(sctx, cctx, &serverssl, &clientssl, NULL, NULL)) {
+        printf("Unable to create SSL objects\n");
+        goto end;
+    }
+
+    if (create_ssl_connection(serverssl, clientssl, SSL_ERROR_WANT_EARLY)) {
+        printf("Creating SSL connection succeeded with async early return\n");
+        goto end;
+    }
+
+    /* Passing a -1 literal is a hack since the real value was lost. */
+    if (SSL_get_error(serverssl, -1) != SSL_ERROR_WANT_EARLY) {
+        printf("Early callback failed to make state SSL_ERROR_WANT_AKAMAI_EARLY\n");
+        goto end;
+    }
+
+    if (!create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)) {
+        printf("Restarting SSL connection failed\n");
+        goto end;
+    }
+
+    testresult = 1;
+
+end:
+    SSL_free(serverssl);
+    SSL_free(clientssl);
+    SSL_CTX_free(sctx);
+    SSL_CTX_free(cctx);
+
+    return testresult;
+}
+#endif
+
 static int execute_test_large_message(const SSL_METHOD *smeth,
                                       const SSL_METHOD *cmeth,
                                       int min_version, int max_version,
@@ -99,7 +184,7 @@ static int execute_test_large_message(const SSL_METHOD *smeth,
         goto end;
     }
 
-    if (!create_ssl_connection(serverssl, clientssl)) {
+    if (!create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)) {
         printf("Unable to create SSL connection\n");
         goto end;
     }
@@ -282,7 +367,7 @@ static int test_tlsext_status_type(void)
         goto end;
     }
 
-    if (!create_ssl_connection(serverssl, clientssl)) {
+    if (!create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)) {
         printf("Unable to create SSL connection\n");
         goto end;
     }
@@ -308,7 +393,7 @@ static int test_tlsext_status_type(void)
     }
 
     /* This should fail because the callback will fail */
-    if (create_ssl_connection(serverssl, clientssl)) {
+    if (create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)) {
         printf("Unexpected success creating the connection\n");
         goto end;
     }
@@ -362,7 +447,7 @@ static int test_tlsext_status_type(void)
     BIO_free(certbio);
     certbio = NULL;
 
-    if (!create_ssl_connection(serverssl, clientssl)) {
+    if (!create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)) {
         printf("Unable to create SSL connection\n");
         goto end;
     }
@@ -470,7 +555,7 @@ static int execute_test_session(SSL_SESSION_TEST_FIXTURE fix)
         goto end;
     }
 
-    if (!create_ssl_connection(serverssl1, clientssl1)) {
+    if (!create_ssl_connection(serverssl1, clientssl1, SSL_ERROR_NONE)) {
         printf("Unable to create SSL connection\n");
         goto end;
     }
@@ -496,7 +581,7 @@ static int execute_test_session(SSL_SESSION_TEST_FIXTURE fix)
         goto end;
     }
 
-    if (!create_ssl_connection(serverssl2, clientssl2)) {
+    if (!create_ssl_connection(serverssl2, clientssl2, SSL_ERROR_NONE)) {
         printf("Unable to create second SSL connection\n");
         goto end;
     }
@@ -579,7 +664,7 @@ static int execute_test_session(SSL_SESSION_TEST_FIXTURE fix)
     }
 
     /* This should fail because of the mismatched protocol versions */
-    if (create_ssl_connection(serverssl3, clientssl3)) {
+    if (create_ssl_connection(serverssl3, clientssl3, SSL_ERROR_NONE)) {
         printf("Unable to create third SSL connection\n");
         goto end;
     }
@@ -989,7 +1074,7 @@ static int test_set_sigalgs(int idx)
         }
     }
 
-    if (curr->connsuccess != create_ssl_connection(serverssl, clientssl)) {
+    if (curr->connsuccess != create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)) {
         printf("Unexpected return value creating SSL connection (%d)\n", idx);
         goto end;
     }
@@ -1149,7 +1234,7 @@ static int test_custom_exts(int tst)
     }
 
     if (!create_ssl_objects(sctx, cctx, &serverssl, &clientssl, NULL, NULL)
-            || !create_ssl_connection(serverssl, clientssl)) {
+            || !create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)) {
         printf("Cannot create SSL connection\n");
         goto end;
     }
@@ -1179,7 +1264,7 @@ static int test_custom_exts(int tst)
 
     if (!create_ssl_objects(sctx, cctx, &serverssl, &clientssl, NULL, NULL)
             || !SSL_set_session(clientssl, sess)
-            || !create_ssl_connection(serverssl, clientssl)) {
+            || !create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)) {
         printf("Cannot create resumption connection\n");
         goto end;
     }
@@ -1238,7 +1323,7 @@ static int test_ssl_pending(int tst)
     }
 
     if (!create_ssl_objects(sctx, cctx, &serverssl, &clientssl, NULL, NULL)
-            || !create_ssl_connection(serverssl, clientssl)) {
+            || !create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)) {
             printf("Failed creating connection\n");
         goto end;
     }
@@ -1327,6 +1412,7 @@ int main(int argc, char *argv[])
     ADD_ALL_TESTS(test_custom_exts, 2);
     ADD_ALL_TESTS(test_ssl_pending, 2);
 #ifndef OPENSSL_NO_AKAMAI
+    ADD_TEST(test_early_cb);
     ADD_TEST(test_share_session_cache);
 #endif
 

@@ -669,7 +669,7 @@ int create_ssl_objects(SSL_CTX *serverctx, SSL_CTX *clientctx, SSL **sssl,
     return 0;
 }
 
-int create_ssl_connection(SSL *serverssl, SSL *clientssl)
+int create_ssl_connection(SSL *serverssl, SSL *clientssl, int want)
 {
     int retc = -1, rets = -1, err, abortctr = 0;
     int clienterr = 0, servererr = 0;
@@ -686,6 +686,8 @@ int create_ssl_connection(SSL *serverssl, SSL *clientssl)
             printf("SSL_connect() failed %d, %d\n", retc, err);
             clienterr = 1;
         }
+        if (want != SSL_ERROR_NONE && err == want)
+            return 0;
 
         err = SSL_ERROR_WANT_WRITE;
         while (!servererr && rets <= 0 && err == SSL_ERROR_WANT_WRITE) {
@@ -698,6 +700,8 @@ int create_ssl_connection(SSL *serverssl, SSL *clientssl)
             printf("SSL_accept() failed %d, %d\n", retc, err);
             servererr = 1;
         }
+        if (want != SSL_ERROR_NONE && err == want)
+            return 0;
         if (clienterr && servererr)
             return 0;
         if (++abortctr == MAXLOOPS) {
