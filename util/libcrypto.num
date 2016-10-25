@@ -4267,6 +4267,8 @@ X509_LOOKUP_meth_set_init               4516	1_1_0i	EXIST::FUNCTION:
 X509_OBJECT_set1_X509_CRL               4517	1_1_0i	EXIST::FUNCTION:
 X509_LOOKUP_mem                         10001	1_1_0a	EXIST::FUNCTION:AKAMAI
 X509_STORE_load_mem                     10002	1_1_0a	EXIST::FUNCTION:AKAMAI
+X509_akamai_get_sha1_hash               10005	1_1_0b	EXIST::FUNCTION:AKAMAI
+X509_STORE_akamai_get_references        10006	1_1_0b	EXIST::FUNCTION:AKAMAI
 AKAMAI_prf                              10007	1_1_0c	EXIST::FUNCTION:AKAMAI
 AKAMAI_algorithm2_to_md                 10008	1_1_0c	EXIST::FUNCTION:AKAMAI
 AKAMAI_rsalg_hash                       10009	1_1_0c	EXIST::FUNCTION:AKAMAI
