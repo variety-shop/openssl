@@ -4238,6 +4238,8 @@ OCSP_resp_get0_signer                   4374	1_1_0h	EXIST::FUNCTION:OCSP
 X509_get0_authority_key_id              4448	1_1_0h	EXIST::FUNCTION:
 X509_LOOKUP_mem                         10001	1_1_0a	EXIST::FUNCTION:AKAMAI
 X509_STORE_load_mem                     10002	1_1_0a	EXIST::FUNCTION:AKAMAI
+X509_akamai_get_sha1_hash               10005	1_1_0b	EXIST::FUNCTION:AKAMAI
+X509_STORE_akamai_get_references        10006	1_1_0b	EXIST::FUNCTION:AKAMAI
 AKAMAI_prf                              10007	1_1_0c	EXIST::FUNCTION:AKAMAI
 AKAMAI_algorithm2_to_md                 10008	1_1_0c	EXIST::FUNCTION:AKAMAI
 AKAMAI_rsalg_hash                       10009	1_1_0c	EXIST::FUNCTION:AKAMAI
