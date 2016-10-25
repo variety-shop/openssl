@@ -58,4 +58,18 @@ int X509_STORE_load_mem(X509_STORE *ctx, void *buf, int len)
 # endif
 }
 
+int X509_akamai_get_sha1_hash(X509* x, unsigned char* out)
+{
+    if (out != NULL && x != NULL && X509_check_purpose(x, -1, 0) == 1) {
+        memcpy(out, x->sha1_hash, SHA_DIGEST_LENGTH);
+        return 1;
+    }
+    return 0;
+}
+
+int X509_STORE_akamai_get_references(X509_STORE* xs)
+{
+    return xs->references;
+}
+
 #endif /* OPENSSL_NO_AKAMAI */

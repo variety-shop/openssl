@@ -632,7 +632,11 @@ const X509_POLICY_NODE *X509_policy_node_get0_parent(const X509_POLICY_NODE
 
 X509_LOOKUP_METHOD *X509_LOOKUP_mem(void);
 int X509_STORE_load_mem(X509_STORE *ctx, void *buf, int len);
-# endif
+/* Returns 1 on success, 0 on failure, output buffer must be 20 bytes */
+int X509_akamai_get_sha1_hash(X509* x, unsigned char* out);
+/* Returns the current reference count */
+int X509_STORE_akamai_get_references(X509_STORE* xs);
+# endif /* OPENSSL_NO_AKAMAI */
 
 
 #ifdef  __cplusplus
