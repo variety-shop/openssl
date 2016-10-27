@@ -270,25 +270,26 @@ OSTYPE := alsi-invalid
 
 # We are not supporting alsi6-64
 ifeq ($($P/ALSI_VERSION),6)
+
 OSTYPE := alsi6
 ARCH := i386
-endif
 
-ifeq ($($P/ALSI_VERSION),7)
+else # ifeq ($($P/ALSI_VERSION),6)
+
+# This version of openssl does not support <alsi6 so this means 7 or newer
 
 ifeq ($(SYSTEM),i686)
-OSTYPE := alsi7-32
+OSTYPE := alsi$($P/ALSI_VERSION)-32
 ARCH := i386
 # XXX: OpenSSL cleans out the CFLAGS environment variable at build time.  This is a good enough hack...
 CC="gcc -m32"
 endif
-
 ifeq ($(SYSTEM),x86_64)
-OSTYPE := alsi7
+OSTYPE := alsi$($P/ALSI_VERSION)
 ARCH := x86_64
 endif
 
-endif # ifeq ($($P/ALSI_VERSION),7)
+endif # ifeq ($($P/ALSI_VERSION),6)
 
 FIPS_LIBDIR=$P/module/$(OSTYPE)
 #### end fipscanister code ####
