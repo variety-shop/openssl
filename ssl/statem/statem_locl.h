@@ -82,7 +82,7 @@ __owur int tls_construct_finished(SSL *s, const char *sender, int slen);
 __owur WORK_STATE tls_finish_handshake(SSL *s, WORK_STATE wst);
 __owur WORK_STATE dtls_wait_for_dry(SSL *s);
 
-int tls_parse_raw_extensions(PACKET *packet, RAW_EXTENSION **res,
+int tls_collect_extensions(PACKET *packet, RAW_EXTENSION **res,
                              size_t *numfound, int *ad);
 
 /* some client-only functions */
