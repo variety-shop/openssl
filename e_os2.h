@@ -322,6 +322,32 @@ extern "C" {
 #  define ossl_ssize_t ssize_t
 # endif
 
+# ifndef OPENSSL_NO_AKAMAI
+   /* liberally stolen from 1.1.0 e_os2.h */
+#  ifndef ossl_inline
+    /* ossl_inline: portable inline definition usable in public headers */
+#   if !defined(inline) && !defined(__cplusplus)
+#    if defined(__STDC_VERSION__) && __STDC_VERSION__>=199901L
+      /* just use inline */
+#     define ossl_inline inline
+#    elif defined(__GNUC__) && __GNUC__>=2
+#     define ossl_inline __inline__
+#    elif defined(_MSC_VER)
+      /*
+       * Visual Studio: inline is available in C++ only, however
+       * __inline is available for C, see
+       * http://msdn.microsoft.com/en-us/library/z8y1yy88.aspx
+       */
+#     define ossl_inline __inline
+#    else
+#     define ossl_inline
+#    endif
+#   else
+#    define ossl_inline inline
+#   endif
+#  endif /* ossl_inline */
+# endif /* OPENSSL_NO_AKAMAI */
+
 #ifdef  __cplusplus
 }
 #endif
