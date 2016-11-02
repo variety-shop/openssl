@@ -182,6 +182,11 @@ __owur unsigned char *SSL_BUCKET_get_pointer(const SSL_BUCKET *buckets,
                                              size_t offset, unsigned int *nw);
 #  endif /* !OPENSSL_NO_AKAMAI_IOVEC */
 
+/* Utility functions (mostly) for ghost usage. */
+
+/* Returns 1 if s->ctx is not the initial contex; zero otherwise. */
+__owur int SSL_akamai_switched_ctx(const SSL *s);
+
 /* Replaces SSL_CTX_sessions() and OPENSSL_LH_stats_bio() for shared session cache. */
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b);
 
