@@ -329,6 +329,7 @@ $P/EXP-TREES := dist
 $P/EXP-TREE-dist := $(patsubst %$(EXT_SO),%$(EXT_SO).110.0.0,$($P/EXP-LIBS))
 $(call declare-so-deps, ssl, crypto)
 $(call declare-so-deps, crypto, dl)
+$(call declare-so-deps, crypto, pthread)
 
 # EXPLICIT RULES for some files
 
@@ -358,6 +359,7 @@ endif # ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),static)
 # STATIC and SHARED definitions
 $(call declare-lib-deps, ssl, crypto)
 $(call declare-lib-deps, crypto, dl)
+$(call declare-lib-deps, crypto, pthread)
 
 else # ifndef AKAMAKE-WIN-BUILD
 
