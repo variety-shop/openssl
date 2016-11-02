@@ -460,3 +460,4 @@ SSL_BUCKET_same                         10051	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMA
 SSL_BUCKET_cpy_in                       10052	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_IOVEC
 SSL_BUCKET_cpy_out                      10053	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_IOVEC
 SSL_BUCKET_len                          10054	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_IOVEC
+SSL_akamai_switched_ctx                 10055	1_1_0b	EXIST::FUNCTION:AKAMAI

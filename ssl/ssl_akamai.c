@@ -1075,4 +1075,9 @@ int SSL_writev(SSL *s, const SSL_BUCKET *buckets, int count)
 }
 
 # endif /* !OPENSSL_NO_AKAMAI_IOVEC */
+
+int SSL_akamai_switched_ctx(const SSL *s)
+{
+    return s->ctx != s->session_ctx;
+}
 #endif /* OPENSSL_NO_AKAMAI */
