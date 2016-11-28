@@ -229,6 +229,10 @@ __owur unsigned char *SSL_BUCKET_get_pointer(const SSL_BUCKET *buckets,
 /* Returns 1 if s->ctx is not the initial contex; zero otherwise. */
 __owur int SSL_akamai_switched_ctx(const SSL *s);
 
+/* Returns pointer to the sid_ctx, len can be NULL if value not wanted */
+__owur const unsigned char* SSL_CTX_akamai_get0_sid_ctx(const SSL_CTX *c, unsigned int *len);
+__owur const unsigned char* SSL_akamai_get0_sid_ctx(const SSL *s, unsigned int *len);
+
 #  ifdef  __cplusplus
 }
 #  endif
