@@ -1081,4 +1081,19 @@ int SSL_akamai_switched_ctx(const SSL *s)
 {
     return s->ctx != s->initial_ctx;
 }
+
+const unsigned char* SSL_CTX_akamai_get0_sid_ctx(const SSL_CTX *c, unsigned int *len)
+{
+    if (len != NULL)
+        *len = c->sid_ctx_length;
+    return c->sid_ctx;
+}
+
+const unsigned char* SSL_akamai_get0_sid_ctx(const SSL *s, unsigned int *len)
+{
+    if (len != NULL)
+        *len = s->sid_ctx_length;
+    return s->sid_ctx;
+}
+
 #endif /* OPENSSL_NO_AKAMAI */
