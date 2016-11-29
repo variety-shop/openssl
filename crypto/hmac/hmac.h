@@ -104,6 +104,8 @@ void HMAC_CTX_set_flags(HMAC_CTX *ctx, unsigned long flags);
 
 # ifndef OPENSSL_NO_AKAMAI
 #  include <string.h>
+#  include <openssl/e_os.h>
+
 /* Backport 1.1.0 accessors */
 static inline HMAC_CTX *HMAC_CTX_new(void)
 {

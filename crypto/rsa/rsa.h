@@ -517,6 +517,8 @@ RSA *RSAPrivateKey_dup(RSA *rsa);
 # define RSA_FLAG_CHECKED                        0x0800
 
 # ifndef OPENSSL_NO_AKAMAI
+#  include <openssl/e_os.h>
+
 /* Backport 1.1.0 accessors */
 static inline int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d)
 {
