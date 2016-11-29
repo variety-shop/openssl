@@ -275,6 +275,8 @@ DH *DSA_dup_DH(const DSA *r);
 # define EVP_PKEY_CTRL_DSA_PARAMGEN_MD           (EVP_PKEY_ALG_CTRL + 3)
 
 # ifndef OPENSSL_NO_AKAMAI
+#  include <openssl/e_os.h>
+
 /* Backport 1.1.0 accessors */
 static inline void DSA_get0_pqg(const DSA *d, const BIGNUM **p,
                                 const BIGNUM **q, const BIGNUM **g)
