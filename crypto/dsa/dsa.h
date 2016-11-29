@@ -276,8 +276,8 @@ DH *DSA_dup_DH(const DSA *r);
 
 # ifndef OPENSSL_NO_AKAMAI
 /* Backport 1.1.0 accessors */
-inline static void DSA_get0_pqg(const DSA *d,
-                                const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
+static inline void DSA_get0_pqg(const DSA *d, const BIGNUM **p,
+                                const BIGNUM **q, const BIGNUM **g)
 {
     if (p != NULL)
         *p = d->p;
@@ -286,7 +286,7 @@ inline static void DSA_get0_pqg(const DSA *d,
     if (g != NULL)
         *g = d->g;
 }
-inline static int DSA_set0_pqg(DSA *d, BIGNUM *p, BIGNUM *q, BIGNUM *g)
+static inline int DSA_set0_pqg(DSA *d, BIGNUM *p, BIGNUM *q, BIGNUM *g)
 {
     /* If the fields p, q and g in d are NULL, the corresponding input
      * parameters MUST be non-NULL.
@@ -311,15 +311,15 @@ inline static int DSA_set0_pqg(DSA *d, BIGNUM *p, BIGNUM *q, BIGNUM *g)
 
     return 1;
 }
-inline static void DSA_get0_key(const DSA *d,
-                                const BIGNUM **pub_key, const BIGNUM **priv_key)
+static inline void DSA_get0_key(const DSA *d, const BIGNUM **pub_key,
+                                const BIGNUM **priv_key)
 {
     if (pub_key != NULL)
         *pub_key = d->pub_key;
     if (priv_key != NULL)
         *priv_key = d->priv_key;
 }
-inline static int DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key)
+static inline int DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key)
 {
     /* If the field pub_key in d is NULL, the corresponding input
      * parameters MUST be non-NULL.  The priv_key field may
@@ -339,19 +339,20 @@ inline static int DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key)
 
     return 1;
 }
-inline static void DSA_clear_flags(DSA *d, int flags)
+static inline void DSA_clear_flags(DSA *d, int flags)
 {
     d->flags &= ~flags;
 }
-inline static int DSA_test_flags(const DSA *d, int flags)
+static inline int DSA_test_flags(const DSA *d, int flags)
 {
     return d->flags & flags;
 }
-inline static void DSA_set_flags(DSA *d, int flags)
+static inline void DSA_set_flags(DSA *d, int flags)
 {
     d->flags |= flags;
 }
-static inline void DSA_SIG_get0(const DSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps)
+static inline void DSA_SIG_get0(const DSA_SIG *sig, const BIGNUM **pr,
+                                const BIGNUM **ps)
 {
     if (pr != NULL)
         *pr = sig->r;
