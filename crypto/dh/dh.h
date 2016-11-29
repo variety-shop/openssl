@@ -341,6 +341,8 @@ int DH_KDF_X9_42(unsigned char *out, size_t outlen,
 # define EVP_PKEY_DH_KDF_X9_42                           2
 
 # ifndef OPENSSL_NO_AKAMAI
+#  include <openssl/e_os.h>
+
 /* Backport 1.1.0 accessors */
 static inline void DH_get0_pqg(const DH *dh, const BIGNUM **p,
                                const BIGNUM **q, const BIGNUM **g)
