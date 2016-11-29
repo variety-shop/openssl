@@ -342,8 +342,8 @@ int DH_KDF_X9_42(unsigned char *out, size_t outlen,
 
 # ifndef OPENSSL_NO_AKAMAI
 /* Backport 1.1.0 accessors */
-static inline void DH_get0_pqg(const DH *dh,
-                               const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
+static inline void DH_get0_pqg(const DH *dh, const BIGNUM **p,
+                               const BIGNUM **q, const BIGNUM **g)
 {
     if (p != NULL)
         *p = dh->p;
@@ -380,7 +380,8 @@ static inline int DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g)
 
     return 1;
 }
-static inline void DH_get0_key(const DH *dh, const BIGNUM **pub_key, const BIGNUM **priv_key)
+static inline void DH_get0_key(const DH *dh, const BIGNUM **pub_key,
+                               const BIGNUM **priv_key)
 {
     if (pub_key != NULL)
         *pub_key = dh->pub_key;
