@@ -645,6 +645,26 @@ asn1test.o: ../include/openssl/pkcs7.h ../include/openssl/safestack.h
 asn1test.o: ../include/openssl/sha.h ../include/openssl/stack.h
 asn1test.o: ../include/openssl/symhacks.h ../include/openssl/x509.h
 asn1test.o: ../include/openssl/x509_vfy.h asn1test.c
+bad_dtls_test.o: ../e_os.h ../include/openssl/asn1.h ../include/openssl/bio.h
+bad_dtls_test.o: ../include/openssl/buffer.h ../include/openssl/crypto.h
+bad_dtls_test.o: ../include/openssl/dtls1.h ../include/openssl/e_os2.h
+bad_dtls_test.o: ../include/openssl/ec.h ../include/openssl/ecdh.h
+bad_dtls_test.o: ../include/openssl/ecdsa.h ../include/openssl/err.h
+bad_dtls_test.o: ../include/openssl/evp.h ../include/openssl/hmac.h
+bad_dtls_test.o: ../include/openssl/kssl.h ../include/openssl/lhash.h
+bad_dtls_test.o: ../include/openssl/obj_mac.h ../include/openssl/objects.h
+bad_dtls_test.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
+bad_dtls_test.o: ../include/openssl/ossl_typ.h ../include/openssl/pem.h
+bad_dtls_test.o: ../include/openssl/pem2.h ../include/openssl/pkcs7.h
+bad_dtls_test.o: ../include/openssl/pqueue.h ../include/openssl/rand.h
+bad_dtls_test.o: ../include/openssl/safestack.h ../include/openssl/sha.h
+bad_dtls_test.o: ../include/openssl/srtp.h ../include/openssl/ssl.h
+bad_dtls_test.o: ../include/openssl/ssl2.h ../include/openssl/ssl23.h
+bad_dtls_test.o: ../include/openssl/ssl3.h ../include/openssl/ssl_akamai_post.h
+bad_dtls_test.o: ../include/openssl/ssl_akamai_pre.h ../include/openssl/stack.h
+bad_dtls_test.o: ../include/openssl/symhacks.h ../include/openssl/tls1.h
+bad_dtls_test.o: ../include/openssl/x509.h ../include/openssl/x509_vfy.h
+bad_dtls_test.o: bad_dtls_test.c
 bftest.o: ../include/openssl/buffer.h ../include/openssl/crypto.h
 bftest.o: ../include/openssl/e_os2.h ../include/openssl/opensslconf.h
 bftest.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
@@ -1100,6 +1120,27 @@ tasktest.o: ../include/openssl/ssl_akamai_pre.h ../include/openssl/stack.h
 tasktest.o: ../include/openssl/symhacks.h ../include/openssl/tls1.h
 tasktest.o: ../include/openssl/x509.h ../include/openssl/x509_vfy.h tasktest.c
 tasktest.o: testharness.c
+testharness.o: ../include/openssl/asn1.h ../include/openssl/bio.h
+testharness.o: ../include/openssl/bn.h ../include/openssl/buffer.h
+testharness.o: ../include/openssl/crypto.h ../include/openssl/dh.h
+testharness.o: ../include/openssl/dtls1.h ../include/openssl/e_os2.h
+testharness.o: ../include/openssl/ec.h ../include/openssl/ecdh.h
+testharness.o: ../include/openssl/ecdsa.h ../include/openssl/err.h
+testharness.o: ../include/openssl/evp.h ../include/openssl/hmac.h
+testharness.o: ../include/openssl/kssl.h ../include/openssl/lhash.h
+testharness.o: ../include/openssl/obj_mac.h ../include/openssl/objects.h
+testharness.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
+testharness.o: ../include/openssl/ossl_typ.h ../include/openssl/pem.h
+testharness.o: ../include/openssl/pem2.h ../include/openssl/pkcs7.h
+testharness.o: ../include/openssl/pqueue.h ../include/openssl/safestack.h
+testharness.o: ../include/openssl/sha.h ../include/openssl/srtp.h
+testharness.o: ../include/openssl/ssl.h ../include/openssl/ssl2.h
+testharness.o: ../include/openssl/ssl23.h ../include/openssl/ssl3.h
+testharness.o: ../include/openssl/ssl_akamai_post.h
+testharness.o: ../include/openssl/ssl_akamai_pre.h ../include/openssl/stack.h
+testharness.o: ../include/openssl/symhacks.h ../include/openssl/tls1.h
+testharness.o: ../include/openssl/x509.h ../include/openssl/x509_vfy.h
+testharness.o: testharness.c
 tlsexttest.o: ../include/openssl/asn1.h ../include/openssl/bio.h
 tlsexttest.o: ../include/openssl/bn.h ../include/openssl/buffer.h
 tlsexttest.o: ../include/openssl/crypto.h ../include/openssl/dh.h
