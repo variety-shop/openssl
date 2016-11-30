@@ -342,8 +342,8 @@ int DH_KDF_X9_42(unsigned char *out, size_t outlen,
 
 # ifndef OPENSSL_NO_AKAMAI
 /* Backport 1.1.0 accessors */
-static inline void DH_get0_pqg(const DH *dh, const BIGNUM **p,
-                               const BIGNUM **q, const BIGNUM **g)
+static ossl_inline void DH_get0_pqg(const DH *dh, const BIGNUM **p,
+                                    const BIGNUM **q, const BIGNUM **g)
 {
     if (p != NULL)
         *p = dh->p;
@@ -352,7 +352,7 @@ static inline void DH_get0_pqg(const DH *dh, const BIGNUM **p,
     if (g != NULL)
         *g = dh->g;
 }
-static inline int DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g)
+static ossl_inline int DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g)
 {
     /* If the fields p and g in d are NULL, the corresponding input
      * parameters MUST be non-NULL.  q may remain NULL.
@@ -380,15 +380,15 @@ static inline int DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g)
 
     return 1;
 }
-static inline void DH_get0_key(const DH *dh, const BIGNUM **pub_key,
-                               const BIGNUM **priv_key)
+static ossl_inline void DH_get0_key(const DH *dh, const BIGNUM **pub_key,
+                                    const BIGNUM **priv_key)
 {
     if (pub_key != NULL)
         *pub_key = dh->pub_key;
     if (priv_key != NULL)
         *priv_key = dh->priv_key;
 }
-static inline int DH_set0_key(DH *dh, BIGNUM *pub_key, BIGNUM *priv_key)
+static ossl_inline int DH_set0_key(DH *dh, BIGNUM *pub_key, BIGNUM *priv_key)
 {
     /* If the field pub_key in dh is NULL, the corresponding input
      * parameters MUST be non-NULL.  The priv_key field may

@@ -105,7 +105,7 @@ void HMAC_CTX_set_flags(HMAC_CTX *ctx, unsigned long flags);
 # ifndef OPENSSL_NO_AKAMAI
 #  include <string.h>
 /* Backport 1.1.0 accessors */
-static inline HMAC_CTX *HMAC_CTX_new(void)
+static ossl_inline HMAC_CTX *HMAC_CTX_new(void)
 {
     HMAC_CTX *ctx = (HMAC_CTX*)OPENSSL_malloc(sizeof(HMAC_CTX));
 
@@ -115,14 +115,14 @@ static inline HMAC_CTX *HMAC_CTX_new(void)
     }
     return ctx;
 }
-static inline void HMAC_CTX_free(HMAC_CTX *ctx)
+static ossl_inline void HMAC_CTX_free(HMAC_CTX *ctx)
 {
     if (ctx != NULL) {
         HMAC_CTX_cleanup(ctx);
         OPENSSL_free(ctx);
     }
 }
-static inline int HMAC_CTX_reset(HMAC_CTX *ctx)
+static ossl_inline int HMAC_CTX_reset(HMAC_CTX *ctx)
 {
     HMAC_CTX_cleanup(ctx);
     HMAC_CTX_init(ctx);
