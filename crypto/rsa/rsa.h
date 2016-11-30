@@ -518,7 +518,7 @@ RSA *RSAPrivateKey_dup(RSA *rsa);
 
 # ifndef OPENSSL_NO_AKAMAI
 /* Backport 1.1.0 accessors */
-static inline int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d)
+static ossl_inline int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d)
 {
     /* If the fields n and e in r are NULL, the corresponding input
      * parameters MUST be non-NULL for n and e.  d may be
@@ -543,7 +543,7 @@ static inline int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d)
 
     return 1;
 }
-static inline int RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q)
+static ossl_inline int RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q)
 {
     /* If the fields p and q in r are NULL, the corresponding input
      * parameters MUST be non-NULL.
@@ -563,8 +563,8 @@ static inline int RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q)
 
     return 1;
 }
-static inline int RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1,
-                                      BIGNUM *iqmp)
+static ossl_inline int RSA_set0_crt_params(RSA *r, BIGNUM *dmp1,
+                                           BIGNUM *dmq1, BIGNUM *iqmp)
 {
     /* If the fields dmp1, dmq1 and iqmp in r are NULL, the corresponding input
      * parameters MUST be non-NULL.
@@ -589,8 +589,8 @@ static inline int RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1,
 
     return 1;
 }
-static inline void RSA_get0_key(const RSA *r, const BIGNUM **n,
-                                const BIGNUM **e, const BIGNUM **d)
+static ossl_inline void RSA_get0_key(const RSA *r, const BIGNUM **n,
+                                     const BIGNUM **e, const BIGNUM **d)
 {
     if (n != NULL)
         *n = r->n;
@@ -599,17 +599,18 @@ static inline void RSA_get0_key(const RSA *r, const BIGNUM **n,
     if (d != NULL)
         *d = r->d;
 }
-static inline void RSA_get0_factors(const RSA *r, const BIGNUM **p,
-                                    const BIGNUM **q)
+static ossl_inline void RSA_get0_factors(const RSA *r, const BIGNUM **p,
+                                         const BIGNUM **q)
 {
     if (p != NULL)
         *p = r->p;
     if (q != NULL)
         *q = r->q;
 }
-static inline void RSA_get0_crt_params(const RSA *r, const BIGNUM **dmp1,
-                                       const BIGNUM **dmq1,
-                                       const BIGNUM **iqmp)
+static ossl_inline void RSA_get0_crt_params(const RSA *r,
+                                            const BIGNUM **dmp1,
+                                            const BIGNUM **dmq1,
+                                            const BIGNUM **iqmp)
 {
     if (dmp1 != NULL)
         *dmp1 = r->dmp1;
@@ -618,15 +619,15 @@ static inline void RSA_get0_crt_params(const RSA *r, const BIGNUM **dmp1,
     if (iqmp != NULL)
         *iqmp = r->iqmp;
 }
-static inline void RSA_clear_flags(RSA *r, int flags)
+static ossl_inline void RSA_clear_flags(RSA *r, int flags)
 {
     r->flags &= ~flags;
 }
-static inline int RSA_test_flags(const RSA *r, int flags)
+static ossl_inline int RSA_test_flags(const RSA *r, int flags)
 {
     return r->flags & flags;
 }
-static inline void RSA_set_flags(RSA *r, int flags)
+static ossl_inline void RSA_set_flags(RSA *r, int flags)
 {
     r->flags |= flags;
 }

@@ -1380,7 +1380,7 @@ void EVP_PKEY_meth_set_ctrl(EVP_PKEY_METHOD *pmeth,
 void EVP_add_alg_module(void);
 
 # ifndef OPENSSL_NO_AKAMAI
-static inline int EVP_PKEY_up_ref(EVP_PKEY *pk)
+static ossl_inline int EVP_PKEY_up_ref(EVP_PKEY *pk)
 {
     int i = CRYPTO_add(&pk->references, 1, CRYPTO_LOCK_EVP_PKEY);
     return ((i > 1) ? 1 : 0);
