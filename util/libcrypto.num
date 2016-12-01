@@ -4221,3 +4221,6 @@ PEM_bytes_read_bio_secmem               10003	1_1_0a	EXIST::FUNCTION:AKAMAI
 PEM_read_bio_flags                      10004	1_1_0a	EXIST::FUNCTION:AKAMAI
 X509_akamai_get_sha1_hash               10005	1_1_0b	EXIST::FUNCTION:AKAMAI
 X509_STORE_akamai_get_references        10006	1_1_0b	EXIST::FUNCTION:AKAMAI
+AKAMAI_prf                              10007	1_1_0c	EXIST::FUNCTION:AKAMAI
+AKAMAI_algorithm2_to_md                 10008	1_1_0c	EXIST::FUNCTION:AKAMAI
+AKAMAI_rsalg_hash                       10009	1_1_0c	EXIST::FUNCTION:AKAMAI
