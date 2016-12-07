@@ -69,6 +69,8 @@ ifndef BUILDENV.OPENSSL_LINKAGE-master
 BUILDENV.OPENSSL_LINKAGE-master := static
 endif # ifndef BUILDENV.OPENSSL_LINKAGE-master
 endif # ifeq ($(BUILDENV.BASEOS),linux)
+# We are setting the default here, so put the literal first
+$P/OPENSSL-TARGET := all $($P/OPENSSL-TARGET)
 
 else # ifndef MASTER
 # Compiling OpenSSL as a component
@@ -208,6 +210,15 @@ $(error Must opt in/out of openssl shared linkage)
 endif # ifndef $(MASTER)/BUILDENV.$(BUILDENV.BASEOS).OPENSSL_LINKAGE-master
 endif # ifeq ($(BUILDENV.BASEOS),linux)
 endif # ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
+
+# Set the make target for shared/static appropriately
+ifeq ($(BUILDENV.OPENSSL_LINKAGE-master),shared)
+# We are setting the default here, so put the literal first
+$P/OPENSSL-TARGET := all $($P/OPENSSL-TARGET)
+else # ifeq ($(BUILDENV.OPENSSL_LINKAGE-master),shared)
+# We are setting the default here, so put the literal first
+$P/OPENSSL-TARGET := libcrypto.a $($P/OPENSSL-TARGET)
+endif # ifeq ($(BUILDENV.OPENSSL_LINKAGE-master),shared)
 
 endif # ifndef MASTER
 # master/component check done
@@ -502,7 +513,7 @@ $P/% : CONFIGURE_SHARED = cd $P && (./Configure $($P/SHAREDFEATURES) $($P/CONFIG
 $P/% : CONFIGURE_STATIC = cd $P && (./Configure $($P/CONFIGFEATURES) $($P/CONFIGFLAGS))
 $P/% : CONFIGURE_STEP = $(if $($P/NOSHARED),$(CONFIGURE_STATIC),$(CONFIGURE_SHARED))
 $P/% : GENERATE_BUILD := cd $P && $(MAKE) build_generated
-$P/% : MAKE_STEP := cd $P && $(MAKE)
+$P/% : MAKE_STEP := cd $P && $(MAKE) $($P/OPENSSL-TARGET)
 $P/% : EXTRA_STEP :=
 $P/% : TEST_STEP := cd $P && $(MAKE) test
 
