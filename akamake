@@ -220,6 +220,13 @@ endif # ifndef $(MASTER)/BUILDENV.$(BUILDENV.BASEOS).OPENSSL_LINKAGE-master
 endif # ifeq ($(BUILDENV.BASEOS),linux)
 endif # ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 
+#Set the make target for shared/static appropriately
+ifeq ($(BUILDENV.OPENSSL_LINKAGE-master),shared)
+$P/OPENSSL-TARGET := all $($P/OPENSSL-TARGET)
+else
+$P/OPENSSL-TARGET := build_crypto $($P/OPENSSL-TARGET)
+endif
+
 endif # defined(MASTER)
 # master/component check done
 
