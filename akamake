@@ -513,7 +513,7 @@ $P/% : CONFIGURE_SHARED = cd $P && (./Configure $($P/SHAREDFEATURES) $($P/CONFIG
 $P/% : CONFIGURE_STATIC = cd $P && (./Configure $($P/CONFIGFEATURES) $($P/CONFIGFLAGS))
 $P/% : CONFIGURE_STEP = $(if $($P/NOSHARED),$(CONFIGURE_STATIC),$(CONFIGURE_SHARED))
 $P/% : GENERATE_BUILD := cd $P && $(MAKE) build_generated
-$P/% : MAKE_STEP := cd $P && $(MAKE) $($P/OPENSSL-TARGET)
+$P/% : MAKE_STEP = cd $P && $(MAKE) $($P/OPENSSL-TARGET)
 $P/% : EXTRA_STEP :=
 $P/% : TEST_STEP := cd $P && $(MAKE) test
 
