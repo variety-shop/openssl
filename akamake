@@ -398,6 +398,15 @@ ifdef FIPSBUILD
 $(error OpenSSL 1.1.0 does not support FIPS)
 endif
 
+ifdef MAKE_PARALLEL
+$P/SYSTEM_MAKE = $(MAKE_PARALLEL)
+else
+ifdef SYSTEM_MAKE
+$P/SYSTEM_MAKE = $(SYSTEM_MAKE)
+else
+$P/SYSTEM_MAKE = make
+endif
+
 #
 # clean up rules
 #
@@ -406,7 +415,7 @@ endif
 $P/clean:
 	$(CLEAN-LOCAL)
 	$(CLEAN-COMMON)
-	-cd $P && $(MAKE) clean
+	-$($P/SYSTEM_MAKE) -C $P clean
 	-rm -f $P/*.ts
 	-rm -rf $P/obj32 $P/lib32 $P/dll_obj32 $P/dll_lib32
 	-rm -f $P/*.lib $P/*.dll_lib
@@ -422,7 +431,7 @@ $P/clean:
 	-rm -f $P/crypto/include/internal/dso_conf.h
 	-rm -f $P/include/openssl/opensslconf.h
 
-$P/distclean: $P/clean
+$P/distclean:
 	$(DISTCLEAN-LOCAL)
 	$(DISTCLEAN-COMMON)
 
@@ -512,10 +521,10 @@ $P/CONFIGURE_PREREQUISITES := $P/Configure \
 $P/% : CONFIGURE_SHARED = cd $P && (./Configure $($P/SHAREDFEATURES) $($P/CONFIGFLAGS))
 $P/% : CONFIGURE_STATIC = cd $P && (./Configure $($P/CONFIGFEATURES) $($P/CONFIGFLAGS))
 $P/% : CONFIGURE_STEP = $(if $($P/NOSHARED),$(CONFIGURE_STATIC),$(CONFIGURE_SHARED))
-$P/% : GENERATE_BUILD := cd $P && $(MAKE) build_generated
-$P/% : MAKE_STEP = cd $P && $(MAKE) $($P/OPENSSL-TARGET)
-$P/% : EXTRA_STEP :=
-$P/% : TEST_STEP := cd $P && $(MAKE) test
+$P/% : GENERATE_BUILD = $($P/SYSTEM_MAKE) -C $P build_generated
+$P/% : MAKE_STEP = $($P/SYSTEM_MAKE) -C $P $($P/OPENSSL-TARGET)
+$P/% : EXTRA_STEP =
+$P/% : TEST_STEP = $($P/SYSTEM_MAKE) -C $P test
 
 else # ifndef AKAMAKE-WIN-BUILD
 
