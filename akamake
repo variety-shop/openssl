@@ -390,21 +390,27 @@ $P/EXP-LIBS := libopenssl$(EXT_A) libcrypto$(EXT_A) libopenssl$(EXT_SO_A) libcry
 $(call declare-so_a-deps, openssl, crypto)
 endif
 
-# The headers are determined by the output of the configure step. This rule
-# creates a makefile that calculates the list of headers, which causes make to
-# (eventually) restart so we can have a properly-populated $P/HEADERS. Because
-# the configure prerequisite is order-only, make will restart only if
-# akamake-headers.mak didn't exist previously, even if configure is re-run. As
-# a result, adding headers without cleaning may result in new headers not being
-# installed.
-.DELETE_ON_ERROR: $P/akamake-headers.mak
-$P/akamake-headers.mak: | $P/configure.ts
-	echo '$$P/HEADERS := $$(patsubst $$P/$$($$P/HEADERS-LOCAL-DIRECTORY)/%,%,$$(wildcard $$P/$$($$P/HEADERS-LOCAL-DIRECTORY)/*.h))' >$@
+ifndef quote-sh
+quote-sh=$(squote)$(subst $(squote),$(squote)$(dquote)$(squote)$(dquote)$(squote),$1)$(squote)
+endif
 
 ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 ifdef IN_AKAMAKE
 ifndef ATTR_ONLY
+
+# The headers are determined by the output of the configure step. This rule
+# creates a makefile with the list of headers, which causes make to
+# (eventually) restart so we can have a properly-populated $P/HEADERS. Because
+# the configure prerequisite is order-only, make will restart only if
+# akamake-headers.mak didn't exist previously, even if configure is re-run. As
+# a result, adding headers without cleaning will result in new headers not
+# being installed.
+.DELETE_ON_ERROR: $P/akamake-headers.mak
+$P/akamake-headers.mak: | $P/configure.ts
+	echo $(call quote-sh,$$P/HEADERS := $(patsubst $P/$($P/HEADERS-LOCAL-DIRECTORY)/%,%,$(shell echo $P/$($P/HEADERS-LOCAL-DIRECTORY)/*.h))) >$@
+
 include $P/akamake-headers.mak
+
 endif # ifndef ATTR_ONLY
 endif # ifdef IN_AKAMAKE
 endif # ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
@@ -431,14 +437,20 @@ endif
 #
 .PHONY: $P/clean $P/distclean
 
-ifeq ($(SYSTEM_MAKE),)
-SYSTEM_MAKE := make
+ifdef MAKE_PARALLEL
+$P/SYSTEM_MAKE = $(MAKE_PARALLEL)
+else
+ifdef SYSTEM_MAKE
+$P/SYSTEM_MAKE = $(SYSTEM_MAKE)
+else
+$P/SYSTEM_MAKE = make
+endif
 endif
 
 $P/clean:
 	$(CLEAN-LOCAL)
 	$(CLEAN-COMMON)
-	-cd $P && $(SYSTEM_MAKE) clean
+	-$($P/SYSTEM_MAKE) -C $P clean
 	-rm -f $P/configure.ts $P/build.ts
 	-rm -rf $P/obj32 $P/lib32 $P/dll_obj32 $P/dll_lib32
 	-rm -f $P/*.lib $P/*.dll_lib
@@ -447,13 +459,14 @@ $P/clean:
 	-rm -f $P/ms/version32.rc
 	-rm -f $P/akamake-dynamic-build-deps.mak
 	-rm -f $P/akamake-headers.mak
+	-rm -f $P/krb5.h
 	-find $P -name "Makefile.save" -delete
 	-find $P -name "*.gc??" -delete
 
-$P/distclean: $P/clean
+$P/distclean:
 	$(DISTCLEAN-LOCAL)
 	$(DISTCLEAN-COMMON)
-	-cd $P && $(SYSTEM_MAKE) dclean
+	-$($P/SYSTEM_MAKE) -C $P dclean
 	-rm -f $P/Makefile
 	-rm -f $P/include/openssl
 	-rm -f $P/ms/nt.mak $P/ms/ntdll_lib.mak
@@ -585,15 +598,6 @@ $P/CONFIGURE_PREREQUISITES := $P/config $P/Configure $P/Makefile.org $P/akamake 
 
 $P/Makefile.org: $P/config $P/Configure
 
-# Regarding -j: there is no real easy way to parse the -j option passed
-# to akamake, using the $(MAKE) variable does not work, which is why there
-# is $(SYSTEM_MAKE). So, just always pass -j1 to linux builds, This can be
-# substituted with another value (-j) for ~100% speedup,
-# if OPENSSL_MFLAGS is set to something else (e.g. -j2) use that instead
-ifeq ($(OPENSSL_MFLAGS),)
-OPENSSL_MFLAGS := -j1
-endif
-
 # Define the $P/OPENSSL-CC as the compiler to use
 # Use '=' for assignements here
 $P/OPENSSL-CC = CC="$(CC)"
@@ -603,14 +607,14 @@ $P/OPENSSL-CC = CC="$(COMMON)/bin/fipsld" FIPSLD_CC="$(CC)"
 endif
 
 # Next line intentional "=" - krose, 12/10/2001
-$P/% : MAKE_STEP = cd $P && $(SYSTEM_MAKE) $(OPENSSL_MFLAGS) $($P/OPENSSL-CC) $(if $($P/NOSHARED),$(subst default_shared,default_static,$($P/OPENSSL-TARGET)))
+$P/% : MAKE_STEP = $($P/SYSTEM_MAKE) -C $P $($P/OPENSSL-CC) $(if $($P/NOSHARED),$(subst default_shared,default_static,$($P/OPENSSL-TARGET)))
 # configure the system for options
 $P/% : CONFIGURE_STEP = $(if $($P/NOSHARED),$(CONFIGURE_STATIC),$(CONFIGURE_SHARED))
 $P/% : CONFIGURE_SHARED = cd $P && (./Configure $($P/SHAREDFEATURES) $($P/CONFIGFLAGS) $(FIPSFLAGS))
 $P/% : CONFIGURE_STATIC = cd $P && (./Configure $($P/CONFIGFEATURES) $($P/CONFIGFLAGS) $(FIPSFLAGS))
-$P/% : DEPEND_STEP = cd $P && ($(SYSTEM_MAKE) $(OPENSSL-CC) depend)
-$P/% : EXTRA_STEP :=
-$P/% : TEST_STEP = cd $P && $(SYSTEM_MAKE) $($P/OPENSSL-CC) test
+$P/% : DEPEND_STEP = $($P/SYSTEM_MAKE) -C $P $($P/OPENSSL-CC) depend
+$P/% : EXTRA_STEP =
+$P/% : TEST_STEP = $($P/SYSTEM_MAKE) -C $P $($P/OPENSSL-CC) test
 
 else # ifndef AKAMAKE-WIN-BUILD
 
@@ -680,7 +684,7 @@ $P/configure.ts: $($P/CONFIGURE_PREREQUISITES)
 
 .DELETE_ON_ERROR: $P/akamake-dynamic-build-deps.mak
 $P/akamake-dynamic-build-deps.mak:
-	(echo '$$P/build.ts: \' && find $P -name '*.[ch]' | sort | sed -e 's ^$P $$P ;s/$$/ \\/' && echo) >$@
+	(echo '$$P/build.ts: \' && find $P -name '*.[ch]' ! -name krb5.h | sort | sed -e 's ^$P $$P ;s/$$/ \\/' && echo) >$@
 
 #' Fix for syntax highlighting fail in vim/emacs
 
