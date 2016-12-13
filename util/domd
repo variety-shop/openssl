@@ -23,7 +23,10 @@ if ${MAKEDEPEND} --version 2>&1 | grep "clang" > /dev/null ||
     done
     sed -e '/^# DO NOT DELETE.*/,$d' < Makefile > Makefile.tmp
     echo '# DO NOT DELETE THIS LINE -- make depend depends on it.' >> Makefile.tmp
-    ${MAKEDEPEND} -Werror -D OPENSSL_DOING_MAKEDEPEND -M $args >> Makefile.tmp || exit 1
+    if ! ${MAKEDEPEND} -Werror -D OPENSSL_DOING_MAKEDEPEND -M $args >> Makefile.tmp; then
+        rm -f $TOP/krb5.h
+        exit 1
+    fi
     ${PERL} $TOP/util/clean-depend.pl < Makefile.tmp > Makefile.new
     RC=$?
     rm -f Makefile.tmp
@@ -36,6 +39,6 @@ else
 fi
 mv Makefile.new Makefile
 # unfake the presence of Kerberos
-rm $TOP/krb5.h
+rm -f $TOP/krb5.h
 
 exit $RC
