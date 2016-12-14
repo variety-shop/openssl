@@ -78,7 +78,7 @@ endif # ifneq ($(filter osx-10.6,$(BUILDENV.OS),)
 
 else # ifneq ($(filter debug,$(MAKECMDGOALS)),)
 
-ifneq ($(filter osx-10.6,$(BUILDENV.OS)),)
+ifeq ($(filter osx-10.6,$(BUILDENV.OS)),)
 ifeq ($(KERNEL_BITS),64)
 $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) darwin64-x86_64-cc
 else # ifeq ($(KERNEL_BITS),64)
