@@ -78,6 +78,14 @@ endif # ifneq ($(filter osx-10.6,$(BUILDENV.OS),)
 
 else # ifneq ($(filter debug,$(MAKECMDGOALS)),)
 
+ifneq ($(filter osx-10.6,$(BUILDENV.OS)),)
+ifeq ($(KERNEL_BITS),64)
+$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) darwin64-x86_64-cc
+else # ifeq ($(KERNEL_BITS),64)
+$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) darwin-i386-cc
+endif # ifeq ($(KERNEL_BITS),64)
+endif # ifneq ($(filter osx-10.6,$(BUILDENV.OS)),)
+
 ifneq ($(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION)),)
 
 $(error ERROR: $P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER not implemented on this architecture.)
