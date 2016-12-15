@@ -406,6 +406,7 @@ $P/SYSTEM_MAKE = $(SYSTEM_MAKE)
 else
 $P/SYSTEM_MAKE = make
 endif
+endif # ifdef MAKE_PARALLEL
 
 #
 # clean up rules
