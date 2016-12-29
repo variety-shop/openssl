@@ -59,7 +59,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <time.h>
-#ifndef WIN32
+#ifndef _WIN32
 # include <sys/uio.h>
 # ifndef HAVE_STRUCT_IOVEC
 #  define HAVE_STRUCT_IOVEC
