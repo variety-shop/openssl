@@ -35,7 +35,7 @@ typedef struct ssl_ctx_session_list_st SSL_CTX_SESSION_LIST;
 
 typedef struct iovec SSL_BUCKET;
 
-#   ifndef WIN32
+#   ifndef _WIN32
 #    include <sys/uio.h>
 #   else
 #    ifndef HAVE_STRUCT_IOVEC
@@ -45,7 +45,7 @@ struct iovec {
 };
 #     define HAVE_STRUCT_IOVEC
 #    endif /* HAVE_STRUCT_IOVEC */
-#   endif /* !WIN32 */
+#   endif /* !_WIN32 */
 
 #   define SSL_BUCKET_MAX 32
 

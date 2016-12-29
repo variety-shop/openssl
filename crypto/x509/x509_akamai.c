@@ -28,7 +28,7 @@
 #ifdef OPENSSL_NO_AKAMAI
 NON_EMPTY_TRANSLATION_UNIT
 #else
-# ifndef WIN32
+# ifndef _WIN32
 #  include <sys/uio.h>
 #  ifndef HAVE_STRUCT_IOVEC
 #   define HAVE_STRUCT_IOVEC
