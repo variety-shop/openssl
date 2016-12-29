@@ -13,9 +13,13 @@
 /* necessary for unit tests */
 #include "../ssl/ssl_locl.h"
 
-#include <unistd.h>
-#include <pthread.h>
+#if defined(OPENSSL_SYS_LINUX) || defined(OPENSSL_SYS_UNIX)
+# include <unistd.h>
+# include <pthread.h>
+#endif
 #include <string.h>
+
+#include "../e_os.h"
 
 typedef struct {
     int debug;
@@ -349,7 +353,11 @@ static int con_read(Connection *con, char *buf, size_t len)
             con->can_write = 1;
             break;
         case SSL_ERROR_WANT_ASYNC:
+#ifdef _WIN32
+            Sleep(10);
+#else
             usleep(10000);
+#endif
             goto retry;
         default:
             if (con->t->debug)
