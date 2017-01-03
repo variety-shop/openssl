@@ -66,19 +66,19 @@ $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-ccmalloc
 else # ifneq ($(filter ccmalloc,$(MAKECMDGOALS)),)
 
 ifneq ($(filter debug,$(MAKECMDGOALS)),)
-ifneq ($(filter osx-10.6,$(BUILDENV.OS)),)
+ifeq ($(filter osx-10.6,$(BUILDENV.OS)),)
 $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-debug
-else # ifneq ($(filter osx-10.6,$(BUILDENV.OS),)
+else # ifeq ($(filter osx-10.6,$(BUILDENV.OS),)
 ifeq ($(KERNEL_BITS),64)
 $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-debug-darwin-x86_64
 else # ifeq ($(KERNEL_BITS),64)
 $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-debug-darwin-i386
 endif # ifeq ($(KERNEL_BITS),64)
-endif # ifneq ($(filter osx-10.6,$(BUILDENV.OS),)
+endif # ifeq ($(filter osx-10.6,$(BUILDENV.OS),)
 
 else # ifneq ($(filter debug,$(MAKECMDGOALS)),)
 
-ifeq ($(filter osx-10.6,$(BUILDENV.OS)),)
+ifneq ($(filter osx-10.6,$(BUILDENV.OS)),)
 ifeq ($(KERNEL_BITS),64)
 $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) darwin64-x86_64-cc
 else # ifeq ($(KERNEL_BITS),64)
