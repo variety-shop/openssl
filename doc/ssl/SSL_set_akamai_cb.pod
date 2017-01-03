@@ -91,7 +91,7 @@ The event indicates that the key verification message needs to be signed before
 before it is sent to the client.
 B<SSL_AKAMAI_CB_DATA.retval> should be set to the length of the signature on success.
 
-=item B<SSL_EVENT_SERVER_MASTER_SECRET>
+=item B<SSL_AKAMAI_CB_SERVER_MASTER_SECRET>
 
 The event indicates that the server needs to calculate the master secret for RSALG support.
 B<SSL_AKAMAI_CB_DATA.retval> should be set to the master key length on success.
