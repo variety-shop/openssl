@@ -464,10 +464,9 @@ void SSL_get_byte_counters(SSL *s, size_t *w, size_t *r)
         *r = ex_data->bytes_read;
 }
 
-void SSL_SESSION_set_verify_result(SSL *ssl, long arg)
+void SSL_SESSION_set_verify_result(SSL_SESSION *ss, long arg)
 {
-    if (ssl->session)
-        ssl->session->verify_result = arg;
+    ss->verify_result = arg;
 }
 
 void SSL_set_cert_verify_callback(SSL *s,
