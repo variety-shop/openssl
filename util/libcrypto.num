@@ -4587,3 +4587,4 @@ X509_STORE_akamai_get_references        10006	1_1_0b	EXIST::FUNCTION:AKAMAI
 AKAMAI_prf                              10007	1_1_0c	EXIST::FUNCTION:AKAMAI
 AKAMAI_algorithm2_to_md                 10008	1_1_0c	EXIST::FUNCTION:AKAMAI
 AKAMAI_rsalg_hash                       10009	1_1_0c	EXIST::FUNCTION:AKAMAI
+X509_STORE_CTX_akamai_set0_store        10010	1_1_0c	EXIST::FUNCTION:
