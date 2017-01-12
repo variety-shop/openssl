@@ -540,6 +540,8 @@ SSL_BUCKET_len                          10054	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMA
 SSL_akamai_switched_ctx                 10055	1_1_0b	EXIST::FUNCTION:AKAMAI
 SSL_CTX_akamai_get0_sid_ctx             10056	1_1_0c	EXIST::FUNCTION:AKAMAI
 SSL_akamai_get0_sid_ctx                 10057	1_1_0c	EXIST::FUNCTION:AKAMAI
+AKAMAI_openssl_init_memory_stats        10058	1_1_0c	EXIST::FUNCTION:AKAMAI
+AKAMAI_openssl_get_memory_stats         10059	1_1_0c	EXIST::FUNCTION:AKAMAI
 SSL_rsalg_get_server_random             10079	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
 SSL_akamai_get_prf                      10080	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
 SSL_CTX_akamai_session_stats_bio        10085	1_1_0e	EXIST::FUNCTION:AKAMAI
