@@ -1,6 +1,6 @@
 LIBS=../libssl
 SOURCE[../libssl]=\
-	ssl_akamai.c \
+        ssl_akamai.c akamai_track.c \
         pqueue.c \
         statem/statem_srvr.c statem/statem_clnt.c  s3_lib.c  s3_enc.c record/rec_layer_s3.c \
         statem/statem_lib.c s3_cbc.c s3_msg.c \
@@ -13,3 +13,5 @@ SOURCE[../libssl]=\
         bio_ssl.c ssl_err.c t1_reneg.c tls_srp.c t1_trce.c ssl_utst.c \
         record/ssl3_buffer.c record/ssl3_record.c record/dtls1_bitmap.c \
         statem/statem.c ssl_client_cache.c ssl_bucket.c
+
+INCLUDE[akamai_track.o] = ../crypto ../crypto/include
