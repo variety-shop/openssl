@@ -191,6 +191,20 @@ __owur int SSL_akamai_switched_ctx(const SSL *s);
 __owur const unsigned char* SSL_CTX_akamai_get0_sid_ctx(const SSL_CTX *c, unsigned int *len);
 __owur const unsigned char* SSL_akamai_get0_sid_ctx(const SSL *s, unsigned int *len);
 
+typedef struct AKAMAI_EX_DATA_STATS {
+    const char* name;
+    const size_t element_size;
+    /* number of structures */
+    uint64_t total;
+    uint64_t active;
+    uint64_t peak;
+} AKAMAI_EX_DATA_STATS;
+
+/* |lock| = 1 menas to use CRYPTO_lock when updating/getting stats */
+void AKAMAI_openssl_init_memory_stats(int lock);
+/* |cb| invoked for every structure type */
+void AKAMAI_openssl_get_memory_stats(void (*cb)(const AKAMAI_EX_DATA_STATS*, void*), void *param);
+
 /* Replaces SSL_CTX_sessions() and OPENSSL_LH_stats_bio() for shared session cache. */
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b);
 
