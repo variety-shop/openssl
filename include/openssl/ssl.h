@@ -386,8 +386,7 @@ typedef int (*custom_ext_parse_cb) (SSL *s, unsigned int ext_type,
 # define SSL_MODE_NO_AUTO_CHAIN 0x00000008U
 /*
  * Save RAM by releasing read and write buffers when they're empty. (SSL3 and
- * TLS only.) "Released" buffers are put onto a free-list in the context or
- * just freed (depending on the context's setting for freelist_max_len).
+ * TLS only.) Released buffers are freed.
  */
 # define SSL_MODE_RELEASE_BUFFERS 0x00000010U
 /*
