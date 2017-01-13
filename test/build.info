@@ -1,6 +1,7 @@
 IF[{- !$disabled{tests} -}]
   PROGRAMS_NO_INST=\
           versions \
+          sslbuffertest \
           client_cache_test \
           ciphpreftest \
           pemtest \
@@ -336,6 +337,10 @@ IF[{- !$disabled{tests} -}]
   SOURCE[ciphpreftest]=ciphpreftest.c
   INCLUDE[ciphpreftest]=.. ../include
   DEPEND[ciphpreftest]=../libcrypto ../libssl
+
+  SOURCE[sslbuffertest]=sslbuffertest.c ssltestlib.c
+  INCLUDE[sslbuffertest]=../include
+  DEPEND[sslbuffertest]=../libcrypto ../libssl
 ENDIF
 
 {-
