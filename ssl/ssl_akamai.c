@@ -16,6 +16,7 @@
  */
 
 #include "ssl_locl.h"
+#include "record/record_locl.h"
 #ifdef OPENSSL_NO_AKAMAI
 NON_EMPTY_TRANSLATION_UNIT
 #else
@@ -1175,6 +1176,24 @@ const unsigned char* SSL_akamai_get0_sid_ctx(const SSL *s, unsigned int *len)
     if (len != NULL)
         *len = s->sid_ctx_length;
     return s->sid_ctx;
+}
+
+int SSL_akamai_free_buffers(SSL *ssl)
+{
+    /* future? return SSL_free_buffers(ssl); */
+    RECORD_LAYER *rl = &ssl->rlayer;
+
+    if (RECORD_LAYER_read_pending(rl) || RECORD_LAYER_write_pending(rl))
+        return 0;
+
+    RECORD_LAYER_release(rl);
+    return 1;
+}
+
+int SSL_akamai_alloc_buffers(SSL *ssl)
+{
+    /* future? return SSL_alloc_buffers(ssl); */
+    return ssl3_setup_buffers(ssl);
 }
 
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b)
