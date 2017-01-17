@@ -1113,4 +1113,10 @@ int SSL_akamai_alloc_buffers(SSL *ssl)
     /* future? return SSL_alloc_buffers(ssl); */
     return ssl3_setup_buffers(ssl);
 }
+
+int SSL_akamai_ticket_expected(const SSL *s)
+{
+    return s->tlsext_ticket_expected;
+}
+
 #endif /* OPENSSL_NO_AKAMAI */
