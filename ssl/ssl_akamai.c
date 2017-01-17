@@ -1020,6 +1020,11 @@ const unsigned char* SSL_akamai_get0_sid_ctx(const SSL *s, unsigned int *len)
     return s->sid_ctx;
 }
 
+int SSL_akamai_ticket_expected(const SSL *s)
+{
+    return s->ext.ticket_expected;
+}
+
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b)
 {
     SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(ctx);
