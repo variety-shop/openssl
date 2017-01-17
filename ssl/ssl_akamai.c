@@ -751,7 +751,7 @@ static int ssl_akamai_set_cipher_list_helper(SSL_CTX* ctx, const char* pref, con
     /* APPEND non-dup must-have ciphers to the pref ciphers */
     for (i = 0; i < sk_SSL_CIPHER_num(sk_must); i++) {
         const SSL_CIPHER* c = sk_SSL_CIPHER_value(sk_must, i);
-        if (!sk_SSL_CIPHER_find(sk_pref, c))
+        if (sk_SSL_CIPHER_find(sk_pref, c) < 0)
             sk_SSL_CIPHER_push(sk_pref, c);
     }
 
