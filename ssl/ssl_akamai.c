@@ -1196,6 +1196,11 @@ int SSL_akamai_alloc_buffers(SSL *ssl)
     return ssl3_setup_buffers(ssl);
 }
 
+int SSL_akamai_ticket_expected(const SSL *s)
+{
+    return s->tlsext_ticket_expected;
+}
+
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b)
 {
     SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(ctx);

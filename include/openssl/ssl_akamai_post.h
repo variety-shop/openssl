@@ -218,6 +218,8 @@ void AKAMAI_openssl_get_memory_stats(void (*cb)(const AKAMAI_EX_DATA_STATS*, voi
 int SSL_akamai_free_buffers(SSL *ssl);
 int SSL_akamai_alloc_buffers(SSL *ssl);
 
+__owur int SSL_akamai_ticket_expected(const SSL *s);
+
 /* Replaces SSL_CTX_sessions() and OPENSSL_LH_stats_bio() for shared session cache. */
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b);
 
