@@ -122,14 +122,16 @@ void AKAMAI_openssl_init_memory_stats(int lock)
 void AKAMAI_openssl_get_memory_stats(void (*cb)(const AKAMAI_EX_DATA_STATS*, void*), void *param)
 {
     int i;
-    AKAMAI_EX_DATA_STATS stats;
 
     for (i = 0; ex_data_stats[i].data.name != NULL; i++) {
         if (track_locking)
             CRYPTO_THREAD_read_lock(ex_data_stats[i].lock);
-        stats = ex_data_stats[i].data;
-        if (track_locking)
-            CRYPTO_THREAD_unlock(ex_data_stats[i].lock);
-        (cb)(&stats, param);
+        {
+            AKAMAI_EX_DATA_STATS stats = ex_data_stats[i].data;
+
+            if (track_locking)
+                CRYPTO_THREAD_unlock(ex_data_stats[i].lock);
+            (cb)(&stats, param);
+        }
     }
 }
