@@ -252,6 +252,9 @@ int SSL_akamai_alloc_buffers(SSL *ssl);
 
 __owur int SSL_akamai_ticket_expected(const SSL *s);
 
+/* Returns the new cipher, call if SSL_get_current_cipher() returns NULL */
+__owur const SSL_CIPHER *SSL_akamai_get_tmp_cipher(const SSL *ssl);
+
 #  ifdef  __cplusplus
 }
 #  endif
