@@ -659,8 +659,15 @@ int X509_STORE_CTX_get1_issuer(X509 **issuer, X509_STORE_CTX *ctx, X509 *x)
     }
     /* If certificate matches all OK */
     if (ctx->check_issued(ctx, x, obj.data.x509)) {
+#ifdef OPENSSL_NO_AKAMAI
         *issuer = obj.data.x509;
         return 1;
+#else
+        if (x509_check_cert_time(ctx, obj.data.x509, -1)) {
+            *issuer = obj.data.x509;
+            return 1;
+        }
+#endif
     }
     X509_OBJECT_free_contents(&obj);
 
@@ -685,7 +692,19 @@ int X509_STORE_CTX_get1_issuer(X509 **issuer, X509_STORE_CTX *ctx, X509 *x)
                 *issuer = pobj->data.x509;
                 X509_OBJECT_up_ref_count(pobj);
                 ret = 1;
+#ifdef OPENSSL_NO_AKAMAI
                 break;
+#else
+                /*
+                 * If times check, exit with match,
+                 * otherwise keep looking. Leave last
+                 * match in issuer so we return nearest
+                 * match if no certificate time is OK.
+                 */
+
+                if (x509_check_cert_time(ctx, *issuer, -1))
+                    break;
+#endif
             }
         }
     }
