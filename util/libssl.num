@@ -459,6 +459,7 @@ AKAMAI_openssl_get_memory_stats         10059	1_1_0c	EXIST::FUNCTION:AKAMAI
 SSL_akamai_free_buffers                 10060	1_1_0c	EXIST::FUNCTION:AKAMAI
 SSL_akamai_alloc_buffers                10061	1_1_0c	EXIST::FUNCTION:AKAMAI
 SSL_akamai_ticket_expected              10062	1_1_0c	EXIST::FUNCTION:AKAMAI
+SSL_akamai_get_tmp_cipher               10063	1_1_0c	EXIST::FUNCTION:AKAMAI
 SSL_rsalg_get_server_random             10079	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
 SSL_akamai_get_prf                      10080	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
 SSL_CTX_akamai_session_stats_bio        10085	1_1_0e	EXIST::FUNCTION:AKAMAI
