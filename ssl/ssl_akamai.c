@@ -1201,6 +1201,13 @@ int SSL_akamai_ticket_expected(const SSL *s)
     return s->tlsext_ticket_expected;
 }
 
+const SSL_CIPHER *SSL_akamai_get_tmp_cipher(const SSL *ssl)
+{
+    if (ssl->s3 != NULL)
+        return ssl->s3->tmp.new_cipher;
+    return NULL;
+}
+
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b)
 {
     SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(ctx);
