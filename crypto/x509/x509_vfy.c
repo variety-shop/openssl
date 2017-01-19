@@ -547,7 +547,7 @@ int X509_verify_cert(X509_STORE_CTX *ctx)
 /*
  * Given a STACK_OF(X509) find the issuer of cert (if any)
  */
-
+#ifdef OPENSSL_NO_AKAMAI
 static X509 *find_issuer(X509_STORE_CTX *ctx, STACK_OF(X509) *sk, X509 *x)
 {
     int i;
@@ -559,6 +559,23 @@ static X509 *find_issuer(X509_STORE_CTX *ctx, STACK_OF(X509) *sk, X509 *x)
     }
     return NULL;
 }
+#else /* OPENSSL_NO_AKAMAI */
+static X509 *find_issuer(X509_STORE_CTX *ctx, STACK_OF(X509) *sk, X509 *x)
+{
+    int i;
+    X509 *issuer, *rv = NULL;
+
+    for (i = 0; i < sk_X509_num(sk); i++) {
+        issuer = sk_X509_value(sk, i);
+        if (ctx->check_issued(ctx, x, issuer)) {
+            rv = issuer;
+            if (x509_check_cert_time(ctx, rv, -1))
+                break;
+        }
+    }
+    return rv;
+}
+#endif /* OPENSSL_NO_AKAMAI */
 
 /* Given a possible certificate and issuer check them */
 
@@ -1832,6 +1849,7 @@ static int check_policy(X509_STORE_CTX *ctx)
     return 1;
 }
 
+#ifdef OPENSSL_NO_AKAMAI
 static int check_cert_time(X509_STORE_CTX *ctx, X509 *x)
 {
     time_t *ptime;
@@ -1874,6 +1892,7 @@ static int check_cert_time(X509_STORE_CTX *ctx, X509 *x)
 
     return 1;
 }
+#endif
 
 static int internal_verify(X509_STORE_CTX *ctx)
 {
@@ -1942,7 +1961,11 @@ static int internal_verify(X509_STORE_CTX *ctx)
         xs->valid = 1;
 
  check_cert:
+# ifdef OPENSSL_NO_AKAMAI
         ok = check_cert_time(ctx, xs);
+# else
+        ok = x509_check_cert_time(ctx, xs, n);
+# endif
         if (!ok)
             goto end;
 
@@ -2599,6 +2622,66 @@ void X509_STORE_CTX_set0_param(X509_STORE_CTX *ctx, X509_VERIFY_PARAM *param)
         X509_VERIFY_PARAM_free(ctx->param);
     ctx->param = param;
 }
+
+#ifndef OPENSSL_NO_AKAMAI
+/* BACKPORTED FROM MASTER */
+/*-
+ * Inform the verify callback of an error.
+ * If B<x> is not NULL it is the error cert, otherwise use the chain cert at
+ * B<depth>.
+ * If B<err> is not X509_V_OK, that's the error value, otherwise leave
+ * unchanged (presumably set by the caller).
+ *
+ * Returns 0 to abort verification with an error, non-zero to continue.
+ */
+static int verify_cb_cert(X509_STORE_CTX *ctx, X509 *x, int depth, int err)
+{
+    ctx->error_depth = depth;
+    ctx->current_cert = (x != NULL) ? x : sk_X509_value(ctx->chain, depth);
+    if (err != X509_V_OK)
+        ctx->error = err;
+    return ctx->verify_cb(0, ctx);
+}
+
+/*-
+ * Check certificate validity times.
+ * If depth >= 0, invoke verification callbacks on error, otherwise just return
+ * the validation status.
+ *
+ * Return 1 on success, 0 otherwise.
+ */
+int x509_check_cert_time(X509_STORE_CTX *ctx, X509 *x, int depth)
+{
+    time_t *ptime;
+    int i;
+
+    if (ctx->param->flags & X509_V_FLAG_USE_CHECK_TIME)
+        ptime = &ctx->param->check_time;
+    else if (ctx->param->flags & X509_V_FLAG_NO_CHECK_TIME)
+        return 1;
+    else
+        ptime = NULL;
+
+    i = X509_cmp_time(X509_get_notBefore(x), ptime);
+    if (i >= 0 && depth < 0)
+        return 0;
+    if (i == 0 && !verify_cb_cert(ctx, x, depth,
+                                  X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD))
+        return 0;
+    if (i > 0 && !verify_cb_cert(ctx, x, depth, X509_V_ERR_CERT_NOT_YET_VALID))
+        return 0;
+
+    i = X509_cmp_time(X509_get_notAfter(x), ptime);
+    if (i <= 0 && depth < 0)
+        return 0;
+    if (i == 0 && !verify_cb_cert(ctx, x, depth,
+                                  X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD))
+        return 0;
+    if (i < 0 && !verify_cb_cert(ctx, x, depth, X509_V_ERR_CERT_HAS_EXPIRED))
+        return 0;
+    return 1;
+}
+#endif
 
 IMPLEMENT_STACK_OF(X509)
 
