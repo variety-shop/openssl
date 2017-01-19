@@ -449,6 +449,10 @@ void X509_STORE_CTX_set_depth(X509_STORE_CTX *ctx, int depth);
  * will force the behaviour to match that of previous versions.
  */
 # define X509_V_FLAG_NO_ALT_CHAINS               0x100000
+# ifndef OPENSSL_NO_AKAMAI
+/* Do not check certificate validity against current time */
+#  define X509_V_FLAG_NO_CHECK_TIME              0x200000
+# endif
 
 # define X509_VP_FLAG_DEFAULT                    0x1
 # define X509_VP_FLAG_OVERWRITE                  0x2
@@ -651,6 +655,10 @@ STACK_OF(POLICYQUALINFO) *X509_policy_node_get0_qualifiers(const
                                                            *node);
 const X509_POLICY_NODE *X509_policy_node_get0_parent(const X509_POLICY_NODE
                                                      *node);
+# ifndef OPENSSL_NO_AKAMAI
+/* No error callback if depth < 0 */
+int x509_check_cert_time(X509_STORE_CTX *ctx, X509 *x, int depth);
+# endif
 
 # ifndef OPENSSL_NO_AKAMAI
 /* for/from by_mem.c - keep way above OpenSSL number-space */
