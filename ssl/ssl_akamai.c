@@ -1119,4 +1119,11 @@ int SSL_akamai_ticket_expected(const SSL *s)
     return s->tlsext_ticket_expected;
 }
 
+const SSL_CIPHER *SSL_akamai_get_tmp_cipher(const SSL *ssl)
+{
+    if (ssl->s3 != NULL)
+        return ssl->s3->tmp.new_cipher;
+    return NULL;
+}
+
 #endif /* OPENSSL_NO_AKAMAI */
