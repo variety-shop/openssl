@@ -794,6 +794,9 @@ __owur int SSL_extension_supported(unsigned int ext_type);
 # define SSL_X509_LOOKUP        4
 # define SSL_ASYNC_PAUSED       5
 # define SSL_ASYNC_NO_JOBS      6
+# ifndef OPENSSL_NO_AKAMAI
+#  define SSL_EARLY_WORK        7
+# endif
 
 /* These will only be used when doing non-blocking IO */
 # define SSL_want_nothing(s)     (SSL_want(s) == SSL_NOTHING)
@@ -802,6 +805,9 @@ __owur int SSL_extension_supported(unsigned int ext_type);
 # define SSL_want_x509_lookup(s) (SSL_want(s) == SSL_X509_LOOKUP)
 # define SSL_want_async(s)       (SSL_want(s) == SSL_ASYNC_PAUSED)
 # define SSL_want_async_job(s)   (SSL_want(s) == SSL_ASYNC_NO_JOBS)
+# ifndef OPENSSL_NO_AKAMAI
+#  define SSL_want_early(s)      (SSL_want(s) == SSL_EARLY_WORK)
+# endif
 
 # define SSL_MAC_FLAG_READ_MAC_STREAM 1
 # define SSL_MAC_FLAG_WRITE_MAC_STREAM 2
@@ -1034,6 +1040,9 @@ DECLARE_PEM_rw(SSL_SESSION, SSL_SESSION)
 # define SSL_ERROR_WANT_ACCEPT           8
 # define SSL_ERROR_WANT_ASYNC            9
 # define SSL_ERROR_WANT_ASYNC_JOB       10
+# ifndef OPENSSL_NO_AKAMAI
+#  define SSL_ERROR_WANT_EARLY          11
+# endif
 # define SSL_CTRL_SET_TMP_DH                     3
 # define SSL_CTRL_SET_TMP_ECDH                   4
 # define SSL_CTRL_SET_TMP_DH_CB                  6
@@ -2257,6 +2266,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_TLS_CONSTRUCT_SERVER_DONE                  375
 # define SSL_F_TLS_CONSTRUCT_SERVER_HELLO                 376
 # define SSL_F_TLS_CONSTRUCT_SERVER_KEY_EXCHANGE          377
+# define SSL_F_TLS_EARLY_POST_PROCESS_CLIENT_HELLO        521
 # define SSL_F_TLS_GET_MESSAGE_BODY                       351
 # define SSL_F_TLS_GET_MESSAGE_HEADER                     387
 # define SSL_F_TLS_POST_PROCESS_CLIENT_HELLO              378

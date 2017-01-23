@@ -895,6 +895,11 @@ struct ssl_ctx_st {
     int tlsext_status_type;
 
     CRYPTO_RWLOCK *lock;
+# ifndef OPENSSL_NO_AKAMAI
+    /* Early callback.  Mostly for extensions, but not entirely. */
+    SSL_early_cb_fn early_cb;
+    void * early_cb_arg;
+# endif
 };
 
 struct ssl_st {
@@ -1164,6 +1169,7 @@ struct ssl_st {
     ASYNC_JOB *job;
     ASYNC_WAIT_CTX *waitctx;
     CRYPTO_RWLOCK *lock;
+    CLIENTHELLO_MSG *clienthello;
 };
 
 typedef struct ssl3_state_st {

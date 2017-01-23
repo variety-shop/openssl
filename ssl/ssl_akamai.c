@@ -1393,4 +1393,81 @@ int ssl_internal_bytes_to_cipher_list(SSL *s, PACKET *cipher_suites,
     return 0;
 }
 
+void SSL_CTX_set_early_cb(SSL_CTX *c, SSL_early_cb_fn cb, void *arg)
+{
+    c->early_cb = cb;
+    c->early_cb_arg = arg;
+}
+
+int SSL_early_isv2(SSL *s)
+{
+    if (s->clienthello == NULL)
+        return 0;
+    return s->clienthello->isv2;
+}
+
+unsigned int SSL_early_get0_legacy_version(SSL *s)
+{
+    if (s->clienthello == NULL)
+        return 0;
+    return s->clienthello->version;
+}
+
+size_t SSL_early_get0_random(SSL *s, const unsigned char **out)
+{
+    if (s->clienthello == NULL)
+        return 0;
+    if (out != NULL)
+        *out = s->clienthello->random;
+    return SSL3_RANDOM_SIZE;
+}
+
+size_t SSL_early_get0_session_id(SSL *s, const unsigned char **out)
+{
+    if (s->clienthello == NULL)
+        return 0;
+    if (out != NULL)
+        *out = s->clienthello->session_id;
+    return s->clienthello->session_id_len;
+}
+
+size_t SSL_early_get0_ciphers(SSL *s, const unsigned char **out)
+{
+    if (s->clienthello == NULL)
+        return 0;
+    if (out != NULL)
+        *out = PACKET_data(&s->clienthello->ciphersuites);
+    return PACKET_remaining(&s->clienthello->ciphersuites);
+}
+
+size_t SSL_early_get0_compression_methods(SSL *s, const unsigned char **out)
+{
+    if (s->clienthello == NULL)
+        return 0;
+    if (out != NULL)
+        *out = s->clienthello->compressions;
+    return s->clienthello->compressions_len;
+}
+
+int SSL_early_get0_ext(SSL *s, unsigned int type, const unsigned char **out,
+                       size_t *outlen)
+{
+    size_t i;
+    RAW_EXTENSION *r;
+
+    if (s->clienthello == NULL)
+        return 0;
+    for (i = 0; i < s->clienthello->num_extensions; ++i) {
+        r = s->clienthello->pre_proc_exts + i;
+        if (r->type == type) {
+            if (out != NULL)
+                *out = PACKET_data(&r->data);
+            if (outlen != NULL)
+                *outlen = PACKET_remaining(&r->data);
+            return 1;
+        }
+    }
+    return 0;
+}
+
 #endif /* OPENSSL_NO_AKAMAI */
