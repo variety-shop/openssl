@@ -589,11 +589,34 @@ typedef struct srp_ctx_st {
 
 # endif
 
+#define MAX_COMPRESSIONS_SIZE   255
+
 struct ssl_comp_st {
     int id;
     const char *name;
     COMP_METHOD *method;
 };
+
+typedef struct {
+    unsigned int type;
+    PACKET data;
+} RAW_EXTENSION;
+
+typedef struct {
+    unsigned int isv2;
+    unsigned int version;
+    unsigned char random[SSL3_RANDOM_SIZE];
+    size_t session_id_len;
+    unsigned char session_id[SSL_MAX_SSL_SESSION_ID_LENGTH];
+    size_t dtls_cookie_len;
+    unsigned char dtls_cookie[DTLS1_COOKIE_LENGTH];
+    PACKET ciphersuites;
+    size_t compressions_len;
+    unsigned char compressions[MAX_COMPRESSIONS_SIZE];
+    PACKET extensions;
+    size_t num_extensions;
+    RAW_EXTENSION *pre_proc_exts;
+} CLIENTHELLO_MSG;
 
 DEFINE_LHASH_OF(SSL_SESSION);
 /* Needed in ssl_cert.c */
@@ -1626,29 +1649,6 @@ typedef struct ssl3_comp_st {
     COMP_METHOD *method;        /* The method :-) */
 } SSL3_COMP;
 # endif
-
-typedef struct {
-    unsigned int type;
-    PACKET data;
-} RAW_EXTENSION;
-
-#define MAX_COMPRESSIONS_SIZE   255
-
-typedef struct {
-    unsigned int isv2;
-    unsigned int version;
-    unsigned char random[SSL3_RANDOM_SIZE];
-    size_t session_id_len;
-    unsigned char session_id[SSL_MAX_SSL_SESSION_ID_LENGTH];
-    size_t dtls_cookie_len;
-    unsigned char dtls_cookie[DTLS1_COOKIE_LENGTH];
-    PACKET ciphersuites;
-    size_t compressions_len;
-    unsigned char compressions[MAX_COMPRESSIONS_SIZE];
-    PACKET extensions;
-    size_t num_extensions;
-    RAW_EXTENSION *pre_proc_exts;
-} CLIENTHELLO_MSG;
 
 extern SSL3_ENC_METHOD ssl3_undef_enc_method;
 
