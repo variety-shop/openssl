@@ -1579,13 +1579,6 @@ sub check_version_lte()
 	$lentv = length $testversion;
 	$lencv = length $currversion;
 
-	#If the testversion has more letters than the current version then it must
-	#be later (or malformed)
-	if ($lentv > $lencv) {
-		die "Invalid version number: $testversion "
-			."is greater than $currversion\n";
-	}
-
 	#Get the last letter from the current version
 	my ($cvletter) = $currversion =~ /([a-z])$/;
 	if (defined $cvletter) {
