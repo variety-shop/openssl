@@ -455,6 +455,8 @@ static int chacha20_poly1305_ctrl(EVP_CIPHER_CTX *ctx, int type, int arg,
             len = aad[EVP_AEAD_TLS1_AAD_LEN - 2] << 8 |
                   aad[EVP_AEAD_TLS1_AAD_LEN - 1];
             if (!ctx->encrypt) {
+                if (len < POLY1305_BLOCK_SIZE)
+                    return 0;
                 len -= POLY1305_BLOCK_SIZE;     /* discount attached tag */
                 memcpy(temp, aad, EVP_AEAD_TLS1_AAD_LEN - 2);
                 aad = temp;
