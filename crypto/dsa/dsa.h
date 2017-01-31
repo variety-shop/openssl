@@ -274,7 +274,7 @@ DH *DSA_dup_DH(const DSA *r);
 # define EVP_PKEY_CTRL_DSA_PARAMGEN_Q_BITS       (EVP_PKEY_ALG_CTRL + 2)
 # define EVP_PKEY_CTRL_DSA_PARAMGEN_MD           (EVP_PKEY_ALG_CTRL + 3)
 
-# ifndef OPENSSL_NO_AKAMAI
+# ifndef OPENSSL_NO_AKAMAI_110_COMPAT
 /* Backport 1.1.0 accessors */
 static ossl_inline void DSA_get0_pqg(const DSA *d, const BIGNUM **p,
                                 const BIGNUM **q, const BIGNUM **g)
@@ -369,7 +369,7 @@ static ossl_inline int DSA_SIG_set0(DSA_SIG *sig, BIGNUM *r, BIGNUM *s)
     sig->s = s;
     return 1;
 }
-# endif /* OPENSSL_NO_AKAMAI */
+# endif /* OPENSSL_NO_AKAMAI_110_COMPAT */
 
 /* BEGIN ERROR CODES */
 /*
