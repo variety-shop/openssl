@@ -1126,4 +1126,81 @@ const SSL_CIPHER *SSL_akamai_get_tmp_cipher(const SSL *ssl)
     return NULL;
 }
 
+/* similar to ssl_cert_type */
+int SSL_akamai_get_cert_type(const X509 *x, const EVP_PKEY *pkey)
+{
+    switch (ssl_cert_type(x, pkey)) {
+        case SSL_PKEY_RSA_ENC:
+            return SSL_AKAMAI_CERT_RSA_ENC;
+        case SSL_PKEY_RSA_SIGN:
+            return SSL_AKAMAI_CERT_RSA_SIGN;
+        case SSL_PKEY_DSA_SIGN:
+            return SSL_AKAMAI_CERT_DSA_SIGN;
+        case SSL_PKEY_ECC:
+            return SSL_AKAMAI_CERT_ECC;
+        default:
+            break;
+    }
+    return 0;
+}
+
+int SSL_akamai_get_loaded_certs(SSL *s)
+{
+    int ret = 0;
+
+    if (s->cert->pkeys[SSL_PKEY_RSA_ENC].x509 != NULL)
+        ret |= SSL_AKAMAI_CERT_RSA_ENC;
+    
+    if (s->cert->pkeys[SSL_PKEY_RSA_SIGN].x509 != NULL)
+        ret |= SSL_AKAMAI_CERT_RSA_SIGN;
+    
+    if (s->cert->pkeys[SSL_PKEY_DSA_SIGN].x509 != NULL)
+        ret |= SSL_AKAMAI_CERT_DSA_SIGN;
+    
+    if (s->cert->pkeys[SSL_PKEY_ECC].x509 != NULL)
+        ret |= SSL_AKAMAI_CERT_ECC;
+    
+    return ret;
+}
+
+static int clear_cert_helper(SSL *s, int idx)
+{
+    CERT *c = s->cert;
+    CERT_PKEY *cpk;
+    
+    if (c == NULL)
+        return 0;
+
+    cpk = c->pkeys + idx;
+    X509_free(cpk->x509);
+    cpk->x509 = NULL;
+    EVP_PKEY_free(cpk->privatekey);
+    cpk->privatekey = NULL;
+    sk_X509_pop_free(cpk->chain, X509_free);
+    cpk->chain = NULL;
+    OPENSSL_free(cpk->serverinfo);
+    cpk->serverinfo = NULL;
+    cpk->serverinfo_length = 0;
+
+    s->s3->tmp.valid_flags[idx] &= CERT_PKEY_EXPLICIT_SIGN;
+    return 1;
+}
+
+/* similar to ssl_cert_clear_certs() */
+int SSL_akamai_clear_cert(SSL *s, int type)
+{
+    int ret = 0;
+
+    if ((type & SSL_AKAMAI_CERT_RSA_ENC))
+        ret |= clear_cert_helper(s, SSL_PKEY_RSA_ENC);
+    if ((type & SSL_AKAMAI_CERT_RSA_SIGN))
+        ret |= clear_cert_helper(s, SSL_PKEY_RSA_SIGN);
+    if ((type & SSL_AKAMAI_CERT_DSA_SIGN))
+        ret |= clear_cert_helper(s, SSL_PKEY_DSA_SIGN);
+    if ((type & SSL_AKAMAI_CERT_ECC))
+        ret |= clear_cert_helper(s, SSL_PKEY_ECC);
+
+    return ret;
+}
+
 #endif /* OPENSSL_NO_AKAMAI */
