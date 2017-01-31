@@ -102,7 +102,7 @@ int HMAC_CTX_copy(HMAC_CTX *dctx, HMAC_CTX *sctx);
 
 void HMAC_CTX_set_flags(HMAC_CTX *ctx, unsigned long flags);
 
-# ifndef OPENSSL_NO_AKAMAI
+# ifndef OPENSSL_NO_AKAMAI_110_COMPAT
 #  include <string.h>
 /* Backport 1.1.0 accessors */
 static ossl_inline HMAC_CTX *HMAC_CTX_new(void)
@@ -128,7 +128,7 @@ static ossl_inline int HMAC_CTX_reset(HMAC_CTX *ctx)
     HMAC_CTX_init(ctx);
     return 1;
 }
-# endif /* OPENSSL_NO_AKAMAI */
+# endif /* OPENSSL_NO_AKAMAI_110_COMPAT */
 
 #ifdef  __cplusplus
 }

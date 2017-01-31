@@ -516,7 +516,7 @@ RSA *RSAPrivateKey_dup(RSA *rsa);
  */
 # define RSA_FLAG_CHECKED                        0x0800
 
-# ifndef OPENSSL_NO_AKAMAI
+# ifndef OPENSSL_NO_AKAMAI_110_COMPAT
 /* Backport 1.1.0 accessors */
 static ossl_inline int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d)
 {
@@ -631,7 +631,7 @@ static ossl_inline void RSA_set_flags(RSA *r, int flags)
 {
     r->flags |= flags;
 }
-# endif /* OPENSSL_NO_AKAMAI */
+# endif /* OPENSSL_NO_AKAMAI_110_COMPAT */
 
 /* BEGIN ERROR CODES */
 /*

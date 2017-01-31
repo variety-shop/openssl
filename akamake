@@ -244,7 +244,7 @@ endif # defined(MASTER)
 # postgresql9.1: cast bf
 # stunnel, pubcookie: egd
 # mod_php5/php5: rc4 (default:openssl_open/openssl_seal) md4 ripemd (openssl_sign)
-$P/SHAREDFEATURES := \
+$P/SHAREDFEATURES := $($P/SHAREDFEATURES) \
 	enable-bf \
 	enable-cast \
 	enable-chacha \
