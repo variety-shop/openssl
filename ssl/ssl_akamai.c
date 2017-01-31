@@ -1025,6 +1025,30 @@ int SSL_akamai_ticket_expected(const SSL *s)
     return s->ext.ticket_expected;
 }
 
+/* similar to ssl_cert_type */
+int SSL_akamai_get_cert_type(const X509 *x, const EVP_PKEY *pkey)
+{
+    size_t i;
+    if (pkey == NULL)
+        pkey = X509_get0_pubkey(x);
+
+    if (pkey == NULL || ssl_cert_lookup_by_pkey(pkey, &i) == NULL)
+        return 0;
+    switch (i) {
+        case SSL_PKEY_RSA:
+            return SSL_AKAMAI_CERT_RSA;
+        case SSL_PKEY_DSA_SIGN:
+            return SSL_AKAMAI_CERT_DSA_SIGN;
+        case SSL_PKEY_ECC:
+            return SSL_AKAMAI_CERT_ECC;
+        case SSL_PKEY_ED25519:
+            return SSL_AKAMAI_CERT_ED25519;
+        default:
+            break;
+    }
+    return 0;
+}
+
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b)
 {
     SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(ctx);
