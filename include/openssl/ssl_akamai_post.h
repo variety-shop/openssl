@@ -223,6 +223,17 @@ __owur int SSL_akamai_ticket_expected(const SSL *s);
 /* Returns the new cipher, call if SSL_get_current_cipher() returns NULL */
 __owur const SSL_CIPHER *SSL_akamai_get_tmp_cipher(const SSL *ssl);
 
+/* Certificate query information used in the functions below */
+/* Bitmap of cert types - based on SSL_PKEY_XXX constants */
+#define SSL_AKAMAI_CERT_RSA_ENC     (1 << 0)
+#define SSL_AKAMAI_CERT_RSA_SIGN    (1 << 1)
+#define SSL_AKAMAI_CERT_DSA_SIGN    (1 << 2)
+#define SSL_AKAMAI_CERT_ECC         (1 << 3)
+/* no GOST support */
+
+/* returns an SSL_AKAMAI_CERT-type value, 0 on error */
+__owur int SSL_akamai_get_cert_type(const X509 *x, const EVP_PKEY *pkey);
+
 /* Replaces SSL_CTX_sessions() and OPENSSL_LH_stats_bio() for shared session cache. */
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b);
 
