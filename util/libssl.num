@@ -472,3 +472,4 @@ SSL_akamai_get_tmp_cipher               10063	1_1_0c	EXIST::FUNCTION:AKAMAI
 SSL_akamai_clear_cert                   10064	1_1_0d	EXIST::FUNCTION:AKAMAI
 SSL_akamai_get_loaded_certs             10065	1_1_0d	EXIST::FUNCTION:AKAMAI
 SSL_akamai_get_cert_type                10066	1_1_0d	EXIST::FUNCTION:AKAMAI
+SSL_akamai_remove_session               10067	1_1_0d	EXIST::FUNCTION:AKAMAI
