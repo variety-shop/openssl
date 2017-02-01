@@ -1049,6 +1049,14 @@ int SSL_akamai_get_cert_type(const X509 *x, const EVP_PKEY *pkey)
     return 0;
 }
 
+int SSL_akamai_remove_session(SSL *s)
+{
+    if (!SSL_set_session(s, NULL))
+        return 0;
+    s->hit = 0;
+    return 1;
+}
+
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b)
 {
     SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(ctx);
