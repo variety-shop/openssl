@@ -269,6 +269,8 @@ int SSL_akamai_clear_cert(SSL *s, int type);
 __owur int SSL_akamai_get_cert_type(const X509 *x, const EVP_PKEY *pkey);
 /* returns a SSL_AKAMAI_CERT bitmap of the currently loaded certs */
 __owur int SSL_akamai_get_loaded_certs(SSL *s);
+/* sets s->session to NULL and clears s->hit */
+__owur int SSL_akamai_remove_session(SSL *s);
 
 #  ifdef  __cplusplus
 }

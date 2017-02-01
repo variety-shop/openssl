@@ -1203,4 +1203,12 @@ int SSL_akamai_clear_cert(SSL *s, int type)
     return ret;
 }
 
+int SSL_akamai_remove_session(SSL *s)
+{
+    if (!SSL_set_session(s, NULL))
+        return 0;
+    s->hit = 0;
+    return 1;
+}
+
 #endif /* OPENSSL_NO_AKAMAI */
