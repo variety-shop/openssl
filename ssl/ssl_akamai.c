@@ -1211,4 +1211,9 @@ int SSL_akamai_remove_session(SSL *s)
     return 1;
 }
 
+void SSL_akamai_clear_hit(SSL *s)
+{
+    s->hit = 0;
+}
+
 #endif /* OPENSSL_NO_AKAMAI */
