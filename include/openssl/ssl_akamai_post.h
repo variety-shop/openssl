@@ -234,6 +234,9 @@ __owur const SSL_CIPHER *SSL_akamai_get_tmp_cipher(const SSL *ssl);
 /* returns an SSL_AKAMAI_CERT-type value, 0 on error */
 __owur int SSL_akamai_get_cert_type(const X509 *x, const EVP_PKEY *pkey);
 
+/* sets s->session to NULL and clears s->hit */
+__owur int SSL_akamai_remove_session(SSL *s);
+
 /* Replaces SSL_CTX_sessions() and OPENSSL_LH_stats_bio() for shared session cache. */
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b);
 
