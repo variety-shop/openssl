@@ -1253,6 +1253,11 @@ int SSL_akamai_remove_session(SSL *s)
     return 1;
 }
 
+void SSL_akamai_clear_hit(SSL *s)
+{
+    s->hit = 0;
+}
+
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b)
 {
     SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(ctx);

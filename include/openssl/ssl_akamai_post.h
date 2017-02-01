@@ -258,6 +258,10 @@ __owur int SSL_akamai_get_loaded_certs(SSL *s);
 /* sets s->session to NULL and clears s->hit */
 __owur int SSL_akamai_remove_session(SSL *s);
 
+/* Mark the SSL to be (re)entered into the session cache after a new session
+ * was attached to it. */
+void SSL_akamai_clear_hit(SSL *s);
+
 /* Replaces SSL_CTX_sessions() and OPENSSL_LH_stats_bio() for shared session cache. */
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b);
 
