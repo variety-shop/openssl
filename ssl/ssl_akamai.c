@@ -1245,6 +1245,14 @@ int SSL_akamai_clear_cert(SSL *s, int type)
     return ret;
 }
 
+int SSL_akamai_remove_session(SSL *s)
+{
+    if (!SSL_set_session(s, NULL))
+        return 0;
+    s->hit = 0;
+    return 1;
+}
+
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b)
 {
     SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(ctx);
