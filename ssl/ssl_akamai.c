@@ -1216,4 +1216,21 @@ void SSL_akamai_clear_hit(SSL *s)
     s->hit = 0;
 }
 
+int SSL_akamai_reset_fragment_size(SSL *s, unsigned int size)
+{
+    /* Reset to original SSL_CTX default size when 0 is passed. */
+    if (size == 0)
+        size = SSL_get_SSL_CTX(s)->max_send_fragment;
+
+    if (s->max_send_fragment == size)
+        return 1;
+
+    if (!SSL_set_max_send_fragment(s, size))
+        return 0;
+    /* We will be limited by an old fragment size if the old size is smaller and
+     * freeing the buffers fails, but that seems non-fatal. */
+    SSL_akamai_free_buffers(s);
+    return 1;
+}
+
 #endif /* OPENSSL_NO_AKAMAI */

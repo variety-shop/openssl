@@ -276,6 +276,9 @@ __owur int SSL_akamai_remove_session(SSL *s);
  * was attached to it. */
 void SSL_akamai_clear_hit(SSL *s);
 
+/* Updates send fragment size and frees SSL read/write buffers. */
+int SSL_akamai_reset_fragment_size(SSL *s, unsigned int size);
+
 #  ifdef  __cplusplus
 }
 #  endif
