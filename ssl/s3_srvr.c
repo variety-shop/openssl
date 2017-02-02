@@ -3841,10 +3841,10 @@ int ssl3_send_newsession_ticket(SSL *s)
                 goto err;
 #else
             if (!EVP_EncryptInit_ex(&ctx, EVP_aes_128_cbc(), NULL,
-                                    ex_data->tlsext_tick_aes_key + 16, iv))
+                                    ex_data->tlsext_tick_aes_key, iv))
                 goto err;
-            if (!HMAC_Init_ex(&hctx, ex_data->tlsext_tick_hmac_key,
-                              16, tlsext_tick_md(), NULL))
+            if (!HMAC_Init_ex(&hctx, ex_data->tlsext_tick_hmac_key, 16,
+                              tlsext_tick_md(), NULL))
                 goto err;
 #endif
             memcpy(key_name, tctx->tlsext_tick_key_name, 16);
