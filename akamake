@@ -359,6 +359,8 @@ $(COMMON)/lib/libopenssl$(EXT_A).dep: $(COMMON)/lib/libssl$(EXT_SO).dep
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
 
+$(COMMON)/lib/libssl$(EXT_A): $(COMMON)/lib/libssl$(EXT_SO).102.0.0
+
 $(COMMON)/lib/libssl$(EXT_A): $(COMMON)/lib/libssl$(EXT_SO)
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
@@ -367,6 +369,8 @@ $(COMMON)/lib/libssl$(EXT_A).dep: $(COMMON)/lib/libssl$(EXT_SO).dep
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
 
+$(COMMON)/lib/libcrypto$(EXT_A): $(COMMON)/lib/libcrypto$(EXT_SO).102.0.0
+
 $(COMMON)/lib/libcrypto$(EXT_A): $(COMMON)/lib/libcrypto$(EXT_SO)
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
@@ -374,6 +378,15 @@ $(COMMON)/lib/libcrypto$(EXT_A): $(COMMON)/lib/libcrypto$(EXT_SO)
 $(COMMON)/lib/libcrypto$(EXT_A).dep: $(COMMON)/lib/libcrypto$(EXT_SO).dep
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
+
+$(COMMON)/lib/libcrypto$(EXT_SO).102.0.0: $(COMMON)/lib/libcrypto$(EXT_SO)
+	@$(MKDIR) $(@D)
+	@ln -sf $< $@
+
+$(COMMON)/lib/libssl$(EXT_SO).102.0.0: $(COMMON)/lib/libssl$(EXT_SO)
+	@$(MKDIR) $(@D)
+	@ln -sf $< $@
+
 else
 $(error BUILDENV.OPENSSL_LINKAGE-master is $(BUILDENV.OPENSSL_LINKAGE-master), neither static nor shared for !windows)
 endif
