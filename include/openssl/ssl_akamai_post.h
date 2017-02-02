@@ -237,6 +237,9 @@ __owur int SSL_akamai_get_cert_type(const X509 *x, const EVP_PKEY *pkey);
 /* sets s->session to NULL and clears s->hit */
 __owur int SSL_akamai_remove_session(SSL *s);
 
+/* Updates send fragment size and frees SSL read/write buffers. */
+int SSL_akamai_reset_fragment_size(SSL *s, unsigned int size);
+
 /* Replaces SSL_CTX_sessions() and OPENSSL_LH_stats_bio() for shared session cache. */
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b);
 
