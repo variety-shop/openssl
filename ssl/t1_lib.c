@@ -3644,7 +3644,7 @@ static int tls_decrypt_ticket(SSL *s, const unsigned char *etick,
         if (HMAC_Init_ex(&hctx, ex_data->tlsext_tick_hmac_key, 16,
                          tlsext_tick_md(), NULL) <= 0
                 || EVP_DecryptInit_ex(&ctx, EVP_aes_128_cbc(), NULL,
-                                      ex_data->tlsext_tick_aes_key + 16,
+                                      ex_data->tlsext_tick_aes_key,
                                       etick + 16) <= 0) {
             goto err;
 #endif
