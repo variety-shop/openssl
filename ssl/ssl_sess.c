@@ -723,9 +723,9 @@ int ssl_get_prev_session(SSL *s, CLIENTHELLO_MSG *hello)
         l = ret->cipher_id;
         l2n(l, p);
         if ((ret->ssl_version >> 8) >= SSL3_VERSION_MAJOR)
-            ret->cipher = ssl_get_cipher_by_char(s, &(buf[2]));
+            ret->cipher = ssl_get_cipher_by_char(s, &(buf[2]), 0);
         else
-            ret->cipher = ssl_get_cipher_by_char(s, &(buf[1]));
+            ret->cipher = ssl_get_cipher_by_char(s, &(buf[1]), 0);
         if (ret->cipher == NULL)
             goto err;
     }
