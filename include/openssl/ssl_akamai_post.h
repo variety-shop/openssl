@@ -279,6 +279,10 @@ void SSL_akamai_clear_hit(SSL *s);
 /* Updates send fragment size and frees SSL read/write buffers. */
 int SSL_akamai_reset_fragment_size(SSL *s, unsigned int size);
 
+/* (Temporary?) define to allow an extant ALPN callback to no-op.
+ * We have to share upstream's number space; be ~random. */
+#define SSL_AKAMAI_TLSEXT_ERR_IGNORE    21495
+
 #  ifdef  __cplusplus
 }
 #  endif

@@ -1804,6 +1804,10 @@ static int tls1_alpn_handle_client_hello_late(SSL *s, int *al)
             /* ALPN takes precedence over NPN. */
             s->s3->next_proto_neg_seen = 0;
 #endif
+#ifndef OPENSSL_NO_AKAMAI
+        } else if (r == SSL_AKAMAI_TLSEXT_ERR_IGNORE) {
+            return 1;
+#endif
         } else {
             *al = SSL_AD_NO_APPLICATION_PROTOCOL;
             return 0;
