@@ -54,8 +54,15 @@ ifndef MASTER
 
 # Compiling OpenSSL in standalone mode
 # only enable TLSv1, keep DTLSv1/SSLv3/v2 disabled
-$P/configure.ts : CONFIGFLAGS := $(filter-out no-tls1,$(CONFIGFLAGS))
-$P/configure.ts : CONFIGFLAGS := $(CONFIGFLAGS) enable-tls1
+$P/configure.ts : CONFIGFLAGS := $(filter-out no-bf,$(CONFIGFLAGS)) enable-bf
+$P/configure.ts : CONFIGFLAGS := $(filter-out no-cast,$(CONFIGFLAGS)) enable-cast
+$P/configure.ts : CONFIGFLAGS := $(filter-out no-md4,$(CONFIGFLAGS)) enable-md4
+$P/configure.ts : CONFIGFLAGS := $(filter-out no-psk,$(CONFIGFLAGS)) enable-psk
+$P/configure.ts : CONFIGFLAGS := $(filter-out no-rc2,$(CONFIGFLAGS)) enable-rc2
+$P/configure.ts : CONFIGFLAGS := $(filter-out no-rc4,$(CONFIGFLAGS)) enable-rc4
+$P/configure.ts : CONFIGFLAGS := $(filter-out no-ripemd,$(CONFIGFLAGS)) enable-ripemd
+$P/configure.ts : CONFIGFLAGS := $(filter-out no-tls1,$(CONFIGFLAGS)) enable-tls1
+
 OPENSSL-TARGET := $(OPENSSL-TARGET) all
 
 else
