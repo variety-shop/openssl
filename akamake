@@ -72,6 +72,18 @@ endif # ifeq ($(BUILDENV.BASEOS),linux)
 # We are setting the default here, so put the literal first
 $P/OPENSSL-TARGET := all $($P/OPENSSL-TARGET)
 
+$P/CONFIGFEATURES := $($P/CONFIGFEATURES) \
+	enable-bf \
+	enable-cast \
+	enable-md4 \
+	enable-psk \
+	enable-rc2 \
+	enable-rc4 \
+	enable-rmd160 \
+	enable-tls1 \
+	enable-tls1_1 \
+	enable-tls1_2
+
 else # ifndef MASTER
 # Compiling OpenSSL as a component
 
@@ -248,6 +260,7 @@ $P/SHAREDFEATURES := \
 	enable-egd \
 	enable-md4 \
 	enable-psk \
+	enable-rc2 \
 	enable-rc4 \
 	enable-rmd160 \
 	enable-shared \
