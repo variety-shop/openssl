@@ -91,7 +91,6 @@ $P/CONFIGFEATURES := $($P/CONFIGFEATURES) \
 	enable-rc2 \
 	enable-rc4 \
 	enable-ripemd \
-	enable-rmd160 \
 	enable-tls1
 
 else # ifndef MASTER
