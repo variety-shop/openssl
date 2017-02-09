@@ -81,6 +81,19 @@ BUILDENV.OPENSSL_LINKAGE-master := static
 endif # ifndef BUILDENV.OPENSSL_LINKAGE-master
 endif # ifeq ($(BUILDENV.BASEOS),linux)
 
+$P/CONFIGFEATURES := $($P/CONFIGFEATURES) \
+	enable-bf \
+	enable-cast \
+	enable-chacha \
+	enable-md4 \
+	enable-poly1305 \
+	enable-psk \
+	enable-rc2 \
+	enable-rc4 \
+	enable-ripemd \
+	enable-rmd160 \
+	enable-tls1
+
 else # ifndef MASTER
 # Compiling OpenSSL as a component
 
@@ -254,6 +267,7 @@ $P/SHAREDFEATURES := $($P/SHAREDFEATURES) \
 	enable-md4 \
 	enable-poly1305 \
 	enable-psk \
+	enable-rc2 \
 	enable-rc4 \
 	enable-ripemd \
 	enable-rmd160 \
