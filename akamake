@@ -348,7 +348,13 @@ $(COMMON)/lib/libssl$(EXT_A): $(COMMON)/lib/libssl$(EXT_SO)
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
 
+$(COMMON)/lib/libssl$(EXT_A).dep: $(COMMON)/lib/libssl$(EXT_SO).110.0.0
+
 $(COMMON)/lib/libssl$(EXT_A).dep: $(COMMON)/lib/libssl$(EXT_SO).dep
+	@$(MKDIR) $(@D)
+	@ln -sf $< $@
+
+$(COMMON)/lib/libssl$(EXT_SO).110.0.0: $(COMMON)/lib/libssl$(EXT_SO)
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
 
@@ -356,7 +362,13 @@ $(COMMON)/lib/libcrypto$(EXT_A): $(COMMON)/lib/libcrypto$(EXT_SO)
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
 
+$(COMMON)/lib/libcrypto$(EXT_A).dep: $(COMMON)/lib/libcrypto$(EXT_SO).110.0.0
+
 $(COMMON)/lib/libcrypto$(EXT_A).dep: $(COMMON)/lib/libcrypto$(EXT_SO).dep
+	@$(MKDIR) $(@D)
+	@ln -sf $< $@
+
+$(COMMON)/lib/libcrypto$(EXT_SO).110.0.0: $(COMMON)/lib/libcrypto$(EXT_SO)
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
 
