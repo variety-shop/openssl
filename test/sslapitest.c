@@ -97,7 +97,7 @@ static int execute_test_large_message(const SSL_METHOD *smeth,
         goto end;
     }
 
-    if (!create_ssl_connection(serverssl, clientssl)) {
+    if (!create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)) {
         printf("Unable to create SSL connection\n");
         goto end;
     }
@@ -275,7 +275,7 @@ static int test_tlsext_status_type(void)
         goto end;
     }
 
-    if (!create_ssl_connection(serverssl, clientssl)) {
+    if (!create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)) {
         printf("Unable to create SSL connection\n");
         goto end;
     }
@@ -301,7 +301,7 @@ static int test_tlsext_status_type(void)
     }
 
     /* This should fail because the callback will fail */
-    if (create_ssl_connection(serverssl, clientssl)) {
+    if (create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)) {
         printf("Unexpected success creating the connection\n");
         goto end;
     }
@@ -355,7 +355,7 @@ static int test_tlsext_status_type(void)
     BIO_free(certbio);
     certbio = NULL;
 
-    if (!create_ssl_connection(serverssl, clientssl)) {
+    if (!create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)) {
         printf("Unable to create SSL connection\n");
         goto end;
     }
@@ -462,7 +462,7 @@ static int execute_test_session(SSL_SESSION_TEST_FIXTURE fix)
         goto end;
     }
 
-    if (!create_ssl_connection(serverssl1, clientssl1)) {
+    if (!create_ssl_connection(serverssl1, clientssl1, SSL_ERROR_NONE)) {
         printf("Unable to create SSL connection\n");
         goto end;
     }
@@ -488,7 +488,7 @@ static int execute_test_session(SSL_SESSION_TEST_FIXTURE fix)
         goto end;
     }
 
-    if (!create_ssl_connection(serverssl2, clientssl2)) {
+    if (!create_ssl_connection(serverssl2, clientssl2, SSL_ERROR_NONE)) {
         printf("Unable to create second SSL connection\n");
         goto end;
     }
@@ -571,7 +571,7 @@ static int execute_test_session(SSL_SESSION_TEST_FIXTURE fix)
     }
 
     /* This should fail because of the mismatched protocol versions */
-    if (create_ssl_connection(serverssl3, clientssl3)) {
+    if (create_ssl_connection(serverssl3, clientssl3, SSL_ERROR_NONE)) {
         printf("Unable to create third SSL connection\n");
         goto end;
     }
@@ -980,7 +980,7 @@ static int test_set_sigalgs(int idx)
         }
     }
 
-    if (curr->connsuccess != create_ssl_connection(serverssl, clientssl)) {
+    if (curr->connsuccess != create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)) {
         printf("Unexpected return value creating SSL connection (%d)\n", idx);
         goto end;
     }
