@@ -3449,6 +3449,7 @@ MSG_PROCESS_RETURN tls_process_next_proto(SSL *s, PACKET *pkt)
 
 #define SSLV2_CIPHER_LEN    3
 
+#ifdef OPENSSL_NO_AKAMAI
 STACK_OF(SSL_CIPHER) *ssl_bytes_to_cipher_list(SSL *s,
                                                PACKET *cipher_suites,
                                                STACK_OF(SSL_CIPHER) **skp,
@@ -3589,3 +3590,54 @@ STACK_OF(SSL_CIPHER) *ssl_bytes_to_cipher_list(SSL *s,
     sk_SSL_CIPHER_free(sk);
     return NULL;
 }
+#else /* OPENSSL_NO_AKAMAI */
+STACK_OF(SSL_CIPHER) *ssl_bytes_to_cipher_list(SSL *s,
+                                               PACKET *cipher_suites,
+                                               STACK_OF(SSL_CIPHER) **skp,
+                                               int sslv2format, int *al)
+{
+    STACK_OF(SSL_CIPHER) *scsvs = NULL;
+    const SSL_CIPHER *c;
+    int i;
+
+    if (!ssl_cache_cipherlist(s, cipher_suites, sslv2format, al) ||
+        !ssl_internal_bytes_to_cipher_list(s, cipher_suites, skp, &scsvs,
+                                           sslv2format, al))
+        return NULL;
+    s->s3->send_connection_binding = 0;
+    /* Check what signalling cipher-suite values were received. */
+    if (scsvs != NULL) {
+        for(i = 0; i < sk_SSL_CIPHER_num(scsvs); i++) {
+            c = sk_SSL_CIPHER_value(scsvs, i);
+            if (SSL_CIPHER_get_id(c) == SSL3_CK_SCSV) {
+                if (s->renegotiate) {
+                    /* SCSV is fatal if renegotiating */
+                    SSLerr(SSL_F_SSL_BYTES_TO_CIPHER_LIST,
+                           SSL_R_SCSV_RECEIVED_WHEN_RENEGOTIATING);
+                    *al = SSL_AD_HANDSHAKE_FAILURE;
+                    goto err;
+                }
+                s->s3->send_connection_binding = 1;
+            } else if (SSL_CIPHER_get_id(c) == SSL3_CK_FALLBACK_SCSV &&
+                       !ssl_check_version_downgrade(s)) {
+                /*
+                 * This SCSV indicates that the client previously tried
+                 * a higher version.  We should fail if the current version
+                 * is an unexpected downgrade, as that indicates that the first
+                 * connection may have been tampered with in order to trigger
+                 * an insecure downgrade.
+                 */
+                SSLerr(SSL_F_SSL_BYTES_TO_CIPHER_LIST,
+                       SSL_R_INAPPROPRIATE_FALLBACK);
+                *al = SSL_AD_INAPPROPRIATE_FALLBACK;
+                goto err;
+            }
+        }
+        sk_SSL_CIPHER_free(scsvs);
+    }
+    return *skp;
+ err:
+    sk_SSL_CIPHER_free(scsvs);
+    return NULL;
+}
+#endif /* OPENSSL_NO_AKAMAI */

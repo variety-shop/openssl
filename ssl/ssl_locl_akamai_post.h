@@ -106,4 +106,11 @@ void SSL_CTX_flush_sessions_lock(SSL_CTX *ctx, long tm, int lock);
 
 __owur int ssl_generate_session_id(SSL *s, SSL_SESSION *ss);
 
+int ssl_cache_cipherlist(SSL *s, PACKET *cipher_suites, int sslv2format,
+                         int *al);
+int ssl_internal_bytes_to_cipher_list(SSL *s, PACKET *cipher_suites,
+                                      STACK_OF(SSL_CIPHER) **skp,
+                                      STACK_OF(SSL_CIPHER) **scsvs_out,
+                                      int sslv2format, int *al);
+
 #endif /* HEADER_SSL_LOCL_AKAMAI_POST_H */
