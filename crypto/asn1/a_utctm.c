@@ -291,6 +291,12 @@ int ASN1_UTCTIME_cmp_time_t(const ASN1_UTCTIME *s, time_t t)
     struct tm stm, ttm;
     int day, sec;
 
+#ifndef OPENSSL_NO_AKAMAI
+    if (s->type == V_ASN1_GENERALIZEDTIME) {
+        if (!asn1_generalizedtime_to_tm(&stm, s))
+            return -2;
+    } else
+#endif
     if (!asn1_utctime_to_tm(&stm, s))
         return -2;
 
@@ -311,7 +317,7 @@ int ASN1_UTCTIME_cmp_time_t(const ASN1_UTCTIME *s, time_t t)
     return 0;
 }
 
-#ifndef OPENSSL_NO_AKAMAI
+#if 0
 time_t ASN1_UTCTIME_get(const ASN1_UTCTIME *s)
 {
     struct tm tm;
@@ -349,4 +355,15 @@ time_t ASN1_UTCTIME_get(const ASN1_UTCTIME *s)
      */
     return mktime(&tm) - offset * 60;
 }
+#endif
+
+#ifndef OPENSSL_NO_AKAMAI
+/* purposely not exposing this */
+extern time_t asn1_time_get(const ASN1_TIME *s);
+
+time_t ASN1_UTCTIME_get(const ASN1_TIME *tm)
+{
+    return asn1_time_get(tm);
+}
+
 #endif
