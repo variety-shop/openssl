@@ -464,6 +464,11 @@ int ASN1_UTCTIME_print(BIO *bp, const ASN1_UTCTIME *tm)
     int i;
     int y = 0, M = 0, d = 0, h = 0, m = 0, s = 0;
 
+#ifndef OPENSSL_NO_AKAMAI
+    if (tm->type == V_ASN1_GENERALIZEDTIME)
+        return ASN1_GENERALIZEDTIME_print(bp, tm);
+#endif
+
     i = tm->length;
     v = (const char *)tm->data;
 
