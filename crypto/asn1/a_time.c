@@ -234,3 +234,16 @@ int ASN1_TIME_diff(int *pday, int *psec,
         return 0;
     return OPENSSL_gmtime_diff(pday, psec, &tm_from, &tm_to);
 }
+
+#ifndef OPENSSL_NO_AKAMAI
+/* purposely not exposing this */
+extern time_t OPENSSL_timegm(struct tm*);
+time_t asn1_time_get(const ASN1_TIME *t)
+{
+    struct tm tm;
+    memset(&tm, 0, sizeof(tm));
+    if (asn1_time_to_tm(&tm, t) == 0)
+        return -1;
+    return OPENSSL_timegm(&tm);
+}
+#endif

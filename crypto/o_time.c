@@ -417,6 +417,19 @@ static void julian_to_date(long jd, int *y, int *m, int *d)
     *y = 100 * (n - 49) + i + L;
 }
 
+#ifndef OPENSSL_NO_AKAMAI
+time_t OPENSSL_timegm(struct tm *tm)
+{
+    /* Figures it out without mucking the environment */
+    long basetime, currtime;
+
+    basetime = date_to_julian(1970, 1, 1);
+    currtime = date_to_julian(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
+
+    return (((currtime - basetime) * 24 + tm->tm_hour) * 60 + tm->tm_min) * 60 + tm->tm_sec;
+}
+#endif
+
 #ifdef OPENSSL_TIME_TEST
 
 # include <stdio.h>
