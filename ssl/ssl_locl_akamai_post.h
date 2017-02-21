@@ -94,7 +94,6 @@ SSL_CTX_SESSION_LIST *SSL_CTX_SESSION_LIST_new(void);
 /* returns number of references, so 0 = freed */
 int SSL_CTX_SESSION_LIST_free(SSL_CTX_SESSION_LIST *l);
 int SSL_CTX_SESSION_LIST_up_ref(SSL_CTX_SESSION_LIST *l);
-
 /* session ticket append data */
 # define APPDATA_MAGIC_NUMBER           "xg1f5s3!"
 # define APPDATA_MAG_BYTES              (sizeof(APPDATA_MAGIC_NUMBER) - 1)
@@ -104,5 +103,7 @@ int SSL_CTX_SESSION_LIST_up_ref(SSL_CTX_SESSION_LIST *l);
 void ssl_akamai_fixup_ciphers(void);
 
 void SSL_CTX_flush_sessions_lock(SSL_CTX *ctx, long tm, int lock);
+
+__owur int ssl_generate_session_id(SSL *s, SSL_SESSION *ss);
 
 #endif /* HEADER_SSL_LOCL_AKAMAI_POST_H */

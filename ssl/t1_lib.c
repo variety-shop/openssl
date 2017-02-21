@@ -2706,14 +2706,23 @@ static int ssl_check_clienthello_tlsext_early(SSL *s)
     /*
      * If we're expecting to send a ticket, and tickets were previously enabled,
      * and now tickets are disabled, then turn off expected ticket.
-     * Also, if this is not a resumption, create a new session that
-     * has a session id.
+     * Also, if this is not a resumption, remove any ticket data
      */
     if (s->tlsext_ticket_expected && was_ticket &&
         (SSL_get_options(s) & SSL_OP_NO_TICKET) != 0) {
         s->tlsext_ticket_expected = 0;
-        if (!s->hit)
-            (void)ssl_get_new_session(s, 1);
+        if (!s->hit && s->session != NULL) {
+            int err;
+            OPENSSL_free(s->session->tlsext_tick);
+            s->session->tlsext_tick = NULL;
+            s->session->tlsext_ticklen = 0;
+            s->session->tlsext_tick_lifetime_hint = 0;
+            if ((err = ssl_generate_session_id(s, s->session)) != 0) {
+                SSLerr(SSL_F_SSL_CHECK_CLIENTHELLO_TLSEXT_EARLY, err);
+                ret = SSL_TLSEXT_ERR_ALERT_FATAL;
+                al = TLS1_AD_INTERNAL_ERROR;
+            }
+        }
     }
 #endif
 
