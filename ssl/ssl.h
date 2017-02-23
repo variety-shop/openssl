@@ -2733,6 +2733,8 @@ void ERR_load_SSL_strings(void);
 # define SSL_F_SSL_ADD_SERVERHELLO_RENEGOTIATE_EXT        299
 # define SSL_F_SSL_ADD_SERVERHELLO_TLSEXT                 278
 # define SSL_F_SSL_ADD_SERVERHELLO_USE_SRTP_EXT           308
+# define SSL_F_SSL_AKAMAI_GET_CLIENT_VERIFY_HASH          4095
+# define SSL_F_SSL_AKAMAI_UPDATE_CLIENT_VERIFY_SIG        4094
 # define SSL_F_SSL_BAD_METHOD                             160
 # define SSL_F_SSL_BUILD_CERT_CHAIN                       332
 # define SSL_F_SSL_BYTES_TO_CIPHER_LIST                   161
