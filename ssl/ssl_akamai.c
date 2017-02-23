@@ -17,6 +17,8 @@
 
 #ifndef OPENSSL_NO_AKAMAI
 # include "ssl_locl.h"
+# include <openssl/md5.h>
+# include <openssl/sha.h>
 
 /* AKAMAI EX_DATA: EXTENSIONS TO THE SSL/SSL_CTX DATA STRUCTURES THAT ARE ABI COMPLIANT */
 static int ssl_ctx_ex_data_akamai_new(void* parent, void* ptr,
@@ -1194,6 +1196,108 @@ void ssl_sync_default_ciphers(void)
     /* clear NOT_DEFAULT from the default ciphers */
     (void)ssl_akamai_fixup_cipher_strength_helper(0, SSL_NOT_DEFAULT, SSL_DEFAULT_CIPHER_LIST);
 }
+
+/* Derived from SSLv3_setup_client_verify_msg() in s3_clnt.c */
+unsigned int SSL_akamai_get_client_verify_hash(SSL *s, unsigned char *buffer, unsigned int buflen)
+{
+    EVP_PKEY *pkey = s->cert->key->privatekey;
+
+    /*
+     * For TLS v1.2 send signature algorithm and signature using agreed
+     * digest and cached handshake records.
+     */
+    if (SSL_USE_SIGALGS(s)) {
+        long hdatalen = 0;
+        void *hdata;
+        EVP_MD_CTX mctx;
+        unsigned int retval = 0;
+        const EVP_MD *md = s->cert->key->digest;
+
+        if (buffer == NULL && buflen == 0)
+            return EVP_MD_size(md);
+
+        EVP_MD_CTX_init(&mctx);
+        if (buflen < EVP_MD_size(md)
+            || (hdatalen = BIO_get_mem_data(s->s3->handshake_buffer, &hdata)) <= 0
+            || !EVP_DigestInit(&mctx, md)
+            || !EVP_DigestUpdate(&mctx, hdata, hdatalen)
+            || !EVP_DigestFinal_ex(&mctx, buffer, &retval)) {
+            SSLerr(SSL_F_SSL_AKAMAI_GET_CLIENT_VERIFY_HASH, ERR_R_INTERNAL_ERROR);
+        }
+        EVP_MD_CTX_cleanup(&mctx);
+        return retval;
+    }
+
+#ifndef OPENSSL_NO_RSA
+    if (pkey->type == EVP_PKEY_RSA) {
+        if (buffer == NULL && buflen == 0)
+            return MD5_DIGEST_LENGTH + SHA_DIGEST_LENGTH;
+        if (buflen < (MD5_DIGEST_LENGTH + SHA_DIGEST_LENGTH)) {
+            SSLerr(SSL_F_SSL_AKAMAI_GET_CLIENT_VERIFY_HASH, ERR_R_INTERNAL_ERROR);
+            return 0;
+        }
+        s->method->ssl3_enc->cert_verify_mac(s, NID_md5, buffer);
+        s->method->ssl3_enc->cert_verify_mac(s, NID_sha1, buffer + MD5_DIGEST_LENGTH);
+        return MD5_DIGEST_LENGTH + SHA_DIGEST_LENGTH;
+    }
+#endif
+#ifndef OPENSSL_NO_ECDSA
+    if (pkey->type == EVP_PKEY_EC) {
+        if (buffer == NULL && buflen == 0)
+            return SHA_DIGEST_LENGTH;
+        if (buflen < SHA_DIGEST_LENGTH) {
+            SSLerr(SSL_F_SSL_AKAMAI_GET_CLIENT_VERIFY_HASH, ERR_R_INTERNAL_ERROR);
+            return 0;
+        }
+        s->method->ssl3_enc->cert_verify_mac(s, NID_sha1, buffer);
+        return SHA_DIGEST_LENGTH;
+    }
+#endif
+    SSLerr(SSL_F_SSL_AKAMAI_GET_CLIENT_VERIFY_HASH, ERR_R_INTERNAL_ERROR);
+    return 0;
+}
+
+/* Derived from SSLv3_setup_client_verify_msg() in s3_clnt.c */
+int SSL_akamai_update_client_verify_sig(SSL *s, unsigned char* buffer, unsigned int buflen)
+{
+    unsigned char *p = ssl_handshake_start(s);
+    EVP_PKEY *pkey = s->cert->key->privatekey;
+    unsigned long n = 0;
+
+    /*
+     * For TLS v1.2, send signature algorithm and signature using agreed
+     * digest and cached handshake records (2 bytes)
+     */
+    if (SSL_USE_SIGALGS(s)) {
+        const EVP_MD *md = s->cert->key->digest;
+        if (!tls12_get_sigandhash(p, pkey, md)) {
+            SSLerr(SSL_F_SSL_AKAMAI_UPDATE_CLIENT_VERIFY_SIG, ERR_R_INTERNAL_ERROR);
+            return 0;
+        }
+        p += 2;
+        n += 2;
+    }
+
+    /* 
+     * Copy in length and signature (2 bytes).  s2n() adds 2 to p, so
+     * we don't need to add anything else to it before writing the
+     * contents of "buffer" to the handshake data.
+     */
+    s2n(buflen, p);
+    memcpy(p, buffer, buflen);
+    n += buflen + 2;
+
+    if (SSL_USE_SIGALGS(s)) {
+        if (!ssl3_digest_cached_records(s)) {
+            SSLerr(SSL_F_SSL_AKAMAI_UPDATE_CLIENT_VERIFY_SIG, ERR_R_INTERNAL_ERROR);
+            return 0;
+        }
+    }
+
+    ssl_set_handshake_header(s, SSL3_MT_CERTIFICATE_VERIFY, n);
+    return 1;
+}
+
 
 #else /* OPENSSL_NO_AKAMAI */
 
