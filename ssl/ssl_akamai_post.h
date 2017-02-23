@@ -246,6 +246,12 @@ int SSL_CTX_use_cert_and_key(SSL_CTX *ctx, X509 *x509, EVP_PKEY *privatekey,
 int SSL_akamai_fixup_cipher_strength_bits(int bits, const char* ciphers);
 int SSL_akamai_fixup_cipher_strength(const char* level, const char* ciphers);
 
+/* Helper functions for SSL_EVENT_SETUP_CERT_VRFY_DONE */
+/* returns length of the hash that is put into buffer, 0 on error */
+unsigned int SSL_akamai_get_client_verify_hash(SSL *s, unsigned char *buffer, unsigned int buflen);
+/* returns 1 on success, 0 on failure */
+int SSL_akamai_update_client_verify_sig(SSL *s, unsigned char* buffer, unsigned int buflen);
+
 # ifdef  __cplusplus
 }
 # endif
