@@ -712,16 +712,16 @@ ssl_akamai.o: ../include/openssl/e_os2.h ../include/openssl/ec.h
 ssl_akamai.o: ../include/openssl/ecdh.h ../include/openssl/ecdsa.h
 ssl_akamai.o: ../include/openssl/err.h ../include/openssl/evp.h
 ssl_akamai.o: ../include/openssl/hmac.h ../include/openssl/kssl.h
-ssl_akamai.o: ../include/openssl/lhash.h ../include/openssl/obj_mac.h
-ssl_akamai.o: ../include/openssl/objects.h ../include/openssl/opensslconf.h
-ssl_akamai.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
-ssl_akamai.o: ../include/openssl/pem.h ../include/openssl/pem2.h
-ssl_akamai.o: ../include/openssl/pkcs7.h ../include/openssl/pqueue.h
-ssl_akamai.o: ../include/openssl/rsa.h ../include/openssl/safestack.h
-ssl_akamai.o: ../include/openssl/sha.h ../include/openssl/srtp.h
-ssl_akamai.o: ../include/openssl/ssl.h ../include/openssl/ssl2.h
-ssl_akamai.o: ../include/openssl/ssl23.h ../include/openssl/ssl3.h
-ssl_akamai.o: ../include/openssl/ssl_akamai_post.h
+ssl_akamai.o: ../include/openssl/lhash.h ../include/openssl/md5.h
+ssl_akamai.o: ../include/openssl/obj_mac.h ../include/openssl/objects.h
+ssl_akamai.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
+ssl_akamai.o: ../include/openssl/ossl_typ.h ../include/openssl/pem.h
+ssl_akamai.o: ../include/openssl/pem2.h ../include/openssl/pkcs7.h
+ssl_akamai.o: ../include/openssl/pqueue.h ../include/openssl/rsa.h
+ssl_akamai.o: ../include/openssl/safestack.h ../include/openssl/sha.h
+ssl_akamai.o: ../include/openssl/srtp.h ../include/openssl/ssl.h
+ssl_akamai.o: ../include/openssl/ssl2.h ../include/openssl/ssl23.h
+ssl_akamai.o: ../include/openssl/ssl3.h ../include/openssl/ssl_akamai_post.h
 ssl_akamai.o: ../include/openssl/ssl_akamai_pre.h ../include/openssl/stack.h
 ssl_akamai.o: ../include/openssl/symhacks.h ../include/openssl/tls1.h
 ssl_akamai.o: ../include/openssl/x509.h ../include/openssl/x509_vfy.h
