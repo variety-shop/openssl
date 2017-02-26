@@ -4214,7 +4214,6 @@ X509_VERIFY_PARAM_set_inh_flags         4174	1_1_0d	EXIST::FUNCTION:
 X509_VERIFY_PARAM_get_inh_flags         4175	1_1_0d	EXIST::FUNCTION:
 X509_VERIFY_PARAM_get_time              4181	1_1_0d	EXIST::FUNCTION:
 DH_check_params                         4183	1_1_0d	EXIST::FUNCTION:DH
-ASN1_UTCTIME_get                        10000	1_1_0a	EXIST::FUNCTION:AKAMAI
 X509_LOOKUP_mem                         10001	1_1_0a	EXIST::FUNCTION:AKAMAI
 X509_STORE_load_mem                     10002	1_1_0a	EXIST::FUNCTION:AKAMAI
 PEM_bytes_read_bio_secmem               10003	1_1_0a	EXIST::FUNCTION:AKAMAI
@@ -4225,3 +4224,6 @@ AKAMAI_prf                              10007	1_1_0c	EXIST::FUNCTION:AKAMAI
 AKAMAI_algorithm2_to_md                 10008	1_1_0c	EXIST::FUNCTION:AKAMAI
 AKAMAI_rsalg_hash                       10009	1_1_0c	EXIST::FUNCTION:AKAMAI
 X509_STORE_CTX_akamai_set0_store        10010	1_1_0c	EXIST::FUNCTION:
+ASN1_TIME_akamai_cmp_time_t             10011	1_1_0e	EXIST::FUNCTION:AKAMAI
+ASN1_TIME_akamai_get                    10012	1_1_0e	EXIST::FUNCTION:AKAMAI
+OPENSSL_akamai_timegm                   10013	1_1_0e	EXIST::FUNCTION:AKAMAI
