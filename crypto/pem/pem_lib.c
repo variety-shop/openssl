@@ -1041,6 +1041,11 @@ static int get_header_and_data(BIO *bp, BIO **header, BIO **data, char *name,
 
         /* Check for end of header. */
         if (linebuf[0] == '\n') {
+            if (found_header) {
+                /* Another blank line is an error. */
+                PEMerr(PEM_F_PEM_READ_BIO, PEM_R_BAD_END_LINE);
+                goto err;
+            }
             found_header = 1;
             tmp = *data;
             continue;
