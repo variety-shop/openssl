@@ -420,26 +420,46 @@ ifndef quote-sh
 quote-sh=$(squote)$(subst $(squote),$(squote)$(dquote)$(squote)$(dquote)$(squote),$1)$(squote)
 endif
 
-ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
+ifndef include-if-exist
+include-if-exist=$(eval -include $1)
+endif
+
 ifdef IN_AKAMAKE
 ifndef ATTR_ONLY
 
+ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
+
 # The headers are determined by the output of the configure step. This rule
-# creates a makefile with the list of headers, which causes make to
-# (eventually) restart so we can have a properly-populated $P/HEADERS. Because
-# the configure prerequisite is order-only, make will restart only if
-# akamake-headers.mak didn't exist previously, even if configure is re-run. As
-# a result, adding headers without cleaning will result in new headers not
-# being installed.
+# creates a makefile with the list of headers, which in combination with the
+# $P/headers-defined target causes make to (eventually) restart so we can
+# have a properly-populated $P/HEADERS. Because the configure prerequisite is
+# order-only, make will restart only if akamake-headers.mak didn't exist
+# previously, even if configure is re-run. As a result, adding headers
+# without cleaning will result in new headers not being installed.
 .DELETE_ON_ERROR: $P/akamake-headers.mak
 $P/akamake-headers.mak: | $P/configure.ts
-	echo $(call quote-sh,$$P/HEADERS := $(patsubst $P/$($P/HEADERS-LOCAL-DIRECTORY)/%,%,$(shell echo $P/$($P/HEADERS-LOCAL-DIRECTORY)/*.h))) >$@
+	echo $(call quote-sh,$$P/HEADERS := $(patsubst $P/$($P/HEADERS-LOCAL-DIRECTORY)/%,%,$(shell find $(call quote-sh,$P/$($P/HEADERS-LOCAL-DIRECTORY)) -name '*.h'))) >$@
+	echo $(call quote-sh,$$P/HEADERS-MAKEFILE-LOADED := 1) >>$@
 
-include $P/akamake-headers.mak
+endif # ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
+
+$(call include-if-exist,$P/akamake-headers.mak)
+
+ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
+
+ifneq ($($P/HEADERS-MAKEFILE-LOADED),)
+# Only define this target once the above makefile has been generated, which
+# gates everything that uses openssl on that happening.
+$P/headers-defined:
+endif
+
+$(call headers-installed,$C): | $P/headers-defined
+$P/component-configure: | $P/headers-defined
+
+endif # ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 
 endif # ifndef ATTR_ONLY
 endif # ifdef IN_AKAMAKE
-endif # ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 
 #********************************************************************
 #**** Section 4:  Prerequisites (dependencies)
@@ -699,7 +719,7 @@ $P/akamake-dynamic-build-deps.mak:
 
 ifdef IN_AKAMAKE
 ifndef ATTR_ONLY
-include $P/akamake-dynamic-build-deps.mak
+$(call include-if-exist,$P/akamake-dynamic-build-deps.mak)
 endif # ifndef ATTR_ONLY
 endif # ifdef IN_AKAMAKE
 
