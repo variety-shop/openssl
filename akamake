@@ -454,6 +454,8 @@ $P/SRC :=
 
 #$(warning FIPSBUILD is '$(FIPSBUILD)')
 ifdef FIPSBUILD
+# Include fipscanister build variables.
+-include $(call get-component-path,fipscanister)/enable_fips_with_akamai_openssl.mk
 $P/DEP-COMPS := $($P/DEP-COMPS) fipscanister
 $P/NOSHARED := $($P/NOSHARED) fips
 endif
@@ -565,41 +567,22 @@ ifdef FIPSBUILD
 #### fipscanister has all the modules precompiled due to compliance reasons, so we'll have to specify which one ####
 #### we'll want to use here, this is the same environment detection used in the fipscanister akamake ####
 
-# XXX: First version is the "ALSI" version, right?
-$P/ALSI_VERSION := $(shell grep AKARELEASE_VERSION /etc/akamai-release | cut -d '=' -f 2 | head -c1)
+# [jhorsfal 03/09/2017] Updates for GCDS, Removed OS selection code, this should all come from fipscanister variables.
 
-OSTYPE := alsi-invalid
+# OS Specific FIPS lib directory
+$P/FIPS_LIBDIR = $($(call get-component-path,fipscanister)/FIPS_LIBDIR)
+# OS Specific FIPS root
+$P/CURRENT_OS_FIPS_DIR = $($(call get-component-path,fipscanister)/FIPSDIR)
+# FIPS Linker
+$P/FIPSLD = $($(call get-component-path,fipscanister)/FIPSLD)
+# FIPS build target
+$P/FIPS_BUILD_TARGET = $(call get-component-path,fipscanister)/akamake.auto_os.ts
+# Assert minnimum fips version
+$(call assert_min_version,fipscanister,2.0.13)
 
-# We are not supporting alsi6-64
-ifeq ($($P/ALSI_VERSION),6)
+$P/% : FIPSFLAGS = fips --with-fipsdir=$($P/CURRENT_OS_FIPS_DIR) --with-fipslibdir=$($P/FIPS_LIBDIR)
 
-OSTYPE := alsi6
-ARCH := i386
-
-else # ifeq ($($P/ALSI_VERSION),6)
-
-# This version of openssl does not support <alsi6 so this means 7 or newer
-
-ifeq ($(SYSTEM),i686)
-OSTYPE := alsi$($P/ALSI_VERSION)-32
-ARCH := i386
-# XXX: OpenSSL cleans out the CFLAGS environment variable at build time.  This is a good enough hack...
-CC="gcc -m32"
-endif
-ifeq ($(SYSTEM),x86_64)
-OSTYPE := alsi$($P/ALSI_VERSION)
-ARCH := x86_64
-endif
-
-endif # ifeq ($($P/ALSI_VERSION),6)
-
-FIPS_LIBDIR=$P/module/$(OSTYPE)
-#### end fipscanister code ####
-
-# [fshotton 07/01/2010] if FIPSBUILD is defined by Ghost akamake-defs.mak
-# then we build with FIPS support
-$P/% : FIPSFLAGS = fips --with-fipsdir=$P/../fipscanister/module/$(OSTYPE)/ --with-fipslibdir=$P/../fipscanister/module/$(OSTYPE)/lib/
-$P/buildenv.FIPS:
+$P/buildenv.FIPS: $($P/FIPS_BUILD_TARGET)
 	echo "FIPS build enabled" > $P/buildenv.FIPS
 else # ifdef FIPSBUILD
 $P/% : FIPSFLAGS =
@@ -629,7 +612,7 @@ $P/Makefile.org: $P/config $P/Configure
 $P/OPENSSL-CC = CC="$(CC)"
 ifdef FIPSBUILD
 # FIPS requires their own linker to build correctly so we're doing that here - sverasch 7/24/14
-$P/OPENSSL-CC = CC="$(COMMON)/bin/fipsld" FIPSLD_CC="$(CC)"
+$P/OPENSSL-CC = CC="$($P/FIPSLD)" FIPSLD_CC="$(CC)"
 endif
 
 # Next line intentional "=" - krose, 12/10/2001
