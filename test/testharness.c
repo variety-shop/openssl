@@ -295,7 +295,7 @@ typedef struct {
     long to_write;
 } Connection;
 
-static int setup_client(TestContext *tctx, SSL *ssl, BIO* read, BIO *write, Connection *client)
+static int setup_client(TestContext *tctx, SSL *ssl, BIO* read_bio, BIO *write_bio, Connection *client)
 {
     memset(client, 0, sizeof(Connection));
     client->bio = BIO_new(BIO_f_ssl());
@@ -305,7 +305,7 @@ static int setup_client(TestContext *tctx, SSL *ssl, BIO* read, BIO *write, Conn
     }
 
     SSL_set_connect_state(ssl);
-    SSL_set_bio(ssl, read, write);
+    SSL_set_bio(ssl, read_bio, write_bio);
     BIO_set_ssl(client->bio, ssl, BIO_NOCLOSE);
 
     client->t = tctx;
@@ -316,7 +316,7 @@ static int setup_client(TestContext *tctx, SSL *ssl, BIO* read, BIO *write, Conn
     return (1);
 }
 
-static int setup_server(TestContext *tctx, SSL *ssl, BIO* read, BIO *write, Connection *server)
+static int setup_server(TestContext *tctx, SSL *ssl, BIO* read_bio, BIO *write_bio, Connection *server)
 {
     memset(server, 0, sizeof(Connection));
     server->bio = BIO_new(BIO_f_ssl());
@@ -326,7 +326,7 @@ static int setup_server(TestContext *tctx, SSL *ssl, BIO* read, BIO *write, Conn
     }
 
     SSL_set_accept_state(ssl);
-    SSL_set_bio(ssl, read, write);
+    SSL_set_bio(ssl, read_bio, write_bio);
     BIO_set_ssl(server->bio, ssl, BIO_NOCLOSE);
 
     server->t = tctx;
