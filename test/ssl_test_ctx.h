@@ -55,7 +55,7 @@ typedef enum {
 typedef enum {
     SSL_TEST_SESSION_ID_IGNORE = 0, /* Default */
     SSL_TEST_SESSION_ID_YES,
-    SSL_TEST_SESSION_ID_NO,
+    SSL_TEST_SESSION_ID_NO
 } ssl_session_id_t;
 #endif
 
@@ -176,7 +176,7 @@ typedef struct {
     int expected_tmp_key_type;
 #ifndef OPENSSL_NO_AKAMAI
     /* Whether to expect a session id from the server */
-    int session_id_expected;
+    ssl_session_id_t session_id_expected;
 #endif
 } SSL_TEST_CTX;
 
