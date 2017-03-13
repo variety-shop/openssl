@@ -100,8 +100,10 @@ static void init_memory_stats(void)
 
     for (i = 0; ex_data_stats[i].data.name != NULL; i++) {
         ex_data_stats[i].lock = CRYPTO_THREAD_lock_new();
-        (void)CRYPTO_get_ex_new_index(ex_data_stats[i].idx, i, &ex_data_stats[i],
-                                      ex_data_stats_new, NULL, ex_data_stats_free);
+        if (CRYPTO_get_ex_new_index(ex_data_stats[i].idx, i, &ex_data_stats[i],
+                                    ex_data_stats_new, NULL, ex_data_stats_free)
+            < 0)
+            ;   /* cast-to-void fails to appease gcc, but empty-statement does. */
     }
 }
 
