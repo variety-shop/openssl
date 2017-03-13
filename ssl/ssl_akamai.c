@@ -1210,7 +1210,6 @@ unsigned int SSL_akamai_get_client_verify_hash(SSL *s, unsigned char *buffer, un
         long hdatalen = 0;
         void *hdata;
         EVP_MD_CTX mctx;
-        unsigned char sighash[2];
         unsigned int retval = 0;
         const EVP_MD *md = s->cert->key->digest;
 
@@ -1220,7 +1219,6 @@ unsigned int SSL_akamai_get_client_verify_hash(SSL *s, unsigned char *buffer, un
         EVP_MD_CTX_init(&mctx);
         if (buflen < EVP_MD_size(md)
             || (hdatalen = BIO_get_mem_data(s->s3->handshake_buffer, &hdata)) <= 0
-            || !tls12_get_sigandhash(sighash, pkey, md)
             || !EVP_DigestInit(&mctx, md)
             || !EVP_DigestUpdate(&mctx, hdata, hdatalen)
             || !EVP_DigestFinal_ex(&mctx, buffer, &retval)) {
@@ -1267,8 +1265,8 @@ int SSL_akamai_update_client_verify_sig(SSL *s, unsigned char* buffer, unsigned 
     unsigned long n = 0;
 
     /*
-     * For TLS v1.2 send signature algorithm and signature using agreed
-     * digest and cached handshake records.
+     * For TLS v1.2, send signature algorithm and signature using agreed
+     * digest and cached handshake records (2 bytes)
      */
     if (SSL_USE_SIGALGS(s)) {
         const EVP_MD *md = s->cert->key->digest;
@@ -1280,9 +1278,12 @@ int SSL_akamai_update_client_verify_sig(SSL *s, unsigned char* buffer, unsigned 
         n += 2;
     }
 
-    /* copy in length and signature */
+    /* 
+     * Copy in length and signature (2 bytes).  s2n() adds 2 to p, so
+     * we don't need to add anything else to it before writing the
+     * contents of "buffer" to the handshake data.
+     */
     s2n(buflen, p);
-    p += 2;
     memcpy(p, buffer, buflen);
     n += buflen + 2;
 
