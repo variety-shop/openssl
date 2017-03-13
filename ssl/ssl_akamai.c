@@ -1287,9 +1287,10 @@ int SSL_akamai_update_client_verify_sig(SSL *s, unsigned char* buffer, unsigned 
     n += buflen + 2;
 
     if (SSL_USE_SIGALGS(s)) {
-        if (!ssl3_digest_cached_records(s))
+        if (!ssl3_digest_cached_records(s)) {
             SSLerr(SSL_F_SSL_AKAMAI_UPDATE_CLIENT_VERIFY_SIG, ERR_R_INTERNAL_ERROR);
             return 0;
+        }
     }
 
     ssl_set_handshake_header(s, SSL3_MT_CERTIFICATE_VERIFY, n);
