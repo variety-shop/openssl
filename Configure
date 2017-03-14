@@ -149,7 +149,7 @@ my $clang_devteam_warn = ""
 # when crypto-mdebug-backtrace is enabled.
 my $memleak_devteam_backtrace = "-rdynamic";
 
-my $strict_warnings = 0;
+my $strict_warnings = 1;
 
 # As for $BSDthreads. Idea is to maintain "collective" set of flags,
 # which would cover all BSD flavors. -pthread applies to them all,
