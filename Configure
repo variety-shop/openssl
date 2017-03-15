@@ -1005,6 +1005,9 @@ my %target = resolve_config($target);
 
 &usage if (!%target || $target{template});
 
+# Akamai osx-10.6 has an ancient compiler that doesn't grok -Wtype-limits
+$strict_warnings = 0 if ($config{target} =~ /akamai-darwin/);
+
 my %conf_files = map { $_ => 1 } (@{$target{_conf_fname_int}});
 $config{conf_files} = [ sort keys %conf_files ];
 %target = ( %{$table{DEFAULTS}}, %target );

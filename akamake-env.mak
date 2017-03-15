@@ -38,9 +38,9 @@ else # ifdef AKAMAKE-ALSI9-BUILD/AKAMAKE-ALSI9-LITE-BUILD
 ifdef AKAMAKE-DARWIN-BUILD
 
 ifeq ($(KERNEL_BITS),64)
-$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) darwin64-x86_64-cc
+$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-darwin64-x86_64-cc
 else # ifeq ($(KERNEL_BITS),64)
-$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) darwin-i386-cc
+$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-darwin-i386-cc
 endif # ifeq ($(KERNEL_BITS),64)
 
 else # ifdef AKAMAKE-DARWIN-BUILD
