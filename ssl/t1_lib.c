@@ -3059,6 +3059,25 @@ int tls_get_ticket_from_client(SSL *s, CLIENTHELLO_MSG *hello,
 
     retv = tls_decrypt_ticket(s, etick, size, hello->session_id,
                            hello->session_id_len, ret);
+#ifndef OPENSSL_NO_AKAMAI_CB
+    {
+        SSL_AKAMAI_CB_DATA akamai_cb_data;
+        SSL_AKAMAI_CB akamai_cb = SSL_get_akamai_cb(s);
+        if (akamai_cb != NULL) {
+            int r;
+            memset(&akamai_cb_data, 0, sizeof(akamai_cb_data));
+            akamai_cb_data.retval = retv;
+            akamai_cb_data.src[0] = (void*)etick;
+            akamai_cb_data.src_len[0] = TLSEXT_KEYNAME_LENGTH;
+            akamai_cb_data.sess = *ret;
+            r = akamai_cb(s, SSL_AKAMAI_CB_DECRYPTED_TICKET, &akamai_cb_data);
+            if (r == 1)
+                retv = (int)akamai_cb_data.retval;
+            else if (r == -1)
+                return -1;
+        }
+    }
+#endif
     switch (retv) {
     case 2:            /* ticket couldn't be decrypted */
         s->tlsext_ticket_expected = 1;

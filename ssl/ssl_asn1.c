@@ -64,6 +64,9 @@ typedef struct {
     ASN1_OCTET_STRING *srp_username;
 #endif
     uint64_t flags;
+#ifndef OPENSSL_NO_AKAMAI_CB
+    ASN1_OCTET_STRING *akamai_appdata;
+#endif
 } SSL_SESSION_ASN1;
 
 ASN1_SEQUENCE(SSL_SESSION_ASN1) = {
@@ -90,6 +93,9 @@ ASN1_SEQUENCE(SSL_SESSION_ASN1) = {
     ASN1_EXP_OPT(SSL_SESSION_ASN1, srp_username, ASN1_OCTET_STRING, 12),
 #endif
     ASN1_EXP_OPT_EMBED(SSL_SESSION_ASN1, flags, ZUINT64, 13)
+#ifndef OPENSSL_NO_AKAMAI_CB
+    ,ASN1_EXP_OPT(SSL_SESSION_ASN1, akamai_appdata, ASN1_OCTET_STRING, 99)
+#endif
 } static_ASN1_SEQUENCE_END(SSL_SESSION_ASN1)
 
 IMPLEMENT_STATIC_ASN1_ENCODE_FUNCTIONS(SSL_SESSION_ASN1)
@@ -200,6 +206,18 @@ int i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp)
 #endif                          /* OPENSSL_NO_SRP */
 
     as.flags = in->flags;
+
+#ifndef OPENSSL_NO_AKAMAI_CB
+    if (SSL_SESSION_get_ex_data_akamai(in) != NULL) {
+        as.akamai_appdata = SSL_SESSION_get_ex_data_akamai(in)->ticket_appdata;
+        if (as.akamai_appdata == NULL ||
+            ASN1_STRING_length(as.akamai_appdata) == 0 ||
+            ASN1_STRING_get0_data(as.akamai_appdata) == NULL)
+            as.akamai_appdata = NULL;
+    } else {
+        as.akamai_appdata = NULL;
+    }
+#endif
 
     return i2d_SSL_SESSION_ASN1(&as, pp);
 
@@ -351,6 +369,15 @@ SSL_SESSION *d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
 #endif                          /* OPENSSL_NO_SRP */
     /* Flags defaults to zero which is fine */
     ret->flags = as->flags;
+
+#ifndef OPENSSL_NO_AKAMAI_CB
+    if (as->akamai_appdata != NULL) {
+        SSL_SESSION_EX_DATA_AKAMAI* ex_data = SSL_SESSION_get_ex_data_akamai(ret);
+        ex_data->ticket_appdata = ASN1_OCTET_STRING_dup(as->akamai_appdata);
+        if (ex_data->ticket_appdata == NULL)
+            goto err;
+    }
+#endif
 
     M_ASN1_free_of(as, SSL_SESSION_ASN1);
 
