@@ -89,19 +89,11 @@ void SSL_CTX_set1_cert_store(SSL_CTX *, X509_STORE *);
 /* The int argument is 1 for read buffers, 0 for write buffers */
 void SSL_set_buffer_mem_functions(void* (*m)(int, size_t), void(*f)(int, size_t, void*));
 
-typedef int (*tlsext_ticket_appdata_size_cb_fn) (SSL *s, void *arg);
-typedef int (*tlsext_ticket_appdata_append_cb_fn) (SSL *s,
-                                                   unsigned char* data_ptr,
-                                                   int limit_size, void *arg);
-typedef int (*tlsext_ticket_appdata_parse_cb_fn) (SSL *s,
-                                                  const unsigned char* data_ptr,
-                                                  int size, void *arg);
-
-void SSL_CTX_tlsext_ticket_appdata_cbs(SSL_CTX *ctx,
-                                       tlsext_ticket_appdata_size_cb_fn size_cb,
-                                       tlsext_ticket_appdata_append_cb_fn append_cb,
-                                       tlsext_ticket_appdata_parse_cb_fn parse_cb,
-                                       void *arg);
+/* session (ticket) app data */
+/* makes a copy of |data| */
+int SSL_SESSION_akamai_set1_ticket_appdata(SSL_SESSION *ss, const void *data, int len);
+/* copies into |data|, |len| == 0 returns the length without copy, otherwise, returns data length copied actually copied up to |len|, 0 return means no data or error (i.e. |data| == NULL) */
+int SSL_SESSION_akamai_get_ticket_appdata(SSL_SESSION *ss, void *data, int len);
 
 #  ifndef OPENSSL_NO_AKAMAI_CLIENT_CACHE
 /* Support for client cache */
@@ -193,6 +185,8 @@ typedef struct ssl_akamai_cb_data_st SSL_AKAMAI_CB_DATA;
 typedef int (*SSL_AKAMAI_CB)(SSL*, int event, SSL_AKAMAI_CB_DATA* data);
 void SSL_set_akamai_cb(SSL *ssl, SSL_AKAMAI_CB cb);
 __owur SSL_AKAMAI_CB SSL_get_akamai_cb(SSL *ssl);
+void SSL_CTX_set_akamai_cb(SSL_CTX *ctx, SSL_AKAMAI_CB cb);
+__owur SSL_AKAMAI_CB SSL_CTX_get_akamai_cb(SSL_CTX *ctx);
 
 /* Akamai Callback Events - Private Key Operations */
 /* DOES NOT SUPPORT GOST! */
@@ -205,6 +199,10 @@ __owur SSL_AKAMAI_CB SSL_get_akamai_cb(SSL *ssl);
 #   define SSL_AKAMAI_CB_SERVER_SIGN_KX           3
 /* generate the master secret */
 #   define SSL_AKAMAI_CB_SERVER_MASTER_SECRET     4
+/* about to send a session ticket */
+#   define SSL_AKAMAI_CB_GENERATE_TICKET          5
+/* just decoded a session ticket */
+#   define SSL_AKAMAI_CB_DECRYPTED_TICKET         6
 
 #  endif /* OPENSSL_NO_AKAMAI_CB */
 

@@ -41,18 +41,15 @@ struct ssl_ctx_ex_data_akamai_st
     /* session list sharing */
     struct ssl_ctx_session_list_st *session_list;
 
-    /* Callbacks to support appending data after session ticket */
-    tlsext_ticket_appdata_size_cb_fn tlsext_ticket_appdata_size_cb;
-    tlsext_ticket_appdata_append_cb_fn tlsext_ticket_appdata_append_cb;
-    tlsext_ticket_appdata_parse_cb_fn tlsext_ticket_appdata_parse_cb;
-    void *tlsext_ticket_appdata_arg;
-
     /* count of preferred ciphers */
     int akamai_cipher_count;
 
 # ifndef OPENSSL_NO_SECURE_HEAP
     unsigned char *tlsext_tick_hmac_key; /* points to alloc memory */
     unsigned char *tlsext_tick_aes_key; /* points into alloc memory */
+# endif
+# ifndef OPENSSL_NO_AKAMAI_CB
+    SSL_AKAMAI_CB akamai_cb;
 # endif
 };
 
@@ -86,22 +83,26 @@ struct ssl_ex_data_akamai_st
 # endif
 };
 
+typedef struct ssl_session_ex_data_akamai_st SSL_SESSION_EX_DATA_AKAMAI;
+
+struct ssl_session_ex_data_akamai_st
+{
+    ASN1_OCTET_STRING *ticket_appdata;
+};
+
 /* Used to initialize and get the akamai EX_DATA structures in one fell swoop */
 int SSL_CTX_get_ex_data_akamai_idx(void);
 SSL_CTX_EX_DATA_AKAMAI *SSL_CTX_get_ex_data_akamai(SSL_CTX* ctx);
 int SSL_get_ex_data_akamai_idx(void);
 SSL_EX_DATA_AKAMAI *SSL_get_ex_data_akamai(SSL* s);
+int SSL_SESSION_get_ex_data_akamai_idx(void);
+SSL_SESSION_EX_DATA_AKAMAI *SSL_SESSION_get_ex_data_akamai(SSL_SESSION* s);
 
 SSL_CTX_SESSION_LIST *SSL_CTX_get0_session_list(SSL_CTX* ctx);
 SSL_CTX_SESSION_LIST *SSL_CTX_SESSION_LIST_new(void);
 /* returns number of references, so 0 = freed */
 int SSL_CTX_SESSION_LIST_free(SSL_CTX_SESSION_LIST *l);
 int SSL_CTX_SESSION_LIST_up_ref(SSL_CTX_SESSION_LIST *l);
-/* session ticket append data */
-# define APPDATA_MAGIC_NUMBER           "xg1f5s3!"
-# define APPDATA_MAG_BYTES              (sizeof(APPDATA_MAGIC_NUMBER) - 1)
-# define APPDATA_LENGTH_BYTES           2
-# define APPDATA_MAG_LEN_BYTES          (APPDATA_MAG_BYTES + APPDATA_LENGTH_BYTES)
 
 void ssl_akamai_fixup_ciphers(void);
 

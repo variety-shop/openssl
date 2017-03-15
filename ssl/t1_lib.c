@@ -2981,6 +2981,10 @@ int tls_get_ticket_from_client(SSL *s, CLIENTHELLO_MSG *hello,
     const unsigned char *etick;
     size_t size;
     RAW_EXTENSION *ticketext;
+#ifndef OPENSSL_NO_AKAMAI_CB
+    SSL_AKAMAI_CB_DATA akamai_cb_data;
+    SSL_AKAMAI_CB akamai_cb = SSL_get_akamai_cb(s);
+#endif
 
     *ret = NULL;
     s->tlsext_ticket_expected = 0;
@@ -3020,39 +3024,22 @@ int tls_get_ticket_from_client(SSL *s, CLIENTHELLO_MSG *hello,
         /* Shouldn't ever happen */
         return -1;
     }
-
-#ifndef OPENSSL_NO_AKAMAI
-            /*
-             * etick points to the beginning of the data,
-             * size is length of entire ticket data.
-             * check if the last 8 bytes is the magic number.
-             */
-            if (size > APPDATA_MAG_LEN_BYTES) {
-                SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(s->session_ctx);
-                const unsigned char *app_ptr = etick + size - APPDATA_MAG_LEN_BYTES;
-                unsigned short app_size = 0;
-                void *arg = ex_data->tlsext_ticket_appdata_arg;
-                n2s(app_ptr, app_size);
-                if (memcmp(app_ptr, APPDATA_MAGIC_NUMBER, APPDATA_MAG_BYTES) == 0
-                    && app_size < (size - APPDATA_MAG_LEN_BYTES)) {
-                    app_ptr -= (app_size + APPDATA_LENGTH_BYTES);
-                    size -= (app_size + APPDATA_MAG_LEN_BYTES);
-                    if (ex_data->tlsext_ticket_appdata_parse_cb != NULL) {
-                        retv = ex_data->tlsext_ticket_appdata_parse_cb(s, app_ptr,
-                                                                       app_size, arg);
-                        if (retv == -3)  /* fatal error */
-                            return -1;
-                        if (retv == -2) { /* drop ticket */
-                            s->tlsext_ticket_expected = 1;
-                            return 2;
-                        }
-                    }
-                }
-            }
-#endif
-
     retv = tls_decrypt_ticket(s, etick, size, hello->session_id,
                            hello->session_id_len, ret);
+#ifndef OPENSSL_NO_AKAMAI_CB
+    if (akamai_cb != NULL) {
+        int r;
+        memset(&akamai_cb_data, 0, sizeof(akamai_cb_data));
+        akamai_cb_data.retval = retv;
+        akamai_cb_data.src[0] = (void*)etick;
+        akamai_cb_data.src_len[0] = TLSEXT_KEYNAME_LENGTH;
+        r = akamai_cb(s, SSL_AKAMAI_CB_DECRYPTED_TICKET, &akamai_cb_data);
+        if (r == 1)
+            retv = (int)akamai_cb_data.retval;
+        else if (r == -1)
+            return -1;
+    }
+#endif
     switch (retv) {
     case 2:            /* ticket couldn't be decrypted */
         s->tlsext_ticket_expected = 1;

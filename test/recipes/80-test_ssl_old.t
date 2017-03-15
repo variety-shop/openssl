@@ -587,10 +587,10 @@ sub testssl {
 
     subtest 'ticket resuse tests' => sub {
 	######################################################################
-	plan tests => 14;
+	plan tests => 10;
 
       SKIP: {
-	  skip "TLSv1 is not supported by this OpenSSL build", 14
+	  skip "TLSv1 is not supported by this OpenSSL build", 10
 	      if disabled("tls1");
 	  my @testextra = ("-bio_pair", "-tls1", "-reuse", "-num", "4");
 
@@ -600,8 +600,6 @@ sub testssl {
 	  ok(run(test([@ssltest, "-ticket-appdata", "1", @testextra])), 'reuse with tickets - 1');
 	  ok(run(test([@ssltest, "-ticket-appdata", "2", @testextra])), 'reuse with tickets - 2');
 	  ok(run(test([@ssltest, "-ticket-appdata", "3", @testextra])), 'reuse with tickets - 3');
-	  ok(run(test([@ssltest, "-ticket-appdata", "4", @testextra])), 'reuse with tickets - 4');
-	  ok(run(test([@ssltest, "-ticket-appdata", "5", @testextra])), 'reuse with tickets - 5');
 
 	  @testextra = ("-bio_pair", "-tls1", "-num", "4");
 
@@ -611,8 +609,6 @@ sub testssl {
 	  ok(run(test([@ssltest, "-ticket-appdata", "1", @testextra])), 'no reuse with tickets - 1');
 	  ok(run(test([@ssltest, "-ticket-appdata", "2", @testextra])), 'no reuse with tickets - 2');
 	  ok(run(test([@ssltest, "-ticket-appdata", "3", @testextra])), 'no reuse with tickets - 3');
-	  ok(run(test([@ssltest, "-ticket-appdata", "4", @testextra])), 'no reuse with tickets - 4');
-	  ok(run(test([@ssltest, "-ticket-appdata", "5", @testextra])), 'no reuse with tickets - 5');
 	}
     };
 }

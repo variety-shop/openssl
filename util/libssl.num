@@ -420,7 +420,7 @@ SSL_set_cert_verify_callback            10011	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_SESSION_set_verify_result           10012	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_CTX_set1_cert_store                 10013	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_set_buffer_mem_functions            10014	1_1_0	EXIST::FUNCTION:AKAMAI
-SSL_CTX_tlsext_ticket_appdata_cbs       10015	1_1_0	EXIST::FUNCTION:AKAMAI
+SSL_CTX_tlsext_ticket_appdata_cbs       10015	1_1_0	NOEXIST::FUNCTION:
 SSL_get_remote_addr                     10016	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_CLIENT_CACHE
 SSL_SESSION_set_timeout_update_cache    10017	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_CLIENT_CACHE
 SSL_set_remote_addr_ex                  10018	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_CLIENT_CACHE
@@ -486,3 +486,7 @@ SSL_early_get0_ext                      10077	1_1_0e	EXIST::FUNCTION:AKAMAI
 SSL_early_get0_ciphers                  10078	1_1_0e	EXIST::FUNCTION:AKAMAI
 SSL_rsalg_get_server_random             10079	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
 SSL_akamai_get_prf                      10080	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
+SSL_SESSION_akamai_get_ticket_appdata   10081	1_1_0e	EXIST::FUNCTION:AKAMAI
+SSL_SESSION_akamai_set1_ticket_appdata  10082	1_1_0e	EXIST::FUNCTION:AKAMAI
+SSL_CTX_get_akamai_cb                   10083	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_CB
+SSL_CTX_set_akamai_cb                   10084	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_CB
