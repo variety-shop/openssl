@@ -3209,7 +3209,15 @@ int tls_construct_new_session_ticket(SSL *s)
 #ifndef OPENSSL_NO_AKAMAI
     SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(tctx);
 #endif
+#ifndef OPENSSL_NO_AKAMAI_CB
+    SSL_AKAMAI_CB akamai_cb = SSL_get_akamai_cb(s);
 
+    if (akamai_cb != NULL &&
+        akamai_cb(s, SSL_AKAMAI_CB_GENERATE_TICKET, NULL) < 0) {
+        ossl_statem_set_error(s);
+        return 0;
+    }
+#endif
     /* get session encoding length */
     slen_full = i2d_SSL_SESSION(s->session, NULL);
     /*
