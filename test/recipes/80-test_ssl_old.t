@@ -79,7 +79,7 @@ my $client_sess="client.ss";
 # new format in ssl_test.c and add recipes to 80-test_ssl_new.t instead.
 plan tests =>
     1				# For testss
-    +6  			# For the first testssl
+    +7  			# For the first testssl
     ;
 
 subtest 'test_ss' => sub {
@@ -586,6 +586,33 @@ sub testssl {
 
 	  ok(run(test([@ssltest, "-bio_pair", "-tls1", "-cipher", "aSRP", "-srpuser", "test", "-srppass", "abc123"])),
 	     'test tls1 with SRP auth via BIO pair');
+	}
+    };
+
+    subtest 'ticket resuse tests' => sub {
+	######################################################################
+	plan tests => 10;
+
+      SKIP: {
+	  skip "TLSv1 is not supported by this OpenSSL build", 10
+	      if disabled("tls1") || disabled("akamai");
+	  my @testextra = ("-bio_pair", "-tls1", "-reuse", "-num", "4");
+
+	  ok(run(test([@ssltest, @testextra])), 'reuse with tickets');
+	  ok(run(test([@ssltest, "-no_ticket", "-ticket-appdata", "1", @testextra])), 'reuse with tickets - no tickets');
+
+	  ok(run(test([@ssltest, "-ticket-appdata", "1", @testextra])), 'reuse with tickets - 1');
+	  ok(run(test([@ssltest, "-ticket-appdata", "2", @testextra])), 'reuse with tickets - 2');
+	  ok(run(test([@ssltest, "-ticket-appdata", "3", @testextra])), 'reuse with tickets - 3');
+
+	  @testextra = ("-bio_pair", "-tls1", "-num", "4");
+
+	  ok(run(test([@ssltest, @testextra])), 'no reuse with tickets');
+	  ok(run(test([@ssltest, "-no_ticket", "-ticket-appdata", "1", @testextra])), 'no reuse with tickets - no tickets');
+
+	  ok(run(test([@ssltest, "-ticket-appdata", "1", @testextra])), 'no reuse with tickets - 1');
+	  ok(run(test([@ssltest, "-ticket-appdata", "2", @testextra])), 'no reuse with tickets - 2');
+	  ok(run(test([@ssltest, "-ticket-appdata", "3", @testextra])), 'no reuse with tickets - 3');
 	}
     };
 }

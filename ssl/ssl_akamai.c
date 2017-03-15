@@ -549,6 +549,128 @@ void SSL_CTX_set1_cert_store(SSL_CTX *ctx, X509_STORE *store)
     SSL_CTX_set_cert_store(ctx, store);
 }
 
+static void ssl_session_ex_data_akamai_new(void* parent, void* ptr,
+                                           CRYPTO_EX_DATA* ad,
+                                           int idx, long argl, void* argp)
+{
+    SSL_SESSION_EX_DATA_AKAMAI *ex_data = OPENSSL_zalloc(sizeof(*ex_data));
+    if (ex_data == NULL)
+        goto err;
+
+    /* INITIALIZE HERE */
+
+    if (CRYPTO_set_ex_data(ad, idx, ex_data))
+        ex_data = NULL;
+
+err:
+    if (ex_data != NULL) {
+        /* Other cleanup here */
+        OPENSSL_free(ex_data);
+    }
+}
+
+static void ssl_session_ex_data_akamai_free(void* parent, void* ptr,
+                                            CRYPTO_EX_DATA* ad,
+                                            int idx, long argl, void* argp)
+{
+    SSL_SESSION_EX_DATA_AKAMAI *ex_data = ptr;
+    if (ex_data != NULL) {
+
+        /* FREE HERE */
+        ASN1_OCTET_STRING_free(ex_data->ticket_appdata);
+
+        OPENSSL_free(ptr);
+    }
+    CRYPTO_set_ex_data(ad, idx, NULL);
+}
+
+static int ssl_session_ex_data_akamai_dup(CRYPTO_EX_DATA* to,
+                                          const CRYPTO_EX_DATA* from, void* from_d,
+                                          int idx, long argl, void* argp)
+{
+    /**
+     * from_d is actually the address of the pointer put into the ex_data,
+     * we want a different pointer put into the destination
+     **/
+    SSL_SESSION_EX_DATA_AKAMAI** orig = from_d;
+    SSL_SESSION_EX_DATA_AKAMAI* new = CRYPTO_get_ex_data(to, idx);
+    int ok = 1;
+    if (orig == NULL)
+        return 0;
+    if (*orig == NULL) {
+        *orig = new;
+        return (new != NULL);
+    }
+    if (new == NULL)
+        return 0;
+
+    /* free any items in the new one - they will be overwritten */
+
+    /* copy values/pointers over */
+    memcpy(new, *orig, sizeof(*new));
+
+    /* make duplicates of pointer-based items */
+    new->ticket_appdata = ASN1_STRING_dup(new->ticket_appdata);
+
+    *orig = new;
+    return ok;
+}
+
+static int SSL_SESSION_AKAMAI_IDX = -1;
+static CRYPTO_ONCE ssl_session_akamai_idx_once = CRYPTO_ONCE_STATIC_INIT;
+
+static void ssl_session_ex_data_akamai_init(void)
+{
+    SSL_SESSION_AKAMAI_IDX = SSL_SESSION_get_ex_new_index(0, NULL,
+                                                          ssl_session_ex_data_akamai_new,
+                                                          ssl_session_ex_data_akamai_dup,
+                                                          ssl_session_ex_data_akamai_free);
+}
+
+int SSL_SESSION_get_ex_data_akamai_idx(void)
+{
+    CRYPTO_THREAD_run_once(&ssl_session_akamai_idx_once, ssl_session_ex_data_akamai_init);
+    return SSL_SESSION_AKAMAI_IDX;
+}
+
+SSL_SESSION_EX_DATA_AKAMAI *SSL_SESSION_get_ex_data_akamai(SSL_SESSION* ss)
+{
+    return SSL_SESSION_get_ex_data(ss, SSL_SESSION_get_ex_data_akamai_idx());
+}
+
+int SSL_SESSION_akamai_set1_ticket_appdata(SSL_SESSION *ss, const void *data, int len)
+{
+    SSL_SESSION_EX_DATA_AKAMAI* ex_data = SSL_SESSION_get_ex_data_akamai(ss);
+
+    if (ex_data->ticket_appdata == NULL &&
+        (ex_data->ticket_appdata = ASN1_OCTET_STRING_new()) == NULL)
+        return 0;
+    if (!ASN1_OCTET_STRING_set(ex_data->ticket_appdata, data, len))
+        return 0;
+    return len;
+}
+
+int SSL_SESSION_akamai_get_ticket_appdata(SSL_SESSION *ss, void *data, int len)
+{
+    SSL_SESSION_EX_DATA_AKAMAI* ex_data = SSL_SESSION_get_ex_data_akamai(ss);
+    const unsigned char *src;
+    int src_len;
+    if (ex_data->ticket_appdata == NULL)
+        return 0;
+    src = ASN1_STRING_get0_data(ex_data->ticket_appdata);
+    if (src == NULL)
+        return 0;
+    src_len = ASN1_STRING_length(ex_data->ticket_appdata);
+    if (len == 0)
+        return src_len;
+    if (data == NULL)
+        return 0;
+    if (len < src_len)
+        src_len = len;
+    memcpy(data, src, src_len);
+    return src_len;
+}
+
 static int ssl_akamai_fixup_cipher_strength(uint32_t on, uint32_t off, const char* ciphers)
 {
     CERT *cert = NULL;
@@ -1059,7 +1181,20 @@ void SSL_set_akamai_cb(SSL *s, SSL_AKAMAI_CB cb)
 
 SSL_AKAMAI_CB SSL_get_akamai_cb(SSL *s)
 {
-    return SSL_get_ex_data_akamai(s)->akamai_cb;
+    SSL_AKAMAI_CB cb = SSL_get_ex_data_akamai(s)->akamai_cb;
+    if (cb == NULL)
+        cb = SSL_CTX_get_akamai_cb(SSL_get_SSL_CTX(s));
+    return cb;
+}
+
+void SSL_CTX_set_akamai_cb(SSL_CTX *ctx, SSL_AKAMAI_CB cb)
+{
+    SSL_CTX_get_ex_data_akamai(ctx)->akamai_cb = cb;
+}
+
+SSL_AKAMAI_CB SSL_CTX_get_akamai_cb(SSL_CTX *ctx)
+{
+    return SSL_CTX_get_ex_data_akamai(ctx)->akamai_cb;
 }
 
 # endif /* OPENSSL_NO_AKAMAI_CB */

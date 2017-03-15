@@ -81,6 +81,12 @@ SSL_SESSION *SSL_SESSION_new(void)
 {
     SSL_SESSION *ss;
 
+#ifndef OPENSSL_NO_AKAMAI
+    if (SSL_SESSION_get_ex_data_akamai_idx() < 0) {
+        return NULL;
+    }
+#endif
+
     ss = OPENSSL_zalloc(sizeof(*ss));
     if (ss == NULL) {
         SSLerr(SSL_F_SSL_SESSION_NEW, ERR_R_MALLOC_FAILURE);

@@ -141,6 +141,113 @@ static unsigned int psk_server_callback(SSL *ssl, const char *identity,
                                         unsigned int max_psk_len);
 #endif
 
+#ifndef OPENSSL_NO_AKAMAI_CB
+
+# define SHORT_APPDATA "TEST"
+# define SHORT_APPDATA_SIZE (sizeof(SHORT_APPDATA)-1)
+
+static int short_appdata_cb(SSL *s, int event, SSL_AKAMAI_CB_DATA *data)
+{
+    unsigned char appdata[SHORT_APPDATA_SIZE+1];
+    int size;
+    switch (event) {
+        case SSL_AKAMAI_CB_GENERATE_TICKET:
+            SSL_SESSION_akamai_set1_ticket_appdata(SSL_get_session(s),
+                                                   SHORT_APPDATA, SHORT_APPDATA_SIZE);
+            break;
+        case SSL_AKAMAI_CB_DECRYPTED_TICKET:
+            size = SSL_SESSION_akamai_get_ticket_appdata(data->sess, appdata, sizeof(appdata));
+            OPENSSL_assert(size == SHORT_APPDATA_SIZE);
+            OPENSSL_assert(memcmp(appdata, SHORT_APPDATA, size) == 0);
+            printf("short_appdata_cb: successful\n");
+            break;
+        default:
+            break;
+    }
+    return 0;
+}
+
+# define LONG_APPDATA 		"ABCDEFGHIGKLMNOPQRSTUVWXYZ"
+# define LOOPS			100
+# define LONG_APPDATA_SIZE 	(sizeof(LONG_APPDATA)-1)
+
+
+static int long_appdata_cb(SSL *s, int event, SSL_AKAMAI_CB_DATA *data)
+{
+    char *appdata = OPENSSL_malloc(LONG_APPDATA_SIZE * LOOPS);
+    char *ptr;
+    int i;
+    int size;
+    switch (event) {
+        case SSL_AKAMAI_CB_GENERATE_TICKET:
+            ptr = appdata;
+            for (i = 0; i < LOOPS; i++) {
+                memcpy(ptr, LONG_APPDATA, LONG_APPDATA_SIZE);
+                ptr += LONG_APPDATA_SIZE;
+            }
+            SSL_SESSION_akamai_set1_ticket_appdata(SSL_get_session(s), appdata, LONG_APPDATA_SIZE * LOOPS);
+            break;
+        case SSL_AKAMAI_CB_DECRYPTED_TICKET:
+            size = SSL_SESSION_akamai_get_ticket_appdata(data->sess, appdata, LONG_APPDATA_SIZE * LOOPS);
+            OPENSSL_assert(size == (LONG_APPDATA_SIZE * LOOPS));
+            ptr = appdata;
+            for (i = 0; i < LOOPS; i++) {
+                OPENSSL_assert(memcmp(ptr, LONG_APPDATA, LONG_APPDATA_SIZE) == 0);
+                ptr += LONG_APPDATA_SIZE;
+            }
+            printf("long_appdata_cb: successful\n");
+            break;
+        default:
+            break;
+    }
+    OPENSSL_free(appdata);
+    return 0;
+}
+
+
+static int zero_appdata_cb(SSL *s, int event, SSL_AKAMAI_CB_DATA *data)
+{
+    int size;
+    switch (event) {
+        case SSL_AKAMAI_CB_GENERATE_TICKET:
+            SSL_SESSION_akamai_set1_ticket_appdata(SSL_get_session(s), NULL, 0);
+            break;
+        case SSL_AKAMAI_CB_DECRYPTED_TICKET:
+            size = SSL_SESSION_akamai_get_ticket_appdata(data->sess, NULL, 0);
+            OPENSSL_assert(size == 0);
+            printf("zero_appdata_cb: successful\n");
+            break;
+        default:
+            break;
+    }
+    return 0;
+}
+
+#endif /* OPENSSL_NO_AKAMAI_CB */
+
+#ifndef OPENSSL_NO_AKAMAI
+
+static int session_ticket_key_cb(SSL* ssl, unsigned char key_name[16],
+                                 unsigned char iv[EVP_MAX_IV_LENGTH],
+                                 EVP_CIPHER_CTX *ctx, HMAC_CTX *hctx, int enc)
+{
+    static unsigned char hmac_key[32];
+    static unsigned char aes_key[32];
+    if (enc) {
+        memcpy(key_name, "akamai32akamai32", 16);
+        RAND_bytes(iv, EVP_MAX_IV_LENGTH);
+        RAND_bytes(hmac_key, sizeof(hmac_key));
+        RAND_bytes(aes_key, sizeof(aes_key));
+        HMAC_Init_ex(hctx, hmac_key, sizeof(hmac_key), EVP_sha256(), NULL);
+        EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, aes_key, iv);
+    } else {
+        HMAC_Init_ex(hctx, hmac_key, sizeof(hmac_key), EVP_sha256(), NULL);
+        EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, aes_key, iv);
+    }
+    return 1;
+}
+#endif /* OPENSSL_NO_AKAMAI */
+
 #ifndef OPENSSL_NO_SRP
 /* SRP client */
 /* This is a context that we pass to all callbacks */
@@ -797,6 +904,9 @@ static void sv_usage(void)
     fprintf(stderr, " -client_sess_in <file>     - Read the client session from a file\n");
     fprintf(stderr, " -should_reuse <number>     - The expected state of reusing the session\n");
     fprintf(stderr, " -no_ticket    - do not issue TLS session ticket\n");
+#ifndef OPENSSL_NO_AKAMAI
+    fprintf(stderr, " -ticket-appdata 1-3  - use session tickets\n");
+#endif
 }
 
 static void print_key_details(BIO *out, EVP_PKEY *key)
@@ -992,6 +1102,10 @@ int main(int argc, char *argv[])
 #endif
     int no_protocol;
     int min_version = 0, max_version = 0;
+#ifndef OPENSSL_NO_AKAMAI
+    int use_ticket_appdata = 0;
+#endif
+
 #ifndef OPENSSL_NO_CT
     /*
      * Disable CT validation by default, because it will interfere with
@@ -1284,6 +1398,12 @@ int main(int argc, char *argv[])
             should_reuse = !!atoi(*(++argv));
         } else if (strcmp(*argv, "-no_ticket") == 0) {
             no_ticket = 1;
+#ifndef OPENSSL_NO_AKAMAI
+        } else if (strcmp(*argv,"-ticket-appdata") == 0) {
+            if (--argc < 1)
+                goto bad;
+            use_ticket_appdata = atoi(*(++argv));
+#endif
         } else {
             int rv;
             arg = argv[0];
@@ -1494,6 +1614,20 @@ int main(int argc, char *argv[])
                max_version);
         goto end;
     }
+
+#ifndef OPENSSL_NO_AKAMAI
+    if (use_ticket_appdata > 0) {
+        SSL_CTX_set_tlsext_ticket_key_cb(s_ctx, session_ticket_key_cb);
+# ifndef OPENSSL_NO_AKAMAI_CB
+        if (use_ticket_appdata == 1)
+            SSL_CTX_set_akamai_cb(s_ctx, short_appdata_cb);
+        if (use_ticket_appdata == 2)
+            SSL_CTX_set_akamai_cb(s_ctx, long_appdata_cb);
+        if (use_ticket_appdata == 3)
+            SSL_CTX_set_akamai_cb(s_ctx, zero_appdata_cb);
+# endif
+    }
+#endif
 
     if (cipher != NULL) {
         if (!SSL_CTX_set_cipher_list(c_ctx, cipher)
