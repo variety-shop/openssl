@@ -54,6 +54,10 @@ struct ssl_ctx_ex_data_akamai_st
 
     unsigned char *tlsext_tick_hmac_key; /* points to alloc memory */
     unsigned char *tlsext_tick_aes_key; /* points into alloc memory */
+
+# ifndef OPENSSL_NO_AKAMAI_CB
+    SSL_AKAMAI_CB akamai_cb;
+# endif
 };
 
 typedef struct ssl_ex_data_akamai_st SSL_EX_DATA_AKAMAI;
@@ -82,11 +86,20 @@ struct ssl_ex_data_akamai_st
 # endif
 };
 
+typedef struct ssl_session_ex_data_akamai_st SSL_SESSION_EX_DATA_AKAMAI;
+
+struct ssl_session_ex_data_akamai_st
+{
+    ASN1_OCTET_STRING *ticket_appdata;
+};
+
 /* Used to initialize and get the akamai EX_DATA structures in one fell swoop */
 int SSL_CTX_get_ex_data_akamai_idx(void);
 SSL_CTX_EX_DATA_AKAMAI *SSL_CTX_get_ex_data_akamai(SSL_CTX* ctx);
 int SSL_get_ex_data_akamai_idx(void);
 SSL_EX_DATA_AKAMAI *SSL_get_ex_data_akamai(SSL* s);
+int SSL_SESSION_get_ex_data_akamai_idx(void);
+SSL_SESSION_EX_DATA_AKAMAI *SSL_SESSION_get_ex_data_akamai(SSL_SESSION* s);
 
 SSL_CTX_SESSION_LIST *SSL_CTX_get0_session_list(SSL_CTX* ctx);
 SSL_CTX_SESSION_LIST *SSL_CTX_SESSION_LIST_new(
