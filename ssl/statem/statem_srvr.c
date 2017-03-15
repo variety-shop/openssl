@@ -3489,6 +3489,9 @@ int tls_construct_new_session_ticket(SSL *s, WPACKET *pkt)
 #ifndef OPENSSL_NO_AKAMAI
     SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(tctx);
 #endif
+#ifndef OPENSSL_NO_AKAMAI_CB
+    SSL_AKAMAI_CB akamai_cb = SSL_get_akamai_cb(s);
+#endif
 
     if (SSL_IS_TLS13(s)) {
         if (RAND_bytes(age_add_u.age_add_c, sizeof(age_add_u)) <= 0)
@@ -3521,6 +3524,12 @@ int tls_construct_new_session_ticket(SSL *s, WPACKET *pkt)
         }
         s->session->ext.max_early_data = s->max_early_data;
     }
+
+#ifndef OPENSSL_NO_AKAMAI_CB
+    if (akamai_cb != NULL &&
+        akamai_cb(s, SSL_AKAMAI_CB_GENERATE_TICKET, NULL) < 0)
+        goto err;
+#endif
 
     /* get session encoding length */
     slen_full = i2d_SSL_SESSION(s->session, NULL);

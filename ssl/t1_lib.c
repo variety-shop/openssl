@@ -1257,6 +1257,26 @@ TICKET_RETURN tls_get_ticket_from_client(SSL *s, CLIENTHELLO_MSG *hello,
 
     retv = tls_decrypt_ticket(s, PACKET_data(&ticketext->data), size,
                               hello->session_id, hello->session_id_len, ret);
+#ifndef OPENSSL_NO_AKAMAI_CB
+    {
+        SSL_AKAMAI_CB_DATA akamai_cb_data;
+        SSL_AKAMAI_CB akamai_cb = SSL_get_akamai_cb(s);
+        if (akamai_cb != NULL) {
+            int r;
+            memset(&akamai_cb_data, 0, sizeof(akamai_cb_data));
+            akamai_cb_data.retval = retv;
+            akamai_cb_data.src[0] = (void*)PACKET_data(&ticketext->data);
+            akamai_cb_data.src_len[0] = TLSEXT_KEYNAME_LENGTH;
+            akamai_cb_data.sess = *ret;
+            r = akamai_cb(s, SSL_AKAMAI_CB_DECRYPTED_TICKET, &akamai_cb_data);
+            if (r == 1)
+                retv = (int)akamai_cb_data.retval;
+            else if (r == -1)
+                retv = TICKET_FATAL_ERR_OTHER;
+        }
+    }
+#endif
+
     switch (retv) {
     case TICKET_NO_DECRYPT:
         s->ext.ticket_expected = 1;
@@ -1268,6 +1288,15 @@ TICKET_RETURN tls_get_ticket_from_client(SSL *s, CLIENTHELLO_MSG *hello,
     case TICKET_SUCCESS_RENEW:
         s->ext.ticket_expected = 1;
         return TICKET_SUCCESS;
+
+#ifndef OPENSSL_NO_AKAMAI_CB
+    case TICKET_EMPTY:
+        s->ext.ticket_expected = 1;
+        return TICKET_EMPTY;
+        
+    case TICKET_NONE:
+        return TICKET_NONE;
+#endif
 
     default:
         return TICKET_FATAL_ERR_OTHER;
