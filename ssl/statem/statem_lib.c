@@ -137,6 +137,34 @@ static int compare_extensions(const void *p1, const void *p2)
     return 0;
 }
 
+#ifndef OPENSSL_NO_AKAMAI
+/*
+ * Sort a copy of the extensions and check for duplicates.
+ * Don't modify the original raw extensions, as their order is used for
+ * fingerprinting.
+ */
+static int check_duplicates(RAW_EXTENSION *raw_extensions, size_t num_exts)
+{
+    RAW_EXTENSION *exts = OPENSSL_malloc(num_exts * sizeof(*exts));
+    size_t i;
+
+    if (exts == NULL)
+        return 0;
+    memcpy(exts, raw_extensions, num_exts * sizeof(*exts));
+
+    /* Sort the extensions and make sure there are no duplicates. */
+    qsort(exts, num_exts, sizeof(*exts), compare_extensions);
+    for (i = 1; i < num_exts; i++) {
+        if (exts[i - 1].type == exts[i].type) {
+            OPENSSL_free(exts);
+            return 0;
+        }
+    }
+    OPENSSL_free(exts);
+    return 1;
+}
+#endif
+
 /*
  * Gather a list of all the extensions. We don't actually process the content
  * of the extensions yet, except to check their types.
@@ -193,6 +221,7 @@ int tls_collect_extensions(PACKET *packet, RAW_EXTENSION **res,
             SSLerr(SSL_F_TLS_COLLECT_EXTENSIONS, SSL_R_LENGTH_MISMATCH);
             goto err;
         }
+#ifdef OPENSSL_NO_AKAMAI
         /* Sort the extensions and make sure there are no duplicates. */
         qsort(raw_extensions, num_extensions, sizeof(*raw_extensions),
               compare_extensions);
@@ -201,6 +230,12 @@ int tls_collect_extensions(PACKET *packet, RAW_EXTENSION **res,
                 *ad = SSL_AD_DECODE_ERROR;
                 goto err;
             }
+#else
+        if (!check_duplicates(raw_extensions, num_extensions)) {
+            SSLerr(SSL_F_TLS_COLLECT_EXTENSIONS, SSL_R_CLIENTHELLO_TLSEXT);
+            *ad = SSL_AD_DECODE_ERROR;
+            goto err;
+#endif /* OPENSSL_NO_AKAMAI */
         }
     }
 
