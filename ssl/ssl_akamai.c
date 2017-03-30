@@ -908,19 +908,31 @@ int SSL_CTX_use_cert_and_key(SSL_CTX *ctx, X509 *x509, EVP_PKEY *privatekey,
 /*
  * The RSALG algorithm requires that the random number be hashed before being
  * placed in the server hello message.
- * |s_rand| is the random buffer, |len| is the length of that random buffer
- * |p| is the output buffer of at least 32 bytes
+ * |s_rand| is the random buffer, must be SSL3_RANDOM_SIZE
  */
-void RSALG_hash(unsigned char *s_rand, unsigned char *p, size_t len)
+void RSALG_hash(unsigned char *s_rand)
 {
+    OPENSSL_assert(SHA256_DIGEST_LENGTH == SSL3_RANDOM_SIZE);
+    unsigned char out[SHA256_DIGEST_LENGTH];
     /*
      * Take a sha256 hash of the server random,
      * to be placed in the server hello.
      */
-    SHA256(s_rand, len, p);
+    SHA256(s_rand, SSL3_RANDOM_SIZE, out);
 
     /* The first 4 bytes must be the time, just as with standard RSA. */
-    memcpy(p, s_rand, 4);
+    memcpy(s_rand+4, out+4, SSL3_RANDOM_SIZE-4);
+}
+
+size_t SSL_rsalg_get_server_random(SSL* s, unsigned char *out, size_t outlen)
+{
+    SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
+    if (outlen == 0)
+        return sizeof(ex_data->server_random);
+    if (outlen > sizeof(ex_data->server_random))
+        outlen = sizeof(ex_data->server_random);
+    memcpy(out, ex_data->server_random, outlen);
+    return outlen;
 }
 
 int SSL_get_X509_pubkey_digest(SSL* s, unsigned char* hash)
@@ -957,9 +969,12 @@ int SSL_get_X509_pubkey_digest(SSL* s, unsigned char* hash)
                               EVP_sha256(), hash, NULL);
 }
 
-long SSL_INTERNAL_get_algorithm2(SSL *s)
+int SSL_akamai_get_prf(SSL *s)
 {
-    return ssl_get_algorithm2(s);
+    const EVP_MD *md = ssl_prf_md(s);
+    if (md == NULL)
+        return NID_undef;
+    return EVP_MD_nid(md);
 }
 
 EVP_PKEY *SSL_INTERNAL_get_sign_pkey(SSL *s, const SSL_CIPHER *cipher, const EVP_MD **pmd)

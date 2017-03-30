@@ -447,7 +447,7 @@ SSL_INTERNAL_set_handshake_header       10038	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMA
 RSALG_hash                              10039	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
 SSL_INTERNAL_get_sign_pkey              10040	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
 SSL_INTERNAL_use_sigalgs                10041	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
-SSL_INTERNAL_get_algorithm2             10042	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
+SSL_INTERNAL_get_algorithm2             10042	1_1_0	NOEXIST::FUNCTION:
 SSL_INTERNAL_send_alert                 10043	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
 SSL_INTERNAL_prf                        10044	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
 SSL_set_akamai_cb                       10045	1_1_0	EXIST::FUNCTION:AKAMAI,AKAMAI_CB
@@ -484,3 +484,5 @@ SSL_early_isv2                          10075	1_1_0e	EXIST::FUNCTION:AKAMAI
 SSL_early_get0_compression_methods      10076	1_1_0e	EXIST::FUNCTION:AKAMAI
 SSL_early_get0_ext                      10077	1_1_0e	EXIST::FUNCTION:AKAMAI
 SSL_early_get0_ciphers                  10078	1_1_0e	EXIST::FUNCTION:AKAMAI
+SSL_rsalg_get_server_random             10079	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
+SSL_akamai_get_prf                      10080	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG

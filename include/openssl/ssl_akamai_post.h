@@ -152,7 +152,8 @@ int SSL_CTX_use_cert_and_key(SSL_CTX *ctx, X509 *x509, EVP_PKEY *privatekey,
                              STACK_OF(X509) *extra, int override);
 
 #  ifndef OPENSSL_NO_AKAMAI_RSALG
-void RSALG_hash(unsigned char *s_rand, unsigned char *p, size_t len);
+void RSALG_hash(unsigned char *s_rand);
+size_t SSL_rsalg_get_server_random(SSL* s, unsigned char *out, size_t outlen);
 int SSL_get_X509_pubkey_digest(SSL* s, unsigned char* hash);
 /* wrapper functions around internal SSL stuff */
 int SSL_INTERNAL_prf(SSL *s,
@@ -163,7 +164,7 @@ int SSL_INTERNAL_prf(SSL *s,
                      const void *seed5, int seed5_len,
                      const unsigned char *sec, int slen,
                      unsigned char *out, int olen);
-long SSL_INTERNAL_get_algorithm2(SSL *s);
+int SSL_akamai_get_prf(SSL *s);
 
 EVP_PKEY *SSL_INTERNAL_get_sign_pkey(SSL *s, const SSL_CIPHER *cipher,
                                      const EVP_MD **pmd);

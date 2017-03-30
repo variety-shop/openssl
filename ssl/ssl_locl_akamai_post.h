@@ -81,6 +81,9 @@ struct ssl_ex_data_akamai_st
     SSL_BUCKET *readv_buckets;
     unsigned int readv_count;
 # endif
+# ifndef OPENSSL_NO_AKAMAI_RSALG
+    unsigned char server_random[SSL3_RANDOM_SIZE];
+# endif
 };
 
 /* Used to initialize and get the akamai EX_DATA structures in one fell swoop */

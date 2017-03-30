@@ -1327,6 +1327,13 @@ static int tls_early_post_process_client_hello(SSL *s)
         }
     }
 
+#ifdef OPENSSL_NO_AKAMAI_RSALG
+    {
+        SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
+        memcpy(ex_data->server_random, s->s3->server_random, SSL3_RANDOM_SIZE);
+    }
+#endif
+
     if (!s->hit && s->version >= TLS1_VERSION && s->tls_session_secret_cb) {
         const SSL_CIPHER *pref_cipher = NULL;
 
@@ -1629,20 +1636,16 @@ int tls_construct_server_hello(SSL *s)
      * Random stuff. Filling of the server_random takes place in
      * tls_process_client_hello()
      */
-#ifdef OPENSSL_NO_AKAMAI_RSALG
-    memcpy(p, s->s3->server_random, SSL3_RANDOM_SIZE);
-#else
+#ifndef OPENSSL_NO_AKAMAI_RSALG
     if (SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_RSALG) &&
         (s->s3->tmp.new_cipher->algorithm_mkey & SSL_kRSA) &&
         /* Session resumption does not use the cryptoserver; skip hashing. */
         s->hit == 0) {
         /* We are using RSALG, so we need to hash the server random. */
-        RSALG_hash(s->s3->server_random, p, SSL3_RANDOM_SIZE);
-    } else {
-        /* not RSALG */
-        memcpy(p, s->s3->server_random, SSL3_RANDOM_SIZE);
+        RSALG_hash(s->s3->server_random);
     }
 #endif
+    memcpy(p, s->s3->server_random, SSL3_RANDOM_SIZE);
     p += SSL3_RANDOM_SIZE;
 
     /*-
