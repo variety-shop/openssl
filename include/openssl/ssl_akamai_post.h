@@ -116,10 +116,12 @@ int SSL_akamai_set_cipher_list(SSL *s, const char *pref, const char *must);
 int SSL_akamai_fixup_cipher_strength(const char* level, const char* ciphers);
 
 #  ifndef OPENSSL_NO_AKAMAI_RSALG
-void RSALG_hash(unsigned char *s_rand, unsigned char *p, size_t len);
+void RSALG_hash(unsigned char *s_rand);
+size_t SSL_rsalg_get_server_random(SSL* s, unsigned char *out, size_t outlen);
 int SSL_get_X509_pubkey_digest(SSL* s, unsigned char* hash);
 /* wrapper functions around internal SSL stuff */
-long SSL_INTERNAL_get_algorithm2(SSL *s);
+
+int SSL_akamai_get_prf(SSL *s);
 
 EVP_PKEY *SSL_INTERNAL_get_sign_pkey(SSL *s, const SSL_CIPHER *cipher,
                                      const EVP_MD **pmd);
