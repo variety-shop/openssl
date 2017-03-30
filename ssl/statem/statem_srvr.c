@@ -1706,6 +1706,13 @@ static int tls_early_post_process_client_hello(SSL *s, int *pal)
         }
     }
 
+#ifndef OPENSSL_NO_AKAMAI_RSALG
+    {
+        SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
+        memcpy(ex_data->server_random, s->s3->server_random, SSL3_RANDOM_SIZE);
+    }
+#endif
+
     if (!s->hit
             && s->version >= TLS1_VERSION
             && !SSL_IS_TLS13(s)
@@ -2146,9 +2153,18 @@ int tls_construct_server_hello(SSL *s, WPACKET *pkt)
     size_t sl, len;
     int version;
 
+#ifndef OPENSSL_NO_AKAMAI_RSALG
+    if (SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_RSALG) &&
+        (s->s3->tmp.new_cipher->algorithm_mkey & SSL_kRSA) &&
+        /* Session resumption does not use the cryptoserver; skip hashing. */
+        s->hit == 0) {
+        /* We are using RSALG, so we need to hash the server random. */
+        RSALG_hash(s->s3->server_random);
+    }
+#endif
+
     /* TODO(TLS1.3): Remove the DRAFT conditional before release */
     version = SSL_IS_TLS13(s) ? TLS1_3_VERSION_DRAFT : s->version;
-#ifdef OPENSSL_NO_AKAMAI_RSALG
     if (!WPACKET_put_bytes_u16(pkt, version)
                /*
                 * Random stuff. Filling of the server_random takes place in
@@ -2158,36 +2174,6 @@ int tls_construct_server_hello(SSL *s, WPACKET *pkt)
         SSLerr(SSL_F_TLS_CONSTRUCT_SERVER_HELLO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
-#else
-    if (WPACKET_put_bytes_u16(pkt, version)) {
-        /*
-         * Random stuff. Filling of the server_random takes place in
-         * tls_process_client_hello()
-         */
-        if (SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_RSALG) &&
-                (s->s3->tmp.new_cipher->algorithm_mkey & SSL_kRSA) &&
-                /* Session resumption does not use the cryptoserver; skip hashing. */
-                s->hit == 0) {
-            /* We are using RSALG, so we need to hash the server random. */
-            unsigned char b[SSL3_RANDOM_SIZE];
-
-            RSALG_hash(s->s3->server_random, b, SSL3_RANDOM_SIZE);
-            if (!WPACKET_memcpy(pkt, b, SSL3_RANDOM_SIZE)) {
-                SSLerr(SSL_F_TLS_CONSTRUCT_SERVER_HELLO, ERR_R_INTERNAL_ERROR);
-                goto err;
-            }
-        } else {
-            /* not RSALG */
-            if (!WPACKET_memcpy(pkt, s->s3->server_random, SSL3_RANDOM_SIZE)) {
-                SSLerr(SSL_F_TLS_CONSTRUCT_SERVER_HELLO, ERR_R_INTERNAL_ERROR);
-                goto err;
-            }
-        }
-    } else {
-        SSLerr(SSL_F_TLS_CONSTRUCT_SERVER_HELLO, ERR_R_INTERNAL_ERROR);
-        goto err;
-    }
-#endif
 
     /*-
      * There are several cases for the session ID to send
