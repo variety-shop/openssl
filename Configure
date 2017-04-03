@@ -422,11 +422,12 @@ foreach my $proto ((@tls, @dtls))
 	}
 
 # do this in one place
-my @akamai = qw(akamai-client-cache akamai-cb akamai-debian akamai-ghost akamai-iovec akamai-rsalg);
+my @akamai = qw(akamai-client-cache akamai-cb akamai-debian akamai-ghost akamai-iovec akamai-mlock2 akamai-rsalg);
 foreach my $proto ((@akamai))
         {
         push(@disablables, $proto);
         }
+@disablables = sort @disablables;
 
 my %deprecated_disablables = (
     "ssl2" => undef,
@@ -440,6 +441,7 @@ my %deprecated_disablables = (
 our %disabled = ( # "what"         => "comment"
 		  "afalgeng"            => "akamai-default",
 		  "akamai-ghost"        => "akamai-default",
+		  "akamai-mlock2"       => "akamai-default",
 		  "asan"		=> "default",
 		  "bf"                  => "akamai-default",
 		  "camellia"	        => "akamai-default",
