@@ -19,6 +19,10 @@
 # include <string.h>
 # include <assert.h>
 # include <sys/mman.h>
+# if defined(OPENSSL_SYS_LINUX)
+#  include <sys/syscall.h>
+#  include <linux/mman.h>
+# endif
 # include <sys/param.h>
 
 
@@ -393,8 +397,37 @@ static int sh_init(size_t size, int minsize)
     if (mprotect(sh.map_result + aligned, pgsize, PROT_NONE) < 0)
         goto err;
 
+#ifdef MLOCK_ONFAULT
+# ifndef OPENSSL_NO_AKAMAI_MLOCK2
+    /*
+     * Currently glibc does not define mlock2 wrapper, but Akamaized glibc 2.23 will.
+     * The definition is coming to sys/mman.h in this form:
+     *  Added by Akamai, to expose system call.
+     *  extern int mlock2 (const void *__addr, size_t __len, int __flags) __THROW;
+     *
+     *  We may turn on the above flag in near future alsi 9 configurations to use mlock2 directly.
+     */
+    if (mlock2(sh.arena, sh.arena_size, MLOCK_ONFAULT) < 0)
+        goto err;
+# elif defined (SYS_mlock2)
+    /*
+     * This is current case - MLOCK_ONFAULT flag exists,
+     * the syscall definition for mlock2 also exists, but glibc
+     * definition of mlock2 call does not.
+     */
+    if (syscall(SYS_mlock2, sh.arena, sh.arena_size, MLOCK_ONFAULT) < 0)
+        goto err;
+# else
+    /*
+     * If for some reason we have MLOCK_ONFAULT defined, but not even a syscall.
+     */
     if (mlock(sh.arena, sh.arena_size) < 0)
         goto err;
+# endif
+#else
+    if (mlock(sh.arena, sh.arena_size) < 0)
+        goto err;
+#endif
 
 #ifdef MADV_DONTDUMP
     if (madvise(sh.arena, sh.arena_size, MADV_DONTDUMP) == 0)
