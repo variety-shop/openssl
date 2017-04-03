@@ -476,6 +476,24 @@ static int sh_init(size_t size, int minsize)
         ret = 2;
 
 #if defined(OPENSSL_SYS_LINUX) && defined(MLOCK_ONFAULT) && defined(SYS_mlock2)
+# ifndef OPENSSL_NO_AKAMAI_MLOCK2
+    /*
+     * Currently glibc does not define mlock2 wrapper, but Akamaized glibc 2.23 will.
+     * The definition is coming to sys/mman.h in this form:
+     *  Added by Akamai, to expose system call.
+     *  extern int mlock2 (const void *__addr, size_t __len, int __flags) __THROW;
+     *
+     *  We may turn on the above flag in near future alsi 9 configurations to use mlock2 directly.
+     */
+    if (mlock2(sh.arena, sh.arena_size, MLOCK_ONFAULT) < 0) {
+        if (errno == ENOSYS) {
+            if (mlock(sh.arena, sh.arena_size) < 0)
+                ret = 2;
+        } else {
+            ret = 2;
+        }
+    }
+# else
     if (syscall(SYS_mlock2, sh.arena, sh.arena_size, MLOCK_ONFAULT) < 0) {
         if (errno == ENOSYS) {
             if (mlock(sh.arena, sh.arena_size) < 0)
@@ -484,6 +502,7 @@ static int sh_init(size_t size, int minsize)
             ret = 2;
         }
     }
+# endif
 #else
     if (mlock(sh.arena, sh.arena_size) < 0)
         ret = 2;
