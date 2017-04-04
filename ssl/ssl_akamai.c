@@ -912,8 +912,8 @@ int SSL_CTX_use_cert_and_key(SSL_CTX *ctx, X509 *x509, EVP_PKEY *privatekey,
  */
 void RSALG_hash(unsigned char *s_rand)
 {
-    OPENSSL_assert(SHA256_DIGEST_LENGTH == SSL3_RANDOM_SIZE);
     unsigned char out[SHA256_DIGEST_LENGTH];
+    OPENSSL_assert(SHA256_DIGEST_LENGTH == SSL3_RANDOM_SIZE);
     /*
      * Take a sha256 hash of the server random,
      * to be placed in the server hello.
