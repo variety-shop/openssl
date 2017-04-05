@@ -1010,7 +1010,7 @@ static int get_header_and_data(BIO *bp, BIO **header, BIO **data, char *name,
 {
     BIO *tmp = *header;
     char *linebuf, *p;
-    int len, line, ret = 0, found_header = 0;
+    int len, line, ret = 0, found_header = 0, end = 0;
     size_t namelen;
 
     /* Need to hold trailing NUL (accounted for by BIO_gets() and the newline
@@ -1056,10 +1056,23 @@ static int get_header_and_data(BIO *bp, BIO **header, BIO **data, char *name,
                 *data = tmp;
             }
             break;
+        } else if (end) {
+            /* Malformed input; short line not at end of data. */
+            PEMerr(PEM_F_GET_HEADER_AND_DATA, PEM_R_BAD_END_LINE);
+            goto err;
         }
         /* Else, a line of text -- could be header or data; we don't
          * know yet.  Just pass it through. */
         BIO_puts(tmp, linebuf);
+        /*
+         * Only encrypted files need the line length check applied.
+         */
+        if (found_header) {
+            if (len > 65)
+                goto err;
+            if (len < 65)
+                end = 1;
+        }
     }
 
     ret = 1;
