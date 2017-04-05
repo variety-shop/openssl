@@ -1327,7 +1327,7 @@ static int tls_early_post_process_client_hello(SSL *s)
         }
     }
 
-#ifdef OPENSSL_NO_AKAMAI_RSALG
+#ifndef OPENSSL_NO_AKAMAI_RSALG
     {
         SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
         memcpy(ex_data->server_random, s->s3->server_random, SSL3_RANDOM_SIZE);
@@ -2346,7 +2346,6 @@ static int tls_process_cke_rsa(SSL *s, PACKET *pkt, int *al)
      * the timing-sensitive code below.
      */
 # ifndef OPENSSL_NO_AKAMAI_CB
-    do_default = 1;
     decrypt_len = -1;
     if (akamai_cb != NULL) {
         memset(&akamai_cb_data, 0, sizeof(akamai_cb_data));
@@ -2361,10 +2360,11 @@ static int tls_process_cke_rsa(SSL *s, PACKET *pkt, int *al)
             goto err;
         } else if (ret > 0) {
             decrypt_len = (int)akamai_cb_data.retval;
-            do_default = 0;
+            padding_len = 0;
+            decrypt_good = 1;
+            goto post_padding_check;
         }
     }
-    if (do_default)
 # endif
     decrypt_len = RSA_private_decrypt(PACKET_remaining(&enc_premaster),
                                       PACKET_data(&enc_premaster),
@@ -2392,6 +2392,10 @@ static int tls_process_cke_rsa(SSL *s, PACKET *pkt, int *al)
         decrypt_good &= ~constant_time_is_zero_8(rsa_decrypt[j]);
     }
     decrypt_good &= constant_time_is_zero_8(rsa_decrypt[padding_len - 1]);
+
+# ifndef OPENSSL_NO_AKAMAI_CB
+ post_padding_check:
+# endif
 
     /*
      * If the version in the decrypted pre-master secret is correct then
