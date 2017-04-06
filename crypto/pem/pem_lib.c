@@ -342,7 +342,7 @@ int PEM_bytes_read_bio(unsigned char **pdata, long *plen, char **pnm,
                        const char *name, BIO *bp, pem_password_cb *cb,
                        void *u) {
     return PEM_bytes_read_bio_flags(pdata, plen, pnm, name, bp, cb, u,
-                                    PEM_FLAG_WEAK_EOL);
+                                    PEM_FLAG_EAY_COMPATIBLE);
 }
 
 int PEM_bytes_read_bio_secmem(unsigned char **pdata, long *plen, char **pnm,
@@ -922,7 +922,7 @@ static int sanitize_line(char *linebuf, int len, unsigned int flags)
 {
     int i;
 
-    if (flags & PEM_FLAG_WEAK_EOL) {
+    if (flags & PEM_FLAG_EAY_COMPATIBLE) {
         /* Strip trailing whitespace */
         while ((len >= 0) && (linebuf[len] <= ' '))
             len--;
@@ -1166,7 +1166,7 @@ cleanup:
 int PEM_read_bio(BIO *bp, char **name, char **header, unsigned char **data,
                  long *len)
 {
-    return PEM_read_bio_flags(bp, name, header, data, len, PEM_FLAG_WEAK_EOL);
+    return PEM_read_bio_flags(bp, name, header, data, len, PEM_FLAG_EAY_COMPATIBLE);
 }
 #endif /* OPENSSL_NO_AKAMAI */
 

@@ -287,8 +287,8 @@ int PEM_do_header(EVP_CIPHER_INFO *cipher, unsigned char *data, long *len,
 int PEM_read_bio(BIO *bp, char **name, char **header,
                  unsigned char **data, long *len);
 #  ifndef OPENSSL_NO_AKAMAI
-#   define PEM_FLAG_SECURE       0x1
-#   define PEM_FLAG_WEAK_EOL     0x2
+#   define PEM_FLAG_SECURE              0x1
+#   define PEM_FLAG_EAY_COMPATIBLE      0x2
 int PEM_read_bio_flags(BIO *bp, char **name, char **header,
                        unsigned char **data, long *len, unsigned int flags);
 int PEM_bytes_read_bio_secmem(unsigned char **pdata, long *plen, char **pnm,
