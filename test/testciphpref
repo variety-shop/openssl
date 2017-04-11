@@ -17,7 +17,8 @@ fi
 # test effectiveness of server cipher preferences
 $ciphpreftest           || exit 1
 $ciphpreftest --tls     || exit 1
-$ciphpreftest --sslv3   || exit 1
+# This only uses ECDHE ciphers, not supported under SSLv3
+#$ciphpreftest --sslv3   || exit 1
 $ciphpreftest --tlsv1   || exit 1
 $ciphpreftest --tlsv1_1 || exit 1
 $ciphpreftest --tlsv1_2 || exit 1
