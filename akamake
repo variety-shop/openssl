@@ -39,6 +39,30 @@ ifndef ATTR_ONLY
 -include $(AKAMAKE)/akamake-env.mak
 endif
 
+# Import future
+ifndef include-if-exist
+include-if-exist=$(eval -include $1)
+endif
+
+ifndef quote-sh
+quote-sh=$(squote)$(subst $(squote),$(squote)$(dquote)$(squote)$(dquote)$(squote),$1)$(squote)
+endif
+
+ifndef NL
+define NL
+
+
+endef
+endif
+
+ifndef alog-echo-e-info
+alog-echo-e-info=$(shell echo -e $(call quote-sh,$(subst $(NL),\n,$1)) 1>&2)
+endif
+
+ifndef alog-multiline-info
+alog-multiline-info=$(if $6,$(warning Call to alog-multiline-info contains a comma in arg 5))$(if $5,$(call alog-echo-e-info,$5))
+endif
+
 # We need this earlier than most akamake files
 $P/%: P := $P
 
@@ -129,7 +153,7 @@ ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),static)
 $P/NOSHARED := $($P/NOSHARED) BUILDENV.OPENSSL_LINKAGE-master
 # Enforce rule (1) -- if BUILDENV.OPENSSL_LINKAGE-master is set, $(MASTER) had better
 # be directly DEP-COMPing on openssl/enable/static; otherwise, it's an error.
-ifneq ($(strip $(filter openssl/enable/static $(MASTER)/DEP-COMPS)),openssl/enable/static)
+ifneq ($(strip $(filter openssl/enable/static,$(MASTER)/DEP-COMPS)),openssl/enable/static)
 $P/ONLY-ONE-SET := $$P/BUILDENV.linux.OPENSSL_LINKAGE-master
 endif # openssl/enable/static in $(MASTER)/DEP-COMPS
 endif # ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),static)
@@ -191,16 +215,22 @@ endif # defined(BUILDENV.OPENSSL_LINKAGE-master)
 
 ifdef $P/ONLY-ONE-SET
 # Report the error
-S:=***
-D:=$S OpenSSL $(call get_ci_version,$C) defaults to using shared libraries,
-E:=$S but the master component can opt to fail back to static linkage by doing both of
-F:=$S DEP-COMPing on openssl/enable/static and setting
-G:=$S $$P/BUILDENV.linux.OPENSSL_LINKAGE-master to static
-H:=$S ERROR: only $($P/ONLY-ONE-SET) was defined but not the other
-K:=$S Please refer to:
-L:=$S    https://gsd.akamai.com/wiki/display/OPENSSL/Shared+Library+Support
-M:=$S for additional support.
-$(foreach Z, S D E F G S H S K L M S,$(call echo-stderr,$($Z)))$(error $(ERROR))
+define $P/errmsg
+
+*** OpenSSL $(call get_ci_version,$C) defaults to using shared libraries,
+*** but the master component can opt to fail back to static linkage by doing both of
+*** DEP-COMPing on openssl/enable/static and setting
+*** $$P/BUILDENV.linux.OPENSSL_LINKAGE-master to static
+***
+*** ERROR: only $($P/ONLY-ONE-SET) was defined but not the other
+***
+*** Please refer to:
+***    https://gsd.akamai.com/wiki/display/OPENSSL/Shared+Library+Support
+*** for additional support.
+
+endef
+$(call alog-multiline-info,ERROR,invalid,$C,Invalid OpenSSL linkage configuration,$($P/errmsg))
+$(error Invalid OpenSSL linkage configuration)
 endif # ifdef $P/ONLY-ONE-SET
 
 # Check that the master component has opted in to shard or static; don't
@@ -210,21 +240,28 @@ endif # ifdef $P/ONLY-ONE-SET
 ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 ifeq ($(BUILDENV.BASEOS),linux)
 ifndef $(MASTER)/BUILDENV.$(BUILDENV.BASEOS).OPENSSL_LINKAGE-master
-S:=***
-D:=$S The 7.x series of openssl components is designed to generate shared
-E:=$S libraries for libcrypto and libssl.  This has several advantages for
-F:=$S component owners, described at
-G:=$S https://gsd.akamai.com/wiki/display/OPENSSL/Shared+Library+Support .
-H:=$S However, components using shared libraries from openssl will roll at
-I:=$S runtime unless the corresponding openssl-suite is included in the
-J:=$S release being installed.  Please notify your release manager that you
-K:=$S are including openssl shared libraries and of the need to include
-L:=$S openssl-suite in the release, and set the
-M:=$S $$P/BUILDENV.linux.OPENSSL_LINKAGE-master
-N:=$S akamake variable to shared to disable this message.  Alternately, use
-O:=$S the instructions on the Confluence page to revert to static linkage.
-$(foreach Z, S D E F S G S H I S J K L S M S N O S,$(call echo-stderr,$($Z)))
-$(error Must opt in/out of openssl shared linkage)
+define $P/errmsg
+
+*** The 7.x series of openssl components is designed to generate shared
+*** libraries for libcrypto and libssl.  This has several advantages for
+*** component owners, described at
+***
+*** https://gsd.akamai.com/wiki/display/OPENSSL/Shared+Library+Support .
+***
+*** However, components using shared libraries from openssl will roll at
+*** runtime unless the corresponding openssl-suite is included in the
+*** release being installed.  Please notify your release manager that you
+*** are including openssl shared libraries and of the need to include
+*** openssl-suite in the release, and set the
+***
+*** $$P/BUILDENV.linux.OPENSSL_LINKAGE-master
+***
+*** akamake variable to shared to disable this message.  Alternately, use
+*** the instructions on the Confluence page to revert to static linkage.
+
+endef
+$(call alog-multiline-info,ERROR,invalid,$C,Must opt in/out of OpenSSL shared linkage,$($P/errmsg))
+$(error Must opt in/out of OpenSSL shared linkage)
 endif # ifndef $(MASTER)/BUILDENV.$(BUILDENV.BASEOS).OPENSSL_LINKAGE-master
 endif # ifeq ($(BUILDENV.BASEOS),linux)
 endif # ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
@@ -234,7 +271,13 @@ ifeq ($(BUILDENV.OPENSSL_LINKAGE-master),shared)
 # We are setting the default here, so put the literal first
 $P/OPENSSL-TARGET := all $($P/OPENSSL-TARGET)
 # TEMPORARY!
+ifdef IN_AKAMAKE
+ifndef ATTR_ONLY
+ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 $(error 'shared builds are not supported in 7.110.x at this time')
+endif
+endif
+endif
 # END TEMPORARY
 else # ifeq ($(BUILDENV.OPENSSL_LINKAGE-master),shared)
 # We are setting the default here, so put the literal first
@@ -590,7 +633,14 @@ $P/component-configure: $P/configure.ts
 .DELETE_ON_ERROR: $P/akamake-dynamic-build-deps.mak
 $P/akamake-dynamic-build-deps.mak:
 	(echo '$$P/build.ts: \' && find $P -name '*.[ch]' | sort | sed -e 's ^$P $$P ;s/$$/ \\/' && echo) >$@
+
 #' Fix for syntax highlighting fail in vim/emacs
+
+ifdef IN_AKAMAKE
+ifndef ATTR_ONLY
+$(call include-if-exist,$P/akamake-dynamic-build-deps.mak)
+endif # ifndef ATTR_ONLY
+endif # IN_AKAMAKE
 
 # If building a shared library, detect whether other components have attempted
 # to enable features that conflict with the set used for the shared library
@@ -626,12 +676,6 @@ $(addprefix $(call get-headers-local-path)/,$($P/CONFIG-GEN-HEADERS)) : $P/confi
 		exit 1; \
 	fi
 	@touch $@
-
-ifdef IN_AKAMAKE
-ifndef ATTR_ONLY
-include $P/akamake-dynamic-build-deps.mak
-endif # ifndef ATTR_ONLY
-endif # IN_AKAMAKE
 
 # make step
 $P/build.ts: $P/configure.ts
