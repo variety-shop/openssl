@@ -112,7 +112,8 @@ $P/CONFIGFEATURES := $($P/CONFIGFEATURES) \
 	enable-rmd160 \
 	enable-tls1 \
 	enable-tls1_1 \
-	enable-tls1_2
+	enable-tls1_2 \
+	enable-tls1_3
 
 else # ifndef MASTER
 # Compiling OpenSSL as a component
@@ -319,6 +320,7 @@ $P/SHAREDFEATURES := \
 	enable-tls1 \
 	enable-tls1_1 \
 	enable-tls1_2 \
+	enable-tls1_3 \
 	enable-weak-ssl-ciphers
 
 ifeq ($(AKAMAKE-LINUX-BUILD-64),1)
