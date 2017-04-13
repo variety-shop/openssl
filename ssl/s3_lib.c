@@ -198,6 +198,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      },
 
 /* Cipher 03 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_RSA_RC4_40_MD5,
@@ -212,6 +213,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      40,
      128,
      },
+#endif
 
 /* Cipher 04 */
     {
@@ -246,6 +248,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      },
 
 /* Cipher 06 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_RSA_RC2_40_MD5,
@@ -260,6 +263,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      40,
      128,
      },
+#endif
 
 /* Cipher 07 */
 #ifndef OPENSSL_NO_IDEA
@@ -280,6 +284,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
 #endif
 
 /* Cipher 08 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_RSA_DES_40_CBC_SHA,
@@ -294,8 +299,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      40,
      56,
      },
+#endif
 
 /* Cipher 09 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_RSA_DES_64_CBC_SHA,
@@ -310,6 +317,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      56,
      56,
      },
+#endif
 
 /* Cipher 0A */
     {
@@ -329,6 +337,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
 
 /* The DH ciphers */
 /* Cipher 0B */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      0,
      SSL3_TXT_DH_DSS_DES_40_CBC_SHA,
@@ -343,8 +352,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      40,
      56,
      },
+#endif
 
 /* Cipher 0C */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_DH_DSS_DES_64_CBC_SHA,
@@ -359,8 +370,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      56,
      56,
      },
+#endif
 
 /* Cipher 0D */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_DH_DSS_DES_192_CBC3_SHA,
@@ -375,8 +388,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      112,
      168,
      },
+#endif
 
 /* Cipher 0E */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      0,
      SSL3_TXT_DH_RSA_DES_40_CBC_SHA,
@@ -391,8 +406,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      40,
      56,
      },
+#endif
 
 /* Cipher 0F */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_DH_RSA_DES_64_CBC_SHA,
@@ -407,8 +424,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      56,
      56,
      },
+#endif
 
 /* Cipher 10 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_DH_RSA_DES_192_CBC3_SHA,
@@ -423,9 +442,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      112,
      168,
      },
+#endif
 
 /* The Ephemeral DH ciphers */
 /* Cipher 11 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_EDH_DSS_DES_40_CBC_SHA,
@@ -440,8 +461,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      40,
      56,
      },
+#endif
 
 /* Cipher 12 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_EDH_DSS_DES_64_CBC_SHA,
@@ -456,6 +479,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      56,
      56,
      },
+#endif
 
 /* Cipher 13 */
     {
@@ -474,6 +498,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      },
 
 /* Cipher 14 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_EDH_RSA_DES_40_CBC_SHA,
@@ -488,8 +513,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      40,
      56,
      },
+#endif
 
 /* Cipher 15 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_EDH_RSA_DES_64_CBC_SHA,
@@ -504,6 +531,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      56,
      56,
      },
+#endif
 
 /* Cipher 16 */
     {
@@ -522,6 +550,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      },
 
 /* Cipher 17 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_ADH_RC4_40_MD5,
@@ -536,6 +565,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      40,
      128,
      },
+#endif
 
 /* Cipher 18 */
     {
@@ -554,6 +584,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      },
 
 /* Cipher 19 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_ADH_DES_40_CBC_SHA,
@@ -568,8 +599,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      40,
      128,
      },
+#endif
 
 /* Cipher 1A */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_ADH_DES_64_CBC_SHA,
@@ -584,6 +617,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      56,
      56,
      },
+#endif
 
 /* Cipher 1B */
     {
@@ -604,6 +638,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
 /* Fortezza ciphersuite from SSL 3.0 spec */
 #if 0
 /* Cipher 1C */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      0,
      SSL3_TXT_FZA_DMS_NULL_SHA,
@@ -618,8 +653,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      0,
      0,
      },
+#endif
 
 /* Cipher 1D */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      0,
      SSL3_TXT_FZA_DMS_FZA_SHA,
@@ -634,8 +671,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      0,
      0,
      },
+#endif
 
 /* Cipher 1E */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      0,
      SSL3_TXT_FZA_DMS_RC4_SHA,
@@ -651,10 +690,12 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      },
 #endif
+#endif
 
 #ifndef OPENSSL_NO_KRB5
 /* The Kerberos ciphers*/
 /* Cipher 1E */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_KRB5_DES_64_CBC_SHA,
@@ -669,8 +710,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      56,
      56,
      },
+#endif
 
 /* Cipher 1F */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_KRB5_DES_192_CBC3_SHA,
@@ -685,8 +728,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      112,
      168,
      },
+#endif
 
 /* Cipher 20 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_KRB5_RC4_128_SHA,
@@ -701,8 +746,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
 /* Cipher 21 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_KRB5_IDEA_128_CBC_SHA,
@@ -717,8 +764,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
 /* Cipher 22 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_KRB5_DES_64_CBC_MD5,
@@ -733,8 +782,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      56,
      56,
      },
+#endif
 
 /* Cipher 23 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_KRB5_DES_192_CBC3_MD5,
@@ -749,8 +800,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      112,
      168,
      },
+#endif
 
 /* Cipher 24 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_KRB5_RC4_128_MD5,
@@ -765,8 +818,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
 /* Cipher 25 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_KRB5_IDEA_128_CBC_MD5,
@@ -781,8 +836,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
 /* Cipher 26 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_KRB5_DES_40_CBC_SHA,
@@ -797,8 +854,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      40,
      56,
      },
+#endif
 
 /* Cipher 27 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_KRB5_RC2_40_CBC_SHA,
@@ -813,8 +872,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      40,
      128,
      },
+#endif
 
 /* Cipher 28 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_KRB5_RC4_40_SHA,
@@ -829,8 +890,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      40,
      128,
      },
+#endif
 
 /* Cipher 29 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_KRB5_DES_40_CBC_MD5,
@@ -845,8 +908,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      40,
      56,
      },
+#endif
 
 /* Cipher 2A */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_KRB5_RC2_40_CBC_MD5,
@@ -861,8 +926,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      40,
      128,
      },
+#endif
 
 /* Cipher 2B */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      SSL3_TXT_KRB5_RC4_40_MD5,
@@ -877,6 +944,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      40,
      128,
      },
+#endif
 #endif                          /* OPENSSL_NO_KRB5 */
 
 /* New AES ciphersuites */
@@ -896,6 +964,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      },
 /* Cipher 30 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DH_DSS_WITH_AES_128_SHA,
@@ -910,7 +979,9 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 /* Cipher 31 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DH_RSA_WITH_AES_128_SHA,
@@ -925,6 +996,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 /* Cipher 32 */
     {
      1,
@@ -987,6 +1059,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      256,
      },
 /* Cipher 36 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DH_DSS_WITH_AES_256_SHA,
@@ -1001,8 +1074,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      256,
      256,
      },
+#endif
 
 /* Cipher 37 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DH_RSA_WITH_AES_256_SHA,
@@ -1017,6 +1092,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      256,
      256,
      },
+#endif
 
 /* Cipher 38 */
     {
@@ -1128,6 +1204,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      },
 
     /* Cipher 3E */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DH_DSS_WITH_AES_128_SHA256,
@@ -1146,8 +1223,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
     /* Cipher 3F */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DH_RSA_WITH_AES_128_SHA256,
@@ -1166,6 +1245,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
     /* Cipher 40 */
     {
@@ -1207,6 +1287,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      },
 
     /* Cipher 42 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DH_DSS_WITH_CAMELLIA_128_CBC_SHA,
@@ -1221,8 +1302,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
     /* Cipher 43 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DH_RSA_WITH_CAMELLIA_128_CBC_SHA,
@@ -1237,6 +1320,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
     /* Cipher 44 */
     {
@@ -1291,6 +1375,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
     /* New TLS Export CipherSuites from expired ID */
 # if 0
     /* Cipher 60 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_RSA_EXPORT1024_WITH_RC4_56_MD5,
@@ -1305,8 +1390,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      56,
      128,
      },
+#endif
 
     /* Cipher 61 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_RSA_EXPORT1024_WITH_RC2_CBC_56_MD5,
@@ -1321,9 +1408,11 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      56,
      128,
      },
+#endif
 # endif
 
     /* Cipher 62 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_RSA_EXPORT1024_WITH_DES_CBC_SHA,
@@ -1338,8 +1427,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      56,
      56,
      },
+#endif
 
     /* Cipher 63 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DHE_DSS_EXPORT1024_WITH_DES_CBC_SHA,
@@ -1354,8 +1445,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      56,
      56,
      },
+#endif
 
     /* Cipher 64 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_RSA_EXPORT1024_WITH_RC4_56_SHA,
@@ -1370,8 +1463,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      56,
      128,
      },
+#endif
 
     /* Cipher 65 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DHE_DSS_EXPORT1024_WITH_RC4_56_SHA,
@@ -1386,8 +1481,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      56,
      128,
      },
+#endif
 
     /* Cipher 66 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DHE_DSS_WITH_RC4_128_SHA,
@@ -1402,6 +1499,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 #endif
 
     /* TLS v1.2 ciphersuites */
@@ -1426,6 +1524,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      },
 
     /* Cipher 68 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DH_DSS_WITH_AES_256_SHA256,
@@ -1444,8 +1543,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      256,
      256,
      },
+#endif
 
     /* Cipher 69 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DH_RSA_WITH_AES_256_SHA256,
@@ -1464,6 +1565,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      256,
      256,
      },
+#endif
 
     /* Cipher 6A */
     {
@@ -1619,6 +1721,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      256,
      },
     /* Cipher 85 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DH_DSS_WITH_CAMELLIA_256_CBC_SHA,
@@ -1633,8 +1736,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      256,
      256,
      },
+#endif
 
     /* Cipher 86 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DH_RSA_WITH_CAMELLIA_256_CBC_SHA,
@@ -1649,6 +1754,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      256,
      256,
      },
+#endif
 
     /* Cipher 87 */
     {
@@ -1785,6 +1891,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      },
 
     /* Cipher 97 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DH_DSS_WITH_SEED_SHA,
@@ -1799,8 +1906,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
     /* Cipher 98 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DH_RSA_WITH_SEED_SHA,
@@ -1815,6 +1924,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
     /* Cipher 99 */
     {
@@ -1949,6 +2059,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      },
 
     /* Cipher A0 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DH_RSA_WITH_AES_128_GCM_SHA256,
@@ -1967,8 +2078,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
     /* Cipher A1 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DH_RSA_WITH_AES_256_GCM_SHA384,
@@ -1987,6 +2100,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      256,
      256,
      },
+#endif
 
     /* Cipher A2 */
     {
@@ -2029,6 +2143,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      },
 
     /* Cipher A4 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DH_DSS_WITH_AES_128_GCM_SHA256,
@@ -2047,8 +2162,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
     /* Cipher A5 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_DH_DSS_WITH_AES_256_GCM_SHA384,
@@ -2067,6 +2184,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      256,
      256,
      },
+#endif
 
     /* Cipher A6 */
     {
@@ -2125,6 +2243,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
 
 #ifndef OPENSSL_NO_ECDH
     /* Cipher C001 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_ECDH_ECDSA_WITH_NULL_SHA,
@@ -2143,8 +2262,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      0,
      0,
      },
+#endif
 
     /* Cipher C002 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_ECDH_ECDSA_WITH_RC4_128_SHA,
@@ -2159,8 +2280,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
     /* Cipher C003 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_ECDH_ECDSA_WITH_DES_192_CBC3_SHA,
@@ -2179,8 +2302,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      112,
      168,
      },
+#endif
 
     /* Cipher C004 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_ECDH_ECDSA_WITH_AES_128_CBC_SHA,
@@ -2199,8 +2324,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
     /* Cipher C005 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_ECDH_ECDSA_WITH_AES_256_CBC_SHA,
@@ -2219,6 +2346,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      256,
      256,
      },
+#endif
 
     /* Cipher C006 */
     {
@@ -2317,6 +2445,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      },
 
     /* Cipher C00B */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_ECDH_RSA_WITH_NULL_SHA,
@@ -2335,8 +2464,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      0,
      0,
      },
+#endif
 
     /* Cipher C00C */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_ECDH_RSA_WITH_RC4_128_SHA,
@@ -2351,8 +2482,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
     /* Cipher C00D */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_ECDH_RSA_WITH_DES_192_CBC3_SHA,
@@ -2371,8 +2504,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      112,
      168,
      },
+#endif
 
     /* Cipher C00E */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_ECDH_RSA_WITH_AES_128_CBC_SHA,
@@ -2391,8 +2526,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
     /* Cipher C00F */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_ECDH_RSA_WITH_AES_256_CBC_SHA,
@@ -2411,6 +2548,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      256,
      256,
      },
+#endif
 
     /* Cipher C010 */
     {
@@ -2795,6 +2933,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      },
 
     /* Cipher C025 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_ECDH_ECDSA_WITH_AES_128_SHA256,
@@ -2813,8 +2952,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
     /* Cipher C026 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_ECDH_ECDSA_WITH_AES_256_SHA384,
@@ -2833,6 +2974,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      256,
      256,
      },
+#endif
 
     /* Cipher C027 */
     {
@@ -2875,6 +3017,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      },
 
     /* Cipher C029 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_ECDH_RSA_WITH_AES_128_SHA256,
@@ -2893,8 +3036,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
     /* Cipher C02A */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_ECDH_RSA_WITH_AES_256_SHA384,
@@ -2913,6 +3058,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      256,
      256,
      },
+#endif
 
     /* GCM based TLS v1.2 ciphersuites from RFC5289 */
 
@@ -2957,6 +3103,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      },
 
     /* Cipher C02D */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_ECDH_ECDSA_WITH_AES_128_GCM_SHA256,
@@ -2975,8 +3122,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
     /* Cipher C02E */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_ECDH_ECDSA_WITH_AES_256_GCM_SHA384,
@@ -2995,6 +3144,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      256,
      256,
      },
+#endif
 
     /* Cipher C02F */
     {
@@ -3037,6 +3187,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      },
 
     /* Cipher C031 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_ECDH_RSA_WITH_AES_128_GCM_SHA256,
@@ -3055,8 +3206,10 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      128,
      128,
      },
+#endif
 
     /* Cipher C032 */
+#ifdef OPENSSL_NO_AKAMAI_GHOST_HIGH
     {
      1,
      TLS1_TXT_ECDH_RSA_WITH_AES_256_GCM_SHA384,
@@ -3075,6 +3228,7 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[] = {
      256,
      256,
      },
+#endif
 
 #endif                          /* OPENSSL_NO_ECDH */
 
