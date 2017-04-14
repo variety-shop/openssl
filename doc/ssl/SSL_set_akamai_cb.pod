@@ -121,7 +121,9 @@ No SSL_AKAMAI_CB_DATA is provided. A return value of -1 will abort the handshake
 
 This event indicates that the server has decrypted the session ticket, to give the application
 the opportunity to get the ticket app data via SSL_SESSION_akamai_get_ticket_appdata().
-B<SSL_AKAMAI_CB_DATA.src[0]> contains the name of the ticket.
+B<SSL_AKAMAI_CB_DATA.src[0]> contains the name of the ticket. B<SSL_AKAMAI_CB_DATA.sess> points
+to the new SSL_SESSION structure (may be NULL). In this callback, SSL_get_session() may return
+NULL.
 B<SSL_AKAMAI_CB_DATA.retval> is set to the value of the decryption operation (see below). If the
 application doesn't like the results or app data, the function should return 1, and set
 B<SSL_AKAMAI_CB_DATA.retval> to one of the values below. Returning 0 continues normal proccessing.
@@ -136,6 +138,14 @@ A fatal malloc error occured.
 =item Z<>-1
 
 A fatal decryption or parsing error occured.
+
+=item Z<>0
+
+No ticket was found.
+
+=item Z<>1
+
+An empty ticket was found.
 
 =item Z<>2
 

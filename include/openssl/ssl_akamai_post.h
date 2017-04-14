@@ -179,6 +179,7 @@ struct ssl_akamai_cb_data_st {
     void* dst;
     size_t dst_len;
     long retval;
+    SSL_SESSION *sess;
 };
 typedef struct ssl_akamai_cb_data_st SSL_AKAMAI_CB_DATA;
 

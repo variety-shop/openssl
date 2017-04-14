@@ -156,7 +156,7 @@ static int short_appdata_cb(SSL *s, int event, SSL_AKAMAI_CB_DATA *data)
                                                    SHORT_APPDATA, SHORT_APPDATA_SIZE);
             break;
         case SSL_AKAMAI_CB_DECRYPTED_TICKET:
-            size = SSL_SESSION_akamai_get_ticket_appdata(SSL_get_session(s), appdata, sizeof(appdata));
+            size = SSL_SESSION_akamai_get_ticket_appdata(data->sess, appdata, sizeof(appdata));
             OPENSSL_assert(size == SHORT_APPDATA_SIZE);
             OPENSSL_assert(memcmp(appdata, SHORT_APPDATA, size) == 0);
             printf("short_appdata_cb: successful\n");
@@ -188,7 +188,7 @@ static int long_appdata_cb(SSL *s, int event, SSL_AKAMAI_CB_DATA *data)
             SSL_SESSION_akamai_set1_ticket_appdata(SSL_get_session(s), appdata, LONG_APPDATA_SIZE * LOOPS);
             break;
         case SSL_AKAMAI_CB_DECRYPTED_TICKET:
-            size = SSL_SESSION_akamai_get_ticket_appdata(SSL_get_session(s), appdata, LONG_APPDATA_SIZE * LOOPS);
+            size = SSL_SESSION_akamai_get_ticket_appdata(data->sess, appdata, LONG_APPDATA_SIZE * LOOPS);
             OPENSSL_assert(size == (LONG_APPDATA_SIZE * LOOPS));
             ptr = appdata;
             for (i = 0; i < LOOPS; i++) {
@@ -213,7 +213,7 @@ static int zero_appdata_cb(SSL *s, int event, SSL_AKAMAI_CB_DATA *data)
             SSL_SESSION_akamai_set1_ticket_appdata(SSL_get_session(s), NULL, 0);
             break;
         case SSL_AKAMAI_CB_DECRYPTED_TICKET:
-            size = SSL_SESSION_akamai_get_ticket_appdata(SSL_get_session(s), NULL, 0);
+            size = SSL_SESSION_akamai_get_ticket_appdata(data->sess, NULL, 0);
             OPENSSL_assert(size == 0);
             printf("zero_appdata_cb: successful\n");
             break;
