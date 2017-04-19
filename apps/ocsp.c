@@ -119,7 +119,8 @@ static int make_ocsp_response(OCSP_RESPONSE **resp, OCSP_REQUEST *req,
                               CA_DB *db, STACK_OF(X509) *ca, X509 *rcert,
                               EVP_PKEY *rkey, const EVP_MD *md,
                               STACK_OF(X509) *rother, unsigned long flags,
-                              int nmin, int ndays, int badsig);
+                              int nmin, int ndays, int badsig,
+                              const EVP_MD *resp_md);
 # endif
 
 static char **lookup_serial(CA_DB *db, ASN1_INTEGER *ser);
@@ -175,11 +176,11 @@ int MAIN(int argc, char **argv)
     int ignore_err = 0;
     STACK_OF(OPENSSL_STRING) *reqnames = NULL;
     STACK_OF(OCSP_CERTID) *ids = NULL;
-
 # ifdef OPENSSL_NO_AKAMAI
     X509 *rca_cert = NULL;
 # else
     STACK_OF(X509) *rca_cert = NULL;
+    const EVP_MD *resp_certid_md = NULL;
 # endif
     char *ridx_filename = NULL;
     char *rca_filename = NULL;
@@ -495,6 +496,16 @@ int MAIN(int argc, char **argv)
                     badarg = 1;
             } else
                 badarg = 1;
+#ifndef OPENSSL_NO_AKAMAI
+        } else if (!strcmp(*args, "-rcid")) {
+            if (args[1]) {
+                args++;
+                resp_certid_md = EVP_get_digestbyname(*args);
+                if (!resp_certid_md)
+                    badarg = 1;
+            } else
+                badarg = 1;
+#endif
         } else if ((cert_id_md = EVP_get_digestbyname((*args) + 1)) == NULL) {
             badarg = 1;
         }
@@ -593,6 +604,10 @@ int MAIN(int argc, char **argv)
                    "-resp_key_id         identify reponse by signing certificate key ID\n");
         BIO_printf(bio_err,
                    "-nrequest n          number of requests to accept (default unlimited)\n");
+#ifndef OPENSSL_NO_AKAMAI
+        BIO_printf(bio_err,
+                   "-rcid <dgst alg>     use specified alg for cert id in response\n");
+#endif
         BIO_printf(bio_err,
                    "-<dgst alg>          use specified digest in the request\n");
         BIO_printf(bio_err,
@@ -746,8 +761,14 @@ int MAIN(int argc, char **argv)
     }
 
     if (rdb) {
+#ifdef OPENSSL_NO_AKAMAI
         i = make_ocsp_response(&resp, req, rdb, rca_cert, rsigner, rkey,
                                rsign_md, rother, rflags, nmin, ndays, badsig);
+#else
+        i = make_ocsp_response(&resp, req, rdb, rca_cert, rsigner, rkey,
+                               rsign_md, rother, rflags, nmin, ndays, badsig,
+                               resp_certid_md);
+#endif
         if (cbio)
             send_ocsp_response(cbio, resp);
     } else if (host) {
@@ -1050,7 +1071,8 @@ static int make_ocsp_response(OCSP_RESPONSE **resp, OCSP_REQUEST *req,
                               CA_DB *db, STACK_OF(X509) *ca, X509 *rcert,
                               EVP_PKEY *rkey, const EVP_MD *rmd,
                               STACK_OF(X509) *rother, unsigned long flags,
-                              int nmin, int ndays, int badsig)
+                              int nmin, int ndays, int badsig,
+                              const EVP_MD *resp_md)
 # endif
 {
     ASN1_TIME *thisupd = NULL, *nextupd = NULL;
@@ -1058,6 +1080,7 @@ static int make_ocsp_response(OCSP_RESPONSE **resp, OCSP_REQUEST *req,
     OCSP_CERTID *cid, *ca_id = NULL;
 # else
     OCSP_CERTID *cid;
+    OCSP_CERTID *cid_resp_md = NULL;
 # endif
     OCSP_BASICRESP *bs = NULL;
     int i, id_count, ret = 1;
@@ -1086,6 +1109,11 @@ static int make_ocsp_response(OCSP_RESPONSE **resp, OCSP_REQUEST *req,
 # endif
         ASN1_OBJECT *cert_id_md_oid;
         const EVP_MD *cert_id_md;
+
+# ifndef OPENSSL_NO_AKAMAI
+        OCSP_CERTID_free(cid_resp_md);
+        cid_resp_md = NULL;
+# endif
         one = OCSP_request_onereq_get0(req, i);
         cid = OCSP_onereq_get0_id(one);
 
@@ -1101,7 +1129,6 @@ static int make_ocsp_response(OCSP_RESPONSE **resp, OCSP_REQUEST *req,
         if (ca_id)
             OCSP_CERTID_free(ca_id);
         ca_id = OCSP_cert_to_id(cert_id_md, NULL, ca);
-
         /* Is this request about our CA? */
         if (OCSP_id_issuer_cmp(ca_id, cid)) {
             OCSP_basic_add1_status(bs, cid,
@@ -1109,16 +1136,28 @@ static int make_ocsp_response(OCSP_RESPONSE **resp, OCSP_REQUEST *req,
                                    0, NULL, thisupd, nextupd);
             continue;
         }
+        OCSP_id_get0_info(NULL, NULL, NULL, &serial, cid);
+        inf = lookup_serial(db, serial);
 # else
         for (jj = 0; jj < sk_X509_num(ca) && !found; jj++) {
             X509 *ca_cert = sk_X509_value(ca, jj);
             OCSP_CERTID *ca_id = OCSP_cert_to_id(cert_id_md, NULL, ca_cert);
 
-            if (OCSP_id_issuer_cmp(ca_id, cid) == 0)
+            if (OCSP_id_issuer_cmp(ca_id, cid) == 0) {
                 found = 1;
+                if (resp_md != NULL && jj == 0) {
+                    OCSP_CERTID_free(cid_resp_md);
+                    cid_resp_md = OCSP_cert_to_id(resp_md, NULL, ca_cert);
+                }
+            }
 
             OCSP_CERTID_free(ca_id);
         }
+        OCSP_id_get0_info(NULL, NULL, NULL, &serial, cid);
+        inf = lookup_serial(db, serial);
+
+        /* at this point, we can have cid be an alias of cid_resp_md */
+        cid = (cid_resp_md != NULL) ? cid_resp_md : cid;
 
         if (!found) {
             OCSP_basic_add1_status(bs, cid,
@@ -1127,8 +1166,6 @@ static int make_ocsp_response(OCSP_RESPONSE **resp, OCSP_REQUEST *req,
             continue;
         }
 # endif
-        OCSP_id_get0_info(NULL, NULL, NULL, &serial, cid);
-        inf = lookup_serial(db, serial);
         if (!inf)
             OCSP_basic_add1_status(bs, cid,
                                    V_OCSP_CERTSTATUS_UNKNOWN,
@@ -1174,6 +1211,8 @@ static int make_ocsp_response(OCSP_RESPONSE **resp, OCSP_REQUEST *req,
     ASN1_TIME_free(nextupd);
 # ifdef OPENSSL_NO_AKAMAI
     OCSP_CERTID_free(ca_id);
+# else
+    OCSP_CERTID_free(cid_resp_md);
 # endif
     OCSP_BASICRESP_free(bs);
     return ret;
