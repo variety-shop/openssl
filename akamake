@@ -275,7 +275,7 @@ $P/OPENSSL-TARGET := all $($P/OPENSSL-TARGET)
 ifdef IN_AKAMAKE
 ifndef ATTR_ONLY
 ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
-$(error 'shared builds are not supported in 7.110.x at this time')
+$(error 'shared builds are not supported in 7.111.x at this time')
 endif
 endif
 endif
@@ -404,7 +404,7 @@ ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),shared)
 
 $P/EXP-LIBS := libssl$(EXT_SO) libcrypto$(EXT_SO)
 $P/EXP-TREES := dist
-$P/EXP-TREE-dist := $(patsubst %$(EXT_SO),%$(EXT_SO).110.0.0,$($P/EXP-LIBS))
+$P/EXP-TREE-dist := $(patsubst %$(EXT_SO),%$(EXT_SO).111.0.0,$($P/EXP-LIBS))
 $(call declare-so-deps, ssl, crypto)
 $(call declare-so-deps, crypto, dl)
 $(call declare-so-deps, crypto, pthread)
@@ -415,13 +415,13 @@ $(COMMON)/lib/libssl$(EXT_A): $(COMMON)/lib/libssl$(EXT_SO)
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
 
-$(COMMON)/lib/libssl$(EXT_A).dep: $(COMMON)/lib/libssl$(EXT_SO).110.0.0
+$(COMMON)/lib/libssl$(EXT_A).dep: $(COMMON)/lib/libssl$(EXT_SO).111.0.0
 
 $(COMMON)/lib/libssl$(EXT_A).dep: $(COMMON)/lib/libssl$(EXT_SO).dep
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
 
-$(COMMON)/lib/libssl$(EXT_SO).110.0.0: $(COMMON)/lib/libssl$(EXT_SO)
+$(COMMON)/lib/libssl$(EXT_SO).111.0.0: $(COMMON)/lib/libssl$(EXT_SO)
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
 
@@ -429,13 +429,13 @@ $(COMMON)/lib/libcrypto$(EXT_A): $(COMMON)/lib/libcrypto$(EXT_SO)
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
 
-$(COMMON)/lib/libcrypto$(EXT_A).dep: $(COMMON)/lib/libcrypto$(EXT_SO).110.0.0
+$(COMMON)/lib/libcrypto$(EXT_A).dep: $(COMMON)/lib/libcrypto$(EXT_SO).111.0.0
 
 $(COMMON)/lib/libcrypto$(EXT_A).dep: $(COMMON)/lib/libcrypto$(EXT_SO).dep
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
 
-$(COMMON)/lib/libcrypto$(EXT_SO).110.0.0: $(COMMON)/lib/libcrypto$(EXT_SO)
+$(COMMON)/lib/libcrypto$(EXT_SO).111.0.0: $(COMMON)/lib/libcrypto$(EXT_SO)
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
 
