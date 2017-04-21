@@ -98,11 +98,11 @@ extern "C" {
  * making it fundamentally a different thing than stock OpenSSL.  To
  * indicate these differences and avoid collisions, use a vastly different
  * numbering space for SONAMEs for Akamai versions.
- * The "110" represents that this branch is based off of the OpenSSL 1.1.0
+ * The "111" represents that this branch is based off of the OpenSSL 1.1.1
  * series.
  */
 #  undef SHLIB_VERSION_NUMBER
-#  define SHLIB_VERSION_NUMBER "110.0.0"
+#  define SHLIB_VERSION_NUMBER "111.0.0"
 # endif
 
 #ifdef  __cplusplus
