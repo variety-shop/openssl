@@ -287,8 +287,13 @@ int CRYPTO_dup_ex_data(int class_index, CRYPTO_EX_DATA *to,
         CRYPTOerr(CRYPTO_F_CRYPTO_DUP_EX_DATA, ERR_R_MALLOC_FAILURE);
         return 0;
     }
+#ifdef OPENSSL_NO_AKAMAI
     if (!CRYPTO_set_ex_data(to, mx - 1, NULL))
         goto err;
+#else
+    if (!CRYPTO_set_ex_data(to, mx - 1, CRYPTO_get_ex_data(to, mx - 1)))
+        goto err;
+#endif
 
     for (i = 0; i < mx; i++) {
         ptr = CRYPTO_get_ex_data(from, i);
