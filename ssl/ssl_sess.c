@@ -144,12 +144,12 @@ SSL_SESSION *ssl_session_dup(SSL_SESSION *src, int ticket)
 #ifndef OPENSSL_NO_SRP
     dest->srp_username = NULL;
 #endif
-
-#ifdef OPENSSL_NO_AKAMAI_CLIENT_CACHE
-    memset(&dest->ex_data, 0, sizeof(dest->ex_data));
-#else
-    CRYPTO_new_ex_data(CRYPTO_EX_INDEX_SSL_SESSION, dest, &dest->ex_data);
+#ifndef OPENSSL_NO_AKAMAI
+    dest->peer_chain = NULL;
+    dest->peer = NULL;
 #endif
+
+    memset(&dest->ex_data, 0, sizeof(dest->ex_data));
 
     /* We deliberately don't copy the prev and next pointers */
     dest->prev = NULL;
@@ -161,8 +161,19 @@ SSL_SESSION *ssl_session_dup(SSL_SESSION *src, int ticket)
     if (dest->lock == NULL)
         goto err;
 
+#ifdef OPENSSL_NO_AKAMAI
     if (src->peer != NULL)
         X509_up_ref(src->peer);
+#else /* OPENSSL_NO_AKAMAI */
+    if (!CRYPTO_new_ex_data(CRYPTO_EX_INDEX_SSL_SESSION, dest, &dest->ex_data))
+        goto err;
+
+    if (src->peer != NULL) {
+        if (!X509_up_ref(src->peer))
+            goto err;
+        dest->peer = src->peer;
+    }
+#endif /* OPENSSL_NO_AKAMAI */
 
     if (src->peer_chain != NULL) {
         dest->peer_chain = X509_chain_up_ref(src->peer_chain);
@@ -218,7 +229,7 @@ SSL_SESSION *ssl_session_dup(SSL_SESSION *src, int ticket)
     }
 #endif
 
-# ifdef OPENSSL_NO_AKAMAI_CLIENT_CACHE
+# ifdef OPENSSL_NO_AKAMAI
     if (ticket != 0) {
         dest->tlsext_tick =
             OPENSSL_memdup(src->tlsext_tick, src->tlsext_ticklen);
@@ -228,7 +239,7 @@ SSL_SESSION *ssl_session_dup(SSL_SESSION *src, int ticket)
         dest->tlsext_tick_lifetime_hint = 0;
         dest->tlsext_ticklen = 0;
     }
-# else /* OPENSSL_NO_AKAMAI_CLIENT_CACHE */
+# else /* OPENSSL_NO_AKAMAI */
     if (ticket != 0 && src->tlsext_tick) {
         dest->tlsext_tick = OPENSSL_memdup(src->tlsext_tick, src->tlsext_ticklen);
         if(dest->tlsext_tick == NULL)
@@ -237,7 +248,7 @@ SSL_SESSION *ssl_session_dup(SSL_SESSION *src, int ticket)
         dest->tlsext_tick_lifetime_hint = 0;
         dest->tlsext_ticklen = 0;
     }
-# endif /* OPENSSL_NO_AKAMAI_CLIENT_CACHE */
+# endif /* OPENSSL_NO_AKAMAI */
 
 #ifndef OPENSSL_NO_SRP
     if (src->srp_username) {

@@ -285,6 +285,14 @@ int CRYPTO_dup_ex_data(int class_index, CRYPTO_EX_DATA *to,
         return 0;
     }
 
+#ifndef OPENSSL_NO_AKAMAI
+    if (!CRYPTO_set_ex_data(to, mx - 1, CRYPTO_get_ex_data(to, mx - 1))) {
+        if (storage != stack)
+            OPENSSL_free(storage);
+        return 0;
+    }
+#endif
+
     for (i = 0; i < mx; i++) {
         ptr = CRYPTO_get_ex_data(from, i);
         if (storage[i] && storage[i]->dup_func)
