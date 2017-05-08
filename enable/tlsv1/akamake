@@ -17,7 +17,7 @@ $P/MODULES := NO-OP
 
 M := NO-OP
 
-$P/$M-DEP-COMP := openssl-tlsv1
+$P/$M-DEP-COMP := openssl-tlsv1 openssl/enable/tlsv11
 
 $P/$M-3RD-PARTY := $P/no-op
 
