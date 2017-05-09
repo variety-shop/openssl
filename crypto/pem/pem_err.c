@@ -48,7 +48,7 @@ static ERR_STRING_DATA PEM_str_functs[] = {
     {ERR_FUNC(PEM_F_PEM_READ), "PEM_read"},
     {ERR_FUNC(PEM_F_PEM_READ_BIO), "PEM_read_bio"},
     {ERR_FUNC(PEM_F_PEM_READ_BIO_DHPARAMS), "PEM_read_bio_DHparams"},
-    {ERR_FUNC(PEM_F_PEM_READ_BIO_FLAGS), "PEM_read_bio_flags"},
+    {ERR_FUNC(PEM_F_PEM_READ_BIO_EX), "PEM_read_bio_ex"},
     {ERR_FUNC(PEM_F_PEM_READ_BIO_PARAMETERS), "PEM_read_bio_Parameters"},
     {ERR_FUNC(PEM_F_PEM_READ_BIO_PRIVATEKEY), "PEM_read_bio_PrivateKey"},
     {ERR_FUNC(PEM_F_PEM_READ_DHPARAMS), "PEM_read_DHparams"},
