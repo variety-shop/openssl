@@ -1712,7 +1712,12 @@ unsigned char *ssl_add_serverhello_tlsext(SSL *s, unsigned char *buf,
             s2n(0, ret);
         }
     }
+#ifdef OPENSSL_NO_AKAMAI
     if (s->s3->flags & TLS1_FLAGS_RECEIVED_EXTMS) {
+#else
+    if (s->s3->flags & TLS1_FLAGS_RECEIVED_EXTMS
+            && !SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_NO_EXTMS)) {
+#endif
         /*-
          * check for enough space.
          * 4 bytes for the EMS type and extension length
@@ -2594,7 +2599,12 @@ static int ssl_scan_serverhello_tlsext(SSL *s, PACKET *pkt, int *al)
             if (s->s3->tmp.new_cipher->algorithm_mac != SSL_AEAD
                 && s->s3->tmp.new_cipher->algorithm_enc != SSL_RC4)
                 s->tlsext_use_etm = 1;
+#ifdef OPENSSL_NO_AKAMAI
         } else if (type == TLSEXT_TYPE_extended_master_secret) {
+#else
+        } else if (type == TLSEXT_TYPE_extended_master_secret
+                   && !SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_NO_EXTMS)) {
+#endif
             s->s3->flags |= TLS1_FLAGS_RECEIVED_EXTMS;
             if (!s->hit)
                 s->session->flags |= SSL_SESS_FLAG_EXTMS;
@@ -3097,7 +3107,10 @@ int tls_check_client_ems_support(SSL *s, CLIENTHELLO_MSG *hello)
     if (PACKET_remaining(&emsext->data) != 0)
         return 0;
 
-    s->s3->flags |= TLS1_FLAGS_RECEIVED_EXTMS;
+#ifndef OPENSSL_NO_AKAMAI
+    if (!SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_NO_EXTMS))
+#endif
+        s->s3->flags |= TLS1_FLAGS_RECEIVED_EXTMS;
 
     return 1;
 }
