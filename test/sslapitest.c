@@ -116,7 +116,54 @@ end:
 
     return testresult;
 }
-#endif
+
+static int test_no_ems(int idx) {
+    SSL_CTX *cctx = NULL, *sctx = NULL;
+    SSL *clientssl = NULL, *serverssl = NULL;
+    int testresult = 0;
+
+    if (!create_ssl_ctx_pair(TLS_server_method(), TLS_client_method(),
+                             TLS1_VERSION, TLS_MAX_VERSION,
+                             &sctx, &cctx, cert, privkey)) {
+        printf("Unable to create SSL_CTX pair\n");
+        goto end;
+    }
+
+    if (idx)
+        SSL_CTX_akamai_opt_set(cctx, SSL_AKAMAI_OPT_NO_EXTMS);
+    else
+        SSL_CTX_akamai_opt_set(sctx, SSL_AKAMAI_OPT_NO_EXTMS);
+
+    if (!create_ssl_objects(sctx, cctx, &serverssl, &clientssl, NULL, NULL)) {
+        printf("Unable to create SSL objects\n");
+        goto end;
+    }
+
+    if (!create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)) {
+        printf("Creating SSL connection failed\n");
+        goto end;
+    }
+
+    if (SSL_get_extms_support(serverssl)) {
+        printf("Server reports Extended Master Secret support\n");
+        goto end;
+    }
+
+    if (SSL_get_extms_support(clientssl)) {
+        printf("Client reports Extended Master Secret support\n");
+        goto end;
+    }
+    testresult = 1;
+
+end:
+    SSL_free(serverssl);
+    SSL_free(clientssl);
+    SSL_CTX_free(sctx);
+    SSL_CTX_free(cctx);
+
+    return testresult;
+}
+#endif /* OPENSSL_NO_AKAMAI */
 
 static int execute_test_large_message(const SSL_METHOD *smeth,
                                       const SSL_METHOD *cmeth,
@@ -1413,6 +1460,7 @@ int main(int argc, char *argv[])
     ADD_ALL_TESTS(test_ssl_pending, 2);
 #ifndef OPENSSL_NO_AKAMAI
     ADD_TEST(test_early_cb);
+    ADD_ALL_TESTS(test_no_ems, 2);
     ADD_TEST(test_share_session_cache);
 #endif
 
