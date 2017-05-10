@@ -667,6 +667,10 @@ int tls_parse_ctos_ems(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
         *al = SSL_AD_DECODE_ERROR;
         return 0;
     }
+#ifndef OPENSSL_NO_AKAMAI
+    if (SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_NO_EXTMS))
+        return 1;
+#endif
 
     s->s3->flags |= TLS1_FLAGS_RECEIVED_EXTMS;
 
