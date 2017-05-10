@@ -494,6 +494,11 @@ EXT_RETURN tls_construct_ctos_sct(SSL *s, WPACKET *pkt, unsigned int context,
 EXT_RETURN tls_construct_ctos_ems(SSL *s, WPACKET *pkt, unsigned int context,
                                   X509 *x, size_t chainidx)
 {
+#ifndef OPENSSL_NO_AKAMAI
+    if (SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_NO_EXTMS))
+        return EXT_RETURN_NOT_SENT;
+#endif
+
     if (!WPACKET_put_bytes_u16(pkt, TLSEXT_TYPE_extended_master_secret)
             || !WPACKET_put_bytes_u16(pkt, 0)) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CTOS_EMS,
@@ -1740,6 +1745,10 @@ int tls_parse_stoc_etm(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
 int tls_parse_stoc_ems(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
                        size_t chainidx)
 {
+#ifndef OPENSSL_NO_AKAMAI
+    if (SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_NO_EXTMS))
+        return 1;
+#endif
     s->s3->flags |= TLS1_FLAGS_RECEIVED_EXTMS;
     if (!s->hit)
         s->session->flags |= SSL_SESS_FLAG_EXTMS;
