@@ -2251,6 +2251,10 @@ long SSL_ctrl(SSL *s, int cmd, long larg, void *parg)
     case SSL_CTRL_GET_EXTMS_SUPPORT:
         if (!s->session || SSL_in_init(s) || ossl_statem_get_in_handshake(s))
             return -1;
+#ifndef OPENSSL_NO_AKAMAI
+        if (SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_NO_EXTMS))
+            return 0;
+#endif
         if (s->session->flags & SSL_SESS_FLAG_EXTMS)
             return 1;
         else
