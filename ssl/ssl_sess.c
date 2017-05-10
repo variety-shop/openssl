@@ -441,8 +441,13 @@ int ssl_get_new_session(SSL *s, int session)
     ss->verify_result = X509_V_OK;
 
     /* If client supports extended master secret set it in session */
+#ifdef OPENSSL_NO_AKAMAI
     if (s->s3->flags & TLS1_FLAGS_RECEIVED_EXTMS)
         ss->flags |= SSL_SESS_FLAG_EXTMS;
+#else
+    if (!SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_NO_EXTMS) && (s->s3->flags & TLS1_FLAGS_RECEIVED_EXTMS))
+        ss->flags |= SSL_SESS_FLAG_EXTMS;
+#endif
 
     return 1;
 }
@@ -627,12 +632,22 @@ int ssl_get_prev_session(SSL *s, CLIENTHELLO_MSG *hello)
     /* Check extended master secret extension consistency */
     if (ret->flags & SSL_SESS_FLAG_EXTMS) {
         /* If old session includes extms, but new does not: abort handshake */
+#ifdef OPENSSL_NO_AKAMAI
         if (!(s->s3->flags & TLS1_FLAGS_RECEIVED_EXTMS)) {
             SSLfatal(s, SSL_AD_ILLEGAL_PARAMETER, SSL_F_SSL_GET_PREV_SESSION,
                      SSL_R_INCONSISTENT_EXTMS);
             fatal = 1;
             goto err;
         }
+#else
+        if (!(s->s3->flags & TLS1_FLAGS_RECEIVED_EXTMS)
+            && !SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_NO_EXTMS)) {
+            SSLfatal(s, SSL_AD_ILLEGAL_PARAMETER, SSL_F_SSL_GET_PREV_SESSION,
+                     SSL_R_INCONSISTENT_EXTMS);
+            fatal = 1;
+            goto err;
+        }
+#endif
     } else if (s->s3->flags & TLS1_FLAGS_RECEIVED_EXTMS) {
         /* If new session includes extms, but old does not: do not resume */
         goto err;
