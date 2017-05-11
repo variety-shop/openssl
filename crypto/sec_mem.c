@@ -61,8 +61,8 @@ int CRYPTO_secure_malloc_init(size_t size, int minsize)
 
     LOCK();
     if (!secure_mem_initialized) {
-        ret = sh_init(size, minsize);
-        secure_mem_initialized = 1;
+        if ((ret = sh_init(size, minsize)) != 0)
+            secure_mem_initialized = 1;
     }
     UNLOCK();
     return ret;
@@ -478,6 +478,9 @@ static char *sh_malloc(size_t size)
     ssize_t list, slist;
     size_t i;
     char *chunk;
+
+    if (size > sh.arena_size)
+        return NULL;
 
     list = sh.freelist_size - 1;
     for (i = sh.minsize; i < size; i <<= 1)
