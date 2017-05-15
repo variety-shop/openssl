@@ -33,7 +33,9 @@
 # include <sys/mman.h>
 # if defined(OPENSSL_SYS_LINUX)
 #  include <sys/syscall.h>
-#  include <linux/mman.h>
+#  ifndef __ANDROID__
+#   include <linux/mman.h>
+#  endif
 #  include <errno.h>
 # endif
 # include <sys/param.h>
