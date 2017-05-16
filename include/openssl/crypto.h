@@ -433,7 +433,7 @@ int CRYPTO_THREAD_compare_id(CRYPTO_THREAD_ID a, CRYPTO_THREAD_ID b);
 /* AKAMAI ADDITIONS TO THE CRYPTO LIBRARY: akamai.c */
 void AKAMAI_rsalg_hash(unsigned char *s_rand, unsigned char *p, size_t len);
 const EVP_MD *AKAMAI_algorithm2_to_md(long algorithm2);
-int AKAMAI_prf(long algorithm2,
+int AKAMAI_prf(int alg_nid,
                const void *seed1, int seed1_len,
                const void *seed2, int seed2_len,
                const void *seed3, int seed3_len,

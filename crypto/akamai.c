@@ -69,9 +69,8 @@ const EVP_MD *AKAMAI_algorithm2_to_md(long algorithm2)
     }
 }
 
-/* algorithm2 is expected to be the output of ssl_get_algorithm2(SSL*) */
 /* seed1 through seed5 are concatenated */
-int AKAMAI_prf(long algorithm2,
+int AKAMAI_prf(int alg_nid,
                const void *seed1, int seed1_len,
                const void *seed2, int seed2_len,
                const void *seed3, int seed3_len,
@@ -80,7 +79,7 @@ int AKAMAI_prf(long algorithm2,
                const unsigned char *sec, int slen,
                unsigned char *out, int olen)
 {
-    const EVP_MD *md = AKAMAI_algorithm2_to_md(algorithm2);
+    const EVP_MD *md = EVP_get_digestbynid(alg_nid);
 
     EVP_PKEY_CTX *pctx = NULL;
 
