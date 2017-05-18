@@ -4214,11 +4214,10 @@ X509_VERIFY_PARAM_set_inh_flags         4174	1_1_0d	EXIST::FUNCTION:
 X509_VERIFY_PARAM_get_inh_flags         4175	1_1_0d	EXIST::FUNCTION:
 X509_VERIFY_PARAM_get_time              4181	1_1_0d	EXIST::FUNCTION:
 DH_check_params                         4183	1_1_0d	EXIST::FUNCTION:DH
-PEM_read_bio_ex                         4234	1_1_0e  EXIST::FUNCTION:AKAMAI
-PEM_bytes_read_bio_secmem               4235	1_1_0e  EXIST::FUNCTION:AKAMAI
+PEM_read_bio_ex                         4234	1_1_0e	EXIST::FUNCTION:AKAMAI
+PEM_bytes_read_bio_secmem               4235	1_1_0e	EXIST::FUNCTION:AKAMAI
 X509_LOOKUP_mem                         10001	1_1_0a	EXIST::FUNCTION:AKAMAI
 X509_STORE_load_mem                     10002	1_1_0a	EXIST::FUNCTION:AKAMAI
-PEM_bytes_read_bio_secmem               10003	1_1_0a	NOEXIST::FUNCTION:
 PEM_read_bio_flags                      10004	1_1_0a	NOEXIST::FUNCTION:
 X509_akamai_get_sha1_hash               10005	1_1_0b	EXIST::FUNCTION:AKAMAI
 X509_STORE_akamai_get_references        10006	1_1_0b	EXIST::FUNCTION:AKAMAI
