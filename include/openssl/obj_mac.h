@@ -5196,3 +5196,15 @@
 #define LN_uacurve9             "DSTU curve 9"
 #define NID_uacurve9            1169
 #define OBJ_uacurve9            OBJ_dstu4145le,2L,9L
+
+#define SN_aes_128_siv          "AES-128-SIV"
+#define LN_aes_128_siv          "aes-128-siv"
+#define NID_aes_128_siv         1195
+
+#define SN_aes_192_siv          "AES-192-SIV"
+#define LN_aes_192_siv          "aes-192-siv"
+#define NID_aes_192_siv         1196
+
+#define SN_aes_256_siv          "AES-256-SIV"
+#define LN_aes_256_siv          "aes-256-siv"
+#define NID_aes_256_siv         1197

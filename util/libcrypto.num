@@ -4577,3 +4577,17 @@ OCSP_resp_get0_respdata                 4530	1_1_0j	EXIST::FUNCTION:OCSP
 EVP_MD_CTX_set_pkey_ctx                 4531	1_1_1	EXIST::FUNCTION:
 EVP_PKEY_meth_set_digest_custom         4532	1_1_1	EXIST::FUNCTION:
 EVP_PKEY_meth_get_digest_custom         4533	1_1_1	EXIST::FUNCTION:
+EVP_aes_256_siv                         4534	1_1_2	EXIST::FUNCTION:SIV
+CRYPTO_siv128_get_tag                   4535	1_1_2	EXIST::FUNCTION:SIV
+EVP_aes_192_siv                         4536	1_1_2	EXIST::FUNCTION:SIV
+CRYPTO_siv128_speed                     4537	1_1_2	EXIST::FUNCTION:SIV
+CRYPTO_siv128_init                      4538	1_1_2	EXIST::FUNCTION:SIV
+CRYPTO_siv128_aad                       4539	1_1_2	EXIST::FUNCTION:SIV
+CRYPTO_siv128_decrypt                   4540	1_1_2	EXIST::FUNCTION:SIV
+CRYPTO_siv128_finish                    4541	1_1_2	EXIST::FUNCTION:SIV
+CRYPTO_siv128_copy_ctx                  4542	1_1_2	EXIST::FUNCTION:SIV
+CRYPTO_siv128_set_tag                   4543	1_1_2	EXIST::FUNCTION:SIV
+CRYPTO_siv128_encrypt                   4544	1_1_2	EXIST::FUNCTION:SIV
+EVP_aes_128_siv                         4545	1_1_2	EXIST::FUNCTION:SIV
+CRYPTO_siv128_cleanup                   4546	1_1_2	EXIST::FUNCTION:SIV
+CRYPTO_siv128_new                       4547	1_1_2	EXIST::FUNCTION:SIV
