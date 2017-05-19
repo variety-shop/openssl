@@ -16,6 +16,7 @@ setup("test_evp");
 
 my @files = ( "evpciph.txt", "evpdigest.txt", "evpencod.txt", "evpkdf.txt",
     "evpmac.txt", "evppbe.txt", "evppkey.txt", "evppkey_ecc.txt",
+    "evpaessiv.txt",
     "evpcase.txt", "evpccmcavs.txt" );
 
 plan tests => scalar(@files);
