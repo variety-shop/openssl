@@ -490,3 +490,4 @@ SSL_SESSION_akamai_get_ticket_appdata   10081	1_1_0e	EXIST::FUNCTION:AKAMAI
 SSL_SESSION_akamai_set1_ticket_appdata  10082	1_1_0e	EXIST::FUNCTION:AKAMAI
 SSL_CTX_get_akamai_cb                   10083	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_CB
 SSL_CTX_set_akamai_cb                   10084	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_CB
+SSL_CTX_akamai_session_stats_bio        10085	1_1_0e	EXIST::FUNCTION:AKAMAI

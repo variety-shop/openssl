@@ -352,9 +352,7 @@ int SSL_get_prev_client_session(SSL *s, int flags)
      */
 
     CRYPTO_THREAD_read_lock(s->session_ctx->lock);
-    ret = lh_SSL_SESSION_retrieve(s->session_ctx->sessions, &data);
-    if (ret != NULL)
-        SSL_SESSION_up_ref(ret); /* don't allow other threads to destroy it */
+    ret = SSL_CTX_SESSION_LIST_get1_session(s->session_ctx, &data);
     CRYPTO_THREAD_unlock(s->session_ctx->lock);
 
     /* clean up the EX_DATA */
@@ -434,11 +432,13 @@ long SSL_SESSION_set_timeout_update_cache(const SSL *s, long t)
     ss->timeout = t;
 
     CRYPTO_THREAD_read_lock(s->session_ctx->lock);
-    ret = lh_SSL_SESSION_retrieve(s->session_ctx->sessions, ss);
+    ret = SSL_CTX_SESSION_LIST_get1_session(s->session_ctx, ss);
     if ((ret != NULL) && (ret != ss)) {
         /* our session is a copy of the one in cache */
         ret->timeout = t;
     }
+    /* Drop the 'get1' reference. */
+    SSL_SESSION_free(ret);
     CRYPTO_THREAD_unlock(s->session_ctx->lock);
 
     return 1;
@@ -580,26 +580,20 @@ static void ssl_session_sockaddr_idx_init(void)
 int SSL_CTX_set_client_session_cache(SSL_CTX *ctx)
 {
     SSL_CTX_EX_DATA_AKAMAI *ex_data;
-    int i;
     CRYPTO_THREAD_run_once(&ssl_sockaddr_idx_once, ssl_sockaddr_idx_init);
     CRYPTO_THREAD_run_once(&ssl_session_sockaddr_idx_once, ssl_session_sockaddr_idx_init);
 
     CRYPTO_THREAD_write_lock(ctx->lock);
 
     ex_data = SSL_CTX_get_ex_data_akamai(ctx);
-    i = SSL_CTX_SESSION_LIST_free(ex_data->session_list);
-    if (i == 0)
-        lh_SSL_SESSION_free(ctx->sessions);
+    SSL_CTX_SESSION_LIST_free(ex_data->session_list, ctx);
 
     /* Force client-side caching */
     ctx->session_cache_mode |= SSL_SESS_CACHE_CLIENT;
     ctx->session_cache_mode &= ~SSL_SESS_CACHE_SERVER;
 
-    if ((ctx->sessions = lh_SSL_SESSION_new(ssl_session_client_hash,
-                                            ssl_session_client_cmp)) == NULL)
-        goto err;
-
-    ex_data->session_list = SSL_CTX_SESSION_LIST_new();
+    ex_data->session_list = SSL_CTX_SESSION_LIST_new(ssl_session_client_hash,
+                                                     ssl_session_client_cmp);
     if (ex_data->session_list == NULL)
         goto err;
 

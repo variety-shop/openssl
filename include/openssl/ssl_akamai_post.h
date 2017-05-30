@@ -299,6 +299,9 @@ size_t SSL_early_get0_compression_methods(SSL *s, const unsigned char **out);
 int SSL_early_get0_ext(SSL *s, unsigned int type, const unsigned char **out,
                        size_t *outlen);
 
+/* Replaces SSL_CTX_sessions() and OPENSSL_LH_stats_bio() for shared session cache. */
+void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b);
+
 #  ifdef  __cplusplus
 }
 #  endif
