@@ -17,6 +17,7 @@
 
 #include "testutil.h"
 
+#ifndef OPENSSL_NO_AKAMAI
 static const char raw[] = "hello world";
 static const char encoded[] = "aGVsbG8gd29ybGQ=";
 static const char pemtype[] = "PEMTESTDATA";
@@ -72,6 +73,7 @@ static int test_invalid(void)
     OPENSSL_free(data);
     return 1;
 }
+#endif  /* OPENSSL_NO_AKAMAI */
 
 int main(int argc, char *argv[])
 {
@@ -92,8 +94,10 @@ int main(int argc, char *argv[])
     CRYPTO_set_mem_debug(1);
     CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
 
+#ifndef OPENSSL_NO_AKAMAI
     ADD_TEST(test_b64);
     ADD_TEST(test_invalid);
+#endif
 
     testresult = run_tests(argv[0]);
 

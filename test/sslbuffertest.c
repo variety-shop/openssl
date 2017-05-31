@@ -24,6 +24,9 @@ struct async_ctrs {
 
 #define MAX_ATTEMPTS    100
 
+#ifdef OPENSSL_NO_AKAMAI
+int main(void) {return 0;}
+#else
 int main(int argc, char *argv[])
 {
     SSL_CTX *serverctx = NULL, *clientctx = NULL;
@@ -179,3 +182,4 @@ int main(int argc, char *argv[])
 
     return err;
 }
+#endif /* OPENSSL_NO_AKAMAI */

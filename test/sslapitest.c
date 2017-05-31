@@ -33,6 +33,7 @@ static X509 *ocspcert = NULL;
 
 #define NUM_EXTRA_CERTS 40
 
+#ifndef OPENSSL_NO_AKAMAI
 static int full_early_callback(SSL *s, int *al, void *arg)
 {
     int *ctr = arg;
@@ -115,7 +116,6 @@ end:
     return testresult;
 }
 
-#ifndef OPENSSL_NO_AKAMAI
 static int test_no_ems(void) {
     SSL_CTX *cctx = NULL, *sctx = NULL;
     SSL *clientssl = NULL, *serverssl = NULL;
@@ -1158,8 +1158,8 @@ int main(int argc, char *argv[])
     ADD_TEST(test_ssl_bio_change_rbio);
     ADD_TEST(test_ssl_bio_change_wbio);
     ADD_ALL_TESTS(test_set_sigalgs, OSSL_NELEM(testsigalgs) * 2);
-    ADD_TEST(test_early_cb);
 #ifndef OPENSSL_NO_AKAMAI
+    ADD_TEST(test_early_cb);
     ADD_TEST(test_no_ems);
 #endif
 

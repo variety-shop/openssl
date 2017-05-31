@@ -3098,9 +3098,11 @@ int SSL_get_error(const SSL *s, int i)
         if (SSL_want_async_job(s)) {
             return SSL_ERROR_WANT_ASYNC_JOB;
         }
+#ifndef OPENSSL_NO_AKAMAI
         if (SSL_want_early(s)) {
             return SSL_ERROR_WANT_EARLY;
         }
+#endif
     }
 
     if (i == 0) {

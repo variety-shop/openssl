@@ -21,6 +21,9 @@
 #include "engine/eng_int.h"
 #include "ui/ui_locl.h"
 
+#ifdef OPENSSL_NO_AKAMAI
+NON_EMPTY_TRANSLATION_UNIT
+#else
 /*
  * Main structure with statistics
  */
@@ -137,3 +140,4 @@ void AKAMAI_openssl_get_memory_stats(void (*cb)(const AKAMAI_EX_DATA_STATS*, voi
         }
     }
 }
+#endif /* OPENSSL_NO_AKAMAI */

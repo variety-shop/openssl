@@ -591,7 +591,7 @@ sub testssl {
 
       SKIP: {
 	  skip "TLSv1 is not supported by this OpenSSL build", 10
-	      if disabled("tls1");
+	      if disabled("tls1") || disabled("akamai");
 	  my @testextra = ("-bio_pair", "-tls1", "-reuse", "-num", "4");
 
 	  ok(run(test([@ssltest, @testextra])), 'reuse with tickets');
