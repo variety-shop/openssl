@@ -1672,11 +1672,11 @@ void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b)
 {
     SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(ctx);
 
-    CRYPTO_THREAD_read_lock(ctx);
+    CRYPTO_THREAD_read_lock(ctx->lock);
     CRYPTO_THREAD_read_lock(ex_data->session_list->lock);
     OPENSSL_LH_stats_bio((const OPENSSL_LHASH *)ex_data->session_list->sessions, b);
     CRYPTO_THREAD_unlock(ex_data->session_list->lock);
-    CRYPTO_THREAD_unlock(ctx);
+    CRYPTO_THREAD_unlock(ctx->lock);
 }
 
 #endif /* OPENSSL_NO_AKAMAI */
