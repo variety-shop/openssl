@@ -1364,7 +1364,9 @@ int ssl3_get_client_hello(SSL *s)
     /* ssl3_get_client_hello_post_app will need these when called. */
     if (ciphers != NULL)
         s->s3->tmp.ciphers = sk_SSL_CIPHER_dup(ciphers);
+#ifndef OPENSSL_NO_COMP
     s->s3->tmp.q = q;
+#endif
     s->s3->tmp.i = i;
 #endif
 #ifndef OPENSSL_NO_TLSEXT
