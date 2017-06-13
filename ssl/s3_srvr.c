@@ -1883,6 +1883,9 @@ static int ssl3_send_server_key_exchange_prep_data(SSL *s, SSL_KEY_EXCH_PREP_CTX
 #ifndef OPENSSL_NO_ECDH
         if (ctx->type & SSL_kEECDH) {
             const EC_GROUP *group;
+            BN_CTX * bn_ctx = NULL;
+            EC_KEY *ecdh = NULL;
+            EC_KEY * ecdhp = s->cert->ecdh_tmp;
 
             if (s->s3->tmp.ecdh != NULL) {
                 SSLerr(SSL_F_SSL3_SEND_SERVER_KEY_EXCHANGE,
@@ -1890,9 +1893,6 @@ static int ssl3_send_server_key_exchange_prep_data(SSL *s, SSL_KEY_EXCH_PREP_CTX
                 goto err;
             }
 
-            BN_CTX * bn_ctx = NULL;
-            EC_KEY *ecdh = NULL;
-            EC_KEY * ecdhp = s->cert->ecdh_tmp;
             if (s->cert->ecdh_tmp_auto) {
                 /* Get NID of appropriate shared curve */
                 int nid = tls1_shared_curve(s, -2);
