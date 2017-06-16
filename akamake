@@ -96,12 +96,6 @@ endif # ifeq ($(BUILDENV.BASEOS),linux)
 # We are setting the default here, so put the literal first
 $P/OPENSSL-TARGET := all $($P/OPENSSL-TARGET)
 
-# TEMPORARY
-$P/BUILDENV.linux.OPENSSL_LINKAGE-master := static
-BUILDENV.OPENSSL_LINKAGE-master := static
-$P/NOSHARED := $($P/NOSHARED) temporary
-# END TEMPORARY
-
 $P/CONFIGFEATURES := $($P/CONFIGFEATURES) \
 	enable-bf \
 	enable-cast \
@@ -270,15 +264,6 @@ endif # ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 ifeq ($(BUILDENV.OPENSSL_LINKAGE-master),shared)
 # We are setting the default here, so put the literal first
 $P/OPENSSL-TARGET := all $($P/OPENSSL-TARGET)
-# TEMPORARY!
-ifdef IN_AKAMAKE
-ifndef ATTR_ONLY
-ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
-$(error 'shared builds are not supported in 7.110.x at this time')
-endif
-endif
-endif
-# END TEMPORARY
 else # ifeq ($(BUILDENV.OPENSSL_LINKAGE-master),shared)
 # We are setting the default here, so put the literal first
 $P/OPENSSL-TARGET := libcrypto.a $($P/OPENSSL-TARGET)
