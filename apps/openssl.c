@@ -60,6 +60,16 @@ BIO *bio_in = NULL;
 BIO *bio_out = NULL;
 BIO *bio_err = NULL;
 
+#ifndef OPENSSL_NO_AKAMAI
+# if defined(__GNUC__) || defined(__clang__)
+#  define USED __attribute__((used))
+# else
+#  define USED
+# endif
+static char OPENSSL_PERFORCE_ID_SSL[] USED = "$Id: //sandbox/tshort/openssl-tlsv1.3/akamai/openssl/apps/openssl.c#6 $";
+static char OPENSSL_VERSION_ID_SSL[] USED = "$" "Id: Akamai-" OPENSSL_VERSION_TEXT " $";
+#endif
+
 static void calculate_columns(DISPLAY_COLUMNS *dc)
 {
     FUNCTION *f;
