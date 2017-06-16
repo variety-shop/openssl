@@ -155,6 +155,16 @@ CONF *config = NULL;
 BIO *bio_err = NULL;
 #endif
 
+#ifndef OPENSSL_NO_AKAMAI
+# if defined(__GNUC__) || defined(__clang__)
+#  define USED __attribute__((used))
+# else
+#  define USED
+# endif
+static char OPENSSL_PERFORCE_ID_SSL[] USED = "$Id: $";
+static char OPENSSL_VERSION_ID_SSL[] USED = "$" "Id: Akamai-" OPENSSL_VERSION_TEXT " $";
+#endif
+
 static void lock_dbg_cb(int mode, int type, const char *file, int line)
 {
     static int modes[CRYPTO_NUM_LOCKS]; /* = {0, 0, ... } */
