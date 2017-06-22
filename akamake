@@ -118,6 +118,14 @@ $P/CONFIGFEATURES := $($P/CONFIGFEATURES) \
 else # ifndef MASTER
 # Compiling OpenSSL as a component
 
+ifneq ($(MASTER-C),mghost-client-side)
+ifneq ($(MASTER-C),quic)
+ifneq ($(MASTER-C),quic-tools)
+$(error We only support certain components building OpenSSL 1.1.1)
+endif
+endif
+endif
+
 # We need to determine whether we're building static libraries or shared libraries.
 #
 # The result of this will be stored in $P/BUILDENV.OPENSSL_LINKAGE-master,
@@ -378,8 +386,12 @@ $P/STATIC-HEADERS := $(subst $(call get-headers-local-path)/,,$(wildcard $(call 
 # Remove opensslconf.h, as it is created/updated with all the others
 $P/STATIC-HEADERS := $(patsubst opensslconf.h,,$($P/STATIC-HEADERS))
 
+ifndef AKAMAKE-COMMON-BUILD
 # $P/HEADERS: List of export header files (relative to HEADERS_LOCAL_DIRECTORY)
 $P/HEADERS := $($P/CONFIG-GEN-HEADERS) $($P/STATIC-HEADERS)
+else
+$P/HEADERS :=
+endif
 $P/HEADERS:
 
 #     LIBS_LOCAL_DIRECTORY: relative directory of exported library files
