@@ -1391,11 +1391,6 @@ int SSL_akamai_remove_session(SSL *s)
     return 1;
 }
 
-void SSL_akamai_clear_hit(SSL *s)
-{
-    s->hit = 0;
-}
-
 int SSL_akamai_reset_fragment_size(SSL *s, unsigned int size)
 {
     /* Reset to original SSL_CTX default size when 0 is passed. */
