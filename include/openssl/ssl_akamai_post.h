@@ -245,12 +245,9 @@ __owur const SSL_CIPHER *SSL_akamai_get_tmp_cipher(const SSL *ssl);
 #define SSL_AKAMAI_CERT_ECC         (1 << 3)
 /* no GOST support */
 
-/* Returns 1 if cert cleared, 0 on error, type is SSL_AKAMAI_CERT */
-int SSL_akamai_clear_cert(SSL *s, int type);
 /* returns an SSL_AKAMAI_CERT-type value, 0 on error */
 __owur int SSL_akamai_get_cert_type(const X509 *x, const EVP_PKEY *pkey);
-/* returns a SSL_AKAMAI_CERT bitmap of the currently loaded certs */
-__owur int SSL_akamai_get_loaded_certs(SSL *s);
+
 /* sets s->session to NULL and clears s->hit */
 __owur int SSL_akamai_remove_session(SSL *s);
 
