@@ -68,10 +68,6 @@ struct ssl_ex_data_akamai_st
     /* Akamai proprietary options */
     unsigned int options;
 
-    /* Keep track of bytes passed through SSL */
-    size_t bytes_written;
-    size_t bytes_read;
-
     /* Used in place of SSL_CTX if present */
     int (*app_verify_callback)(X509_STORE_CTX*, void*);
     void *app_verify_arg;

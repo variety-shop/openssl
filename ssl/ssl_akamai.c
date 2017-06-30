@@ -234,9 +234,6 @@ static int ssl_ex_data_akamai_dup(CRYPTO_EX_DATA* to,
 
     /* make duplicates of pointer-based items */
 
-    /* reset stats */
-    new->bytes_written = new->bytes_read = 0;
-
     *orig = new;
     return ok;
 }
@@ -509,15 +506,6 @@ SSL_CTX_SESSION_LIST *SSL_CTX_get0_session_list(SSL_CTX* ctx)
 {
     SSL_CTX_EX_DATA_AKAMAI* ex_data = SSL_CTX_get_ex_data_akamai(ctx);
     return ex_data->session_list;
-}
-
-void SSL_get_byte_counters(SSL *s, size_t *w, size_t *r)
-{
-    SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
-    if (w != NULL)
-        *w = ex_data->bytes_written;
-    if (r != NULL)
-        *r = ex_data->bytes_read;
 }
 
 void SSL_SESSION_set_verify_result(SSL_SESSION *ss, long arg)
