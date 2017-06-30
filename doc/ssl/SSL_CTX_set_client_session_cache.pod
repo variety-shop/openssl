@@ -2,19 +2,13 @@
 
 =head1 NAME
 
-SSL_CTX_set_client_session_cache, SSL_set_remote_addr, SSL_get_remote_addr, SSL_set_remote_port, SSL_get_remote_port, SSL_set_remote_addr_ex, SSL_get_remote_addr_ex, SSL_get_prev_client_session - use client IP addresses for session caching
+SSL_CTX_set_client_session_cache, SSL_set_remote_addr_ex, SSL_get_remote_addr_ex, SSL_get_prev_client_session - use client IP addresses for session caching
 
 =head1 SYNOPSIS
 
  #include <openssl/ssl.h>
 
  int SSL_CTX_set_client_session_cache(SSL_CTX ctx);
-
- void SSL_set_remote_addr(SSL *s, unsigned int addr);
- unsigned int SSL_get_remote_addr(const SSL *s);
-
- void SSL_set_remote_port(SSL *s, unsigned int port);
- unsigned int SSL_get_remote_port(const SSL *s);
 
  int SSL_set_remote_addr_ex(SSL *s, struct sockaddr_storage *addr);
  int SSL_get_remote_addr_ex(const SSL *s, struct sockaddr_storage *addr);
@@ -27,14 +21,6 @@ SSL_CTX_set_client_session_cache() enables session caching for clients using
 IP addresses, by setting the cache operational mode for B<ctx> to
 SSL_SESS_CACHE_CLIENT and replacing the cache compare and hash functions to
 evaluate IP addresses rather than session IDs.
-
-SSL_set_remote_addr() sets an IPv4 B<addr> into B<s>.
-
-SSL_get_remote_addr() returns the current IPv4 address from B<s>.
-
-SSL_set_remote_port() sets a TCP/UDP B<port> into B<s>.
-
-SSL_set_remote_port() returns the current TCP/UDP port from B<s>.
 
 SSL_set_remote_addr_ex() sets an IPv4 or IPv6 address and TCP/UDP port
 into B<s> using a sockaddr_storage B<addr>.
@@ -59,18 +45,17 @@ server. It can only send exactly one id.  The server then either
 agrees to reuse the session or it starts a full handshake (to create a new
 session).
 
-To reuse a session, use the SSL_set_remote_addr() and SSL_set_remote_port() or
-SSL_set_remote_addr_ex() functions to specify the IP address/port combination
-that the client is attempting to connect to. Set the address and port before
-calling SSL_get_prev_client_session(). Call SSL_get_prev_client_session() before
-calling L<SSL_connect(3)>.
+To reuse a session, use the SSL_set_remote_addr_ex() function to specify the
+IP address/port combination that the client is attempting to connect to. Set
+the address and port before calling SSL_get_prev_client_session(). Call
+SSL_get_prev_client_session() before calling L<SSL_connect(3)>.
 
 The B<flags> argument to SSL_get_prev_client_session() is used to control
 how a session is found and assigned.
 
-The port value used in SSL_set_remote_port() and SSL_set_remote_addr_ex()
-should be specified consistently, either in network or host order. The values
-are only used for comparison, not for connection establishment.
+The port value used in SSL_set_remote_addr_ex() should be specified
+consistently, either in network or host order. The values are only used for
+comparison, not for connection establishment.
 
 =over
 
@@ -89,10 +74,6 @@ This flag duplicates the session before assigning it to the B<s>.
 =head1 RETURN VALUES
 
 SSL_CTX_set_client_session_cache() returns 1 on success, 0 on failure.
-
-SSL_get_remote_addr() returns the last set IPv4 address, 0 otherwise.
-
-SSL_get_remote_port() returns the last set port, 0 otherwise.
 
 SSL_set_remote_addr_ex() returns 0 on success, -1 on failure.
 

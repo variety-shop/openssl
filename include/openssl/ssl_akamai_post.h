@@ -101,17 +101,9 @@ int SSL_SESSION_akamai_get_ticket_appdata(SSL_SESSION *ss, void *data, int len);
 #    include <sys/socket.h>
 #   endif
 
-/* IPv4 legacy functions */
-void SSL_set_remote_addr(SSL *s, unsigned int addr);
-void SSL_set_remote_port(SSL *s, unsigned int port);
-unsigned int SSL_get_remote_addr(const SSL *s);
-unsigned int SSL_get_remote_port(const SSL *s);
-
 /* IPv4/6 versions */
 int SSL_set_remote_addr_ex(SSL *s, struct sockaddr_storage* addr);
 int SSL_get_remote_addr_ex(const SSL *s, struct sockaddr_storage* addr);
-
-void SSL_SESSION_copy_remote_addr(SSL_SESSION *ss, SSL *s);
 
 #   define MUST_HAVE_APP_DATA 0x1
 #   define MUST_COPY_SESSION  0x2

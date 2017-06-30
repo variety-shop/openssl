@@ -2,7 +2,6 @@ IF[{- !$disabled{tests} -}]
   PROGRAMS_NO_INST=\
           sslbuffertest \
           client_cache_test \
-          clientcache2test \
           ciphpreftest \
           aborttest \
           sanitytest exdatatest bntest \

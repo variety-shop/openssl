@@ -125,4 +125,6 @@ int ssl_internal_bytes_to_cipher_list(SSL *s, PACKET *cipher_suites,
                                       STACK_OF(SSL_CIPHER) **scsvs_out,
                                       int sslv2format, int *al);
 
+void SSL_SESSION_copy_remote_addr(SSL_SESSION *ss, SSL *s);
+
 #endif /* HEADER_SSL_LOCL_AKAMAI_POST_H */

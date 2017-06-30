@@ -136,20 +136,6 @@ static int check_ip4(SSL* ssl, struct sockaddr_in* sin4, int expect_success)
     unsigned int ip4_result;
     unsigned int port_result;
 
-    ip4_result = SSL_get_remote_addr(ssl);
-    if (ip4_result != sin4->sin_addr.s_addr && expect_success) {
-        printf("SSL_get_remote_addr() failure: 0x%X expected 0x%X\n",
-                   ip4_result, sin4->sin_addr.s_addr);
-        return 0;
-    }
-
-    port_result = SSL_get_remote_port(ssl);
-    if (port_result != sin4->sin_port && expect_success) {
-        printf("SSL_get_remote_port() failure: %d expected %d\n",
-                   port_result, sin4->sin_port);
-        return 0;
-    }
-
     if (SSL_get_remote_addr_ex(ssl, &sstorage) != 0 && expect_success) {
         printf("SSL_get_remote_addr_ex() returned failure\n");
         /* can't continue */
@@ -398,19 +384,6 @@ int main(int argc, char *argv[])
     if (!check_ip6(ssl, &sin6, 0))
         goto end;
 
-    printf("Testing legacy API\n");
-    random_ip4(&sin4);
-    zero_ip6(&sin6);
-
-    SSL_set_remote_addr(ssl, sin4.sin_addr.s_addr);
-    SSL_set_remote_port(ssl, sin4.sin_port);
-
-    if (!check_ip4(ssl, &sin4, 1))
-        goto end;
-
-    if (!check_ip6(ssl, &sin6, 0))
-        goto end;
-
     printf("Testing IPv4 with new API\n");
     random_ip4(&sin4);
     zero_ip6(&sin6);
@@ -432,16 +405,6 @@ int main(int argc, char *argv[])
     if (!check_ip4(ssl, &sin4, 0))
         goto end;
 
-    if (!check_ip6(ssl, &sin6, 1))
-        goto end;
-
-    /* Set the port to 0 on an IPv6 address using legacy */
-    SSL_set_remote_port(ssl, sin4.sin_port);
-
-    if (!check_ip6(ssl, &sin6, 0))
-        goto end;
-
-    sin6.sin6_port = sin4.sin_port;
     if (!check_ip6(ssl, &sin6, 1))
         goto end;
 
