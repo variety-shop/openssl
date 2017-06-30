@@ -1263,17 +1263,15 @@ void SSL_CTX_flush_sessions(SSL_CTX *s, long t)
     CRYPTO_THREAD_unlock(s->lock);
 }
 #else
-void SSL_CTX_flush_sessions_lock(SSL_CTX *s, long t, int lock)
+void SSL_CTX_flush_sessions(SSL_CTX *s, long t)
 {
     unsigned long i;
     TIMEOUT_PARAM tp;
     SSL_CTX_EX_DATA_AKAMAI *sess_ex_data = SSL_CTX_get_ex_data_akamai(s);
     SSL_CTX_SESSION_LIST *session_list = sess_ex_data->session_list;
 
-    if (lock) {
-        CRYPTO_THREAD_write_lock(s->lock);
-        CRYPTO_THREAD_write_lock(session_list->lock);
-    }
+    CRYPTO_THREAD_write_lock(s->lock);
+    CRYPTO_THREAD_write_lock(session_list->lock);
     tp.ctx = s;
     tp.cache = session_list->sessions;
     if (tp.cache != NULL) {
@@ -1283,15 +1281,8 @@ void SSL_CTX_flush_sessions_lock(SSL_CTX *s, long t, int lock)
         lh_SSL_SESSION_doall_TIMEOUT_PARAM(tp.cache, timeout_cb, &tp);
         lh_SSL_SESSION_set_down_load(tp.cache, i);
     }
-    if (lock) {
-        CRYPTO_THREAD_unlock(session_list->lock);
-        CRYPTO_THREAD_unlock(s->lock);
-    }
-}
-
-void SSL_CTX_flush_sessions(SSL_CTX *s, long t)
-{
-    SSL_CTX_flush_sessions_lock(s, t, 1); /* lock */
+    CRYPTO_THREAD_unlock(session_list->lock);
+    CRYPTO_THREAD_unlock(s->lock);
 }
 #endif
 
