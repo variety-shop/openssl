@@ -1411,10 +1411,19 @@ unsigned char *ssl_add_clienthello_tlsext(SSL *s, unsigned char *buf,
      * check for enough space.
      * 4 bytes for the EMS type and extension length
      */
+#ifdef OPENSSL_NO_AKAMAI
     if (CHECKLEN(ret, 4, limit))
         return NULL;
     s2n(TLSEXT_TYPE_extended_master_secret, ret);
     s2n(0, ret);
+#else
+    if (!SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_NO_EXTMS)) {
+        if (CHECKLEN(ret, 4, limit))
+            return NULL;
+        s2n(TLSEXT_TYPE_extended_master_secret, ret);
+        s2n(0, ret);
+    }
+#endif
 
     /*
      * Add padding to workaround bugs in F5 terminators. See

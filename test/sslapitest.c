@@ -116,7 +116,7 @@ end:
     return testresult;
 }
 
-static int test_no_ems(void) {
+static int test_no_ems(int idx) {
     SSL_CTX *cctx = NULL, *sctx = NULL;
     SSL *clientssl = NULL, *serverssl = NULL;
     int testresult = 0;
@@ -127,7 +127,10 @@ static int test_no_ems(void) {
         goto end;
     }
 
-    SSL_CTX_akamai_opt_set(sctx, SSL_AKAMAI_OPT_NO_EXTMS);
+    if (idx)
+        SSL_CTX_akamai_opt_set(cctx, SSL_AKAMAI_OPT_NO_EXTMS);
+    else
+        SSL_CTX_akamai_opt_set(sctx, SSL_AKAMAI_OPT_NO_EXTMS);
 
     if (!create_ssl_objects(sctx, cctx, &serverssl, &clientssl, NULL, NULL)) {
         printf("Unable to create SSL objects\n");
@@ -1388,7 +1391,7 @@ int main(int argc, char *argv[])
     ADD_ALL_TESTS(test_custom_exts, 2);
 #ifndef OPENSSL_NO_AKAMAI
     ADD_TEST(test_early_cb);
-    ADD_TEST(test_no_ems);
+    ADD_ALL_TESTS(test_no_ems, 2);
     ADD_TEST(test_share_session_cache);
 #endif
 
