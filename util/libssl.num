@@ -460,6 +460,7 @@ SSL_SESSION_set1_master_key             460	1_1_1	EXIST::FUNCTION:
 SSL_SESSION_set_cipher                  461	1_1_1	EXIST::FUNCTION:
 SSL_SESSION_set_protocol_version        462	1_1_1	EXIST::FUNCTION:
 OPENSSL_cipher_name                     463	1_1_1	EXIST::FUNCTION:
+SSL_get_pending_cipher                  467	1_1_1	EXIST::FUNCTION:
 SSL_CTX_akamai_opt_set                  10000	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_CTX_akamai_opt_get                  10001	1_1_0	EXIST::FUNCTION:AKAMAI
 SSL_akamai_opt_set                      10002	1_1_0	EXIST::FUNCTION:AKAMAI
