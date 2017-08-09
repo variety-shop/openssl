@@ -28,7 +28,9 @@ $P/BUILDENV.windows.CC-supported := ALL
 $P/BUILDENV.windows.FILE_OFFSET_BITS-supported := ALL
 
 # this is just a no-op
+ifndef ATTR_ONLY
 $(info DEP-COMPS = openssl/disable/110-compat is a no-op under 1.1.0)
+endif
 
 include $(AKAMAKE)/akamake.m.master
 
