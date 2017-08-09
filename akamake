@@ -68,9 +68,9 @@ $P/%: P := $P
 
 OPENSSL-PATH := $(call get-component-path,openssl)
 ifeq ($(LD_LIBRARY_PATH),)
-LD_LIBRARY_PATH := $(OPENSSL-PATH)
+LD_LIBRARY_PATH := $(COMMON)/lib
 else
-LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(OPENSSL-PATH)
+LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(COMMON)/lib
 endif
 export LD_LIBRARY_PATH
 
@@ -386,8 +386,9 @@ ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),shared)
 # SHARED definitions
 
 $P/EXP-LIBS := libssl$(EXT_SO) libcrypto$(EXT_SO)
+$P/EXP-LIBS := $($P/EXP-LIBS) $(patsubst %$(EXT_SO),%$(EXT_SO).110.0.0,$($P/EXP-LIBS))
 $P/EXP-TREES := dist
-$P/EXP-TREE-dist := $(patsubst %$(EXT_SO),%$(EXT_SO).110.0.0,$($P/EXP-LIBS))
+$P/EXP-TREE-dist := $($P/EXP-LIBS)
 $(call declare-so-deps, ssl, crypto)
 $(call declare-so-deps, crypto, dl)
 $(call declare-so-deps, crypto, pthread)
@@ -398,13 +399,7 @@ $(COMMON)/lib/libssl$(EXT_A): $(COMMON)/lib/libssl$(EXT_SO)
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
 
-$(COMMON)/lib/libssl$(EXT_A).dep: $(COMMON)/lib/libssl$(EXT_SO).110.0.0
-
 $(COMMON)/lib/libssl$(EXT_A).dep: $(COMMON)/lib/libssl$(EXT_SO).dep
-	@$(MKDIR) $(@D)
-	@ln -sf $< $@
-
-$(COMMON)/lib/libssl$(EXT_SO).110.0.0: $(COMMON)/lib/libssl$(EXT_SO)
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
 
@@ -412,15 +407,11 @@ $(COMMON)/lib/libcrypto$(EXT_A): $(COMMON)/lib/libcrypto$(EXT_SO)
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
 
-$(COMMON)/lib/libcrypto$(EXT_A).dep: $(COMMON)/lib/libcrypto$(EXT_SO).110.0.0
-
 $(COMMON)/lib/libcrypto$(EXT_A).dep: $(COMMON)/lib/libcrypto$(EXT_SO).dep
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
 
-$(COMMON)/lib/libcrypto$(EXT_SO).110.0.0: $(COMMON)/lib/libcrypto$(EXT_SO)
-	@$(MKDIR) $(@D)
-	@ln -sf $< $@
+$P/libcrypto$(EXT_SO) $P/libssl$(EXT_SO): $P/build.ts
 
 else # ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),shared)
 
@@ -478,7 +469,7 @@ endif # ifdef MAKE_PARALLEL
 $P/clean:
 	$(CLEAN-LOCAL)
 	$(CLEAN-COMMON)
-	-$($P/SYSTEM_MAKE) -C $P clean
+	-if [ -f $P/Makefile ]; then $($P/SYSTEM_MAKE) -C $P clean; fi
 	-rm -f $P/*.ts
 	-rm -rf $P/obj32 $P/lib32 $P/dll_obj32 $P/dll_lib32
 	-rm -f $P/*.lib $P/*.dll_lib
