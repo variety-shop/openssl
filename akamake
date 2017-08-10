@@ -361,8 +361,12 @@ $P/STATIC-HEADERS := $(subst $(call get-headers-local-path)/,,$(wildcard $(call 
 # Remove opensslconf.h, as it is created/updated with all the others
 $P/STATIC-HEADERS := $(patsubst opensslconf.h,,$($P/STATIC-HEADERS))
 
+ifndef AKAMAKE-COMMON-BUILD
 # $P/HEADERS: List of export header files (relative to HEADERS_LOCAL_DIRECTORY)
 $P/HEADERS := $($P/CONFIG-GEN-HEADERS) $($P/STATIC-HEADERS)
+else
+$P/HEADERS :=
+endif
 $P/HEADERS:
 
 #     LIBS_LOCAL_DIRECTORY: relative directory of exported library files
