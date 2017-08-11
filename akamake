@@ -118,12 +118,9 @@ $P/CONFIGFEATURES := $($P/CONFIGFEATURES) \
 else # ifndef MASTER
 # Compiling OpenSSL as a component
 
-ifneq ($(MASTER-C),mghost-client-side)
-ifneq ($(MASTER-C),quic)
-ifneq ($(MASTER-C),quic-tools)
-$(error We only support certain components building OpenSSL 1.1.1)
-endif
-endif
+OPENSSL111-USERS := mghost-client-side quic quic-tools ISSM
+ifeq ($(findstring $(MASTER-C),$(OPENSSL111-USERS)),)
+$(error OpenSSL 1.1.1 is not available for your component; use OpenSSL 1.1.0 or earlier)
 endif
 
 # We need to determine whether we're building static libraries or shared libraries.
