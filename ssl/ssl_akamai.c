@@ -1279,9 +1279,7 @@ int SSL_akamai_ticket_expected(const SSL *s)
 
 const SSL_CIPHER *SSL_akamai_get_tmp_cipher(const SSL *ssl)
 {
-    if (ssl->s3 != NULL)
-        return ssl->s3->tmp.new_cipher;
-    return NULL;
+    return SSL_get_pending_cipher(ssl);
 }
 
 /* similar to ssl_cert_type */
