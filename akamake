@@ -66,6 +66,7 @@ endif
 # We need this earlier than most akamake files
 $P/%: P := $P
 
+ifndef ATTR_ONLY
 OPENSSL-PATH := $(call get-component-path,openssl)
 ifeq ($(LD_LIBRARY_PATH),)
 LD_LIBRARY_PATH := $(COMMON)/lib
@@ -272,7 +273,7 @@ endif # ifeq ($(BUILDENV.OPENSSL_LINKAGE-master),shared)
 endif # ifndef MASTER
 # master/component check done
 
-# BUILDENV.OPENSSL_LINKAGE-master will now always be set
+# BUILDENV.OPENSSL_LINKAGE-master will now always be set (ifndef ATTR_ONLY)
 
 # Master components must choose to use shared or static openssl.  For the
 # shared build, other components do not get to modify the list of configured
@@ -440,6 +441,8 @@ endif # ifndef AKAMAKE-COMMON-BUILD
 
 # TODO: add any unique export INSTALL rules here
 
+endif # defined(ATTR_ONLY)
+
 #********************************************************************
 #**** Section 4:  Prerequisites (dependencies)
 #****      TODO:  List names of component directories AND specific
@@ -509,6 +512,8 @@ $P/distclean:
 #           subdirectory.  Also do not use $P and $C within the
 #           commands for the rules.   The values are invalid by the
 #           time the rules execute.  Used Implied Rule variables.
+
+ifndef ATTR_ONLY
 
 ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 ifndef AKAMAKE-COMMON-BUILD
@@ -587,11 +592,9 @@ $P/% : TEST_STEP = $($P/SYSTEM_MAKE) -C $P test
 else # ifndef AKAMAKE-WIN-BUILD
 
 #### WIN32 ####
-ifndef ATTR_ONLY
 ifeq ($(filter ActiveState,$(shell perl -v)),)
 $(error "WIN32 version of openssl requires use of ActiveState Perl (http://www.ActiveState.com)" )
 endif # ifeq ($(filter ActiveState,$(shell perl -v)),)
-endif # ifndef ATTR_ONLY
 
 $P/% : CONFIGURE_STEP = cd $P && perl Configure $($P/CONFIGFEATURES) $($P/CONFIGFLAGS)
 $P/% : GENERATE_BUILD := cd $P && $(NMAKE) -f makefile build_generated
@@ -617,9 +620,7 @@ $P/akamake-dynamic-build-deps.mak:
 #' Fix for syntax highlighting fail in vim/emacs
 
 ifdef IN_AKAMAKE
-ifndef ATTR_ONLY
 $(call include-if-exist,$P/akamake-dynamic-build-deps.mak)
-endif # ifndef ATTR_ONLY
 endif # IN_AKAMAKE
 
 # If building a shared library, detect whether other components have attempted
@@ -698,8 +699,6 @@ $P/BUILDENV.linux.FILE_OFFSET_BITS-supported := 32 64
 $P/test: $P/build.ts
 	$(TEST_STEP)
 	echo Test successful.
-
-ifndef ATTR_ONLY
 
 include $(AKAMAKE)/akamaster.mak
 
