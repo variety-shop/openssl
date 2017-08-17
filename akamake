@@ -44,6 +44,7 @@ endif
 # We need this earlier than most akamake files
 $P/%: P := $P
 
+ifndef ATTR_ONLY
 OPENSSL-PATH := $(call get-component-path,openssl)
 ifeq ($(LD_LIBRARY_PATH),)
 LD_LIBRARY_PATH := $(OPENSSL-PATH)
@@ -242,7 +243,7 @@ endif
 endif # defined(MASTER)
 # master/component check done
 
-# BUILDENV.OPENSSL_LINKAGE-master will now always be set
+# BUILDENV.OPENSSL_LINKAGE-master will now always be set (ifndef ATTR_ONLY)
 
 # Master components must choose to use shared or static openssl.  For the
 # shared build, other components do not get to modify the list of configured
@@ -425,7 +426,6 @@ include-if-exist=$(eval -include $1)
 endif
 
 ifdef IN_AKAMAKE
-ifndef ATTR_ONLY
 
 ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 
@@ -458,8 +458,9 @@ $P/component-configure: | $P/headers-defined
 
 endif # ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 
-endif # ifndef ATTR_ONLY
 endif # ifdef IN_AKAMAKE
+
+endif # defined(ATTR_ONLY)
 
 #********************************************************************
 #**** Section 4:  Prerequisites (dependencies)
@@ -535,6 +536,8 @@ $P/distclean:
 #           subdirectory.  Also do not use $P and $C within the
 #           commands for the rules.   The values are invalid by the
 #           time the rules execute.  Used Implied Rule variables.
+
+ifndef ATTR_ONLY
 
 ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 
@@ -648,10 +651,8 @@ $P/% : TEST_STEP = $($P/SYSTEM_MAKE) -C $P $($P/OPENSSL-CC) test
 else # ifndef AKAMAKE-WIN-BUILD
 
 #### WIN32 ####
-ifndef ATTR_ONLY
 ifeq ($(filter ActiveState,$(shell perl -v)),)
 $(error "WIN32 version of openssl requires use of ActiveState Perl (http://www.ActiveState.com)" )
-endif
 endif
 
 ifdef AKAMAKE-VC9-BUILD
@@ -718,9 +719,7 @@ $P/akamake-dynamic-build-deps.mak:
 #' Fix for syntax highlighting fail in vim/emacs
 
 ifdef IN_AKAMAKE
-ifndef ATTR_ONLY
 $(call include-if-exist,$P/akamake-dynamic-build-deps.mak)
-endif # ifndef ATTR_ONLY
 endif # ifdef IN_AKAMAKE
 
 # make step
@@ -776,8 +775,6 @@ $P/BUILDENV.linux.FILE_OFFSET_BITS-supported := 32 64
 $P/test: $P/build.ts
 	$(TEST_STEP)
 	echo Test successful.
-
-ifndef ATTR_ONLY
 
 include $(AKAMAKE)/akamaster.mak
 
