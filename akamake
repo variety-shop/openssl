@@ -85,6 +85,7 @@ ifndef MASTER
 
 $P/BUILDENV.linux.OPENSSL_LINKAGE-master := shared
 ifeq ($(BUILDENV.BASEOS),linux)
+$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) --strict-warnings
 ifndef BUILDENV.OPENSSL_LINKAGE-master
 BUILDENV.OPENSSL_LINKAGE-master := shared
 endif #ifndef BUILDENV.OPENSSL_LINKAGE-master
