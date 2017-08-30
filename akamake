@@ -757,12 +757,6 @@ endif # ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 # In this section, you can specify variables that affect the build
 # environment.
 
-$P/BUILDENV.linux-2.4.CC-supported := gcc-2.95 gcc-3.3 gcc-3.4 gcc-4.0 gcc-4.1
-$P/BUILDENV.linux-2.4.CC-master := gcc-3.3
-
-$P/BUILDENV.linux-2.4.FILE_OFFSET_BITS-master := 32
-$P/BUILDENV.linux-2.4.FILE_OFFSET_BITS-supported := 32 64
-
 $P/BUILDENV.linux.FILE_OFFSET_BITS-master := 32
 $P/BUILDENV.linux.FILE_OFFSET_BITS-supported := 32 64
 
