@@ -437,6 +437,11 @@ $(COMMON)/lib/libcrypto$(EXT_A).dep: $(COMMON)/lib/libcrypto$(EXT_SO).dep
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
 
+# Ensure that once a library is linked, its runtime version is also available
+# in common/lib, for anything that needs to run during the build
+$(COMMON)/lib/libcrypto$(EXT_A).dep: $(COMMON)/lib/libcrypto$(EXT_SO).110.0.0
+$(COMMON)/lib/libssl$(EXT_A).dep: $(COMMON)/lib/libssl$(EXT_SO).110.0.0
+
 $P/libcrypto$(EXT_SO) $P/libssl$(EXT_SO): $P/build.ts
 
 else # ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),shared)
