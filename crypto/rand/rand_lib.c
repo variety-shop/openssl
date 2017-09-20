@@ -153,9 +153,21 @@ size_t drbg_entropy_from_parent(RAND_DRBG *drbg,
     randomness = drbg->secure ? OPENSSL_secure_malloc(drbg->size)
                                     : OPENSSL_malloc(drbg->size);
 
+#ifdef OPENSSL_NO_AKAMAI
     /* Get random from parent, include our state as additional input. */
     st = RAND_DRBG_generate(drbg->parent, randomness, min_len, 0,
                             (unsigned char *)drbg, sizeof(*drbg));
+#else
+    /*
+     * Get random from parent, include our state as additional input.
+     * Our lock is already held, but we need to lock our parent before
+     * generating bits from it.
+     */
+    CRYPTO_THREAD_write_lock(drbg->parent->lock);
+    st = RAND_DRBG_generate(drbg->parent, randomness, min_len, 0,
+                            (unsigned char *)drbg, sizeof(*drbg));
+    CRYPTO_THREAD_unlock(drbg->parent->lock);
+#endif
     if (st == 0) {
         drbg_release_entropy(drbg, randomness, min_len);
         return 0;
@@ -328,6 +340,9 @@ int RAND_priv_bytes(unsigned char *buf, int num)
 {
     const RAND_METHOD *meth = RAND_get_rand_method();
     RAND_DRBG *drbg;
+#ifndef OPENSSL_NO_AKAMAI
+    int ret;
+#endif
 
     if (meth != RAND_OpenSSL())
         return RAND_bytes(buf, num);
@@ -336,7 +351,15 @@ int RAND_priv_bytes(unsigned char *buf, int num)
     if (drbg == NULL)
         return 0;
 
+#ifdef OPENSSL_NO_AKAMAI
     return RAND_DRBG_generate(drbg, buf, num, 0, NULL, 0);
+#else
+    /* We have to lock the DRBG before generating bits from it. */
+    CRYPTO_THREAD_write_lock(drbg->lock);
+    ret = RAND_DRBG_generate(drbg, buf, num, 0, NULL, 0);
+    CRYPTO_THREAD_unlock(drbg->lock);
+    return ret;
+#endif
 }
 
 int RAND_bytes(unsigned char *buf, int num)

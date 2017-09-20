@@ -5203,7 +5203,25 @@ uint32_t SSL_get_max_early_data(const SSL *s)
 
 int ssl_randbytes(SSL *s, unsigned char *rnd, size_t size)
 {
+#ifdef OPENSSL_NO_AKAMAI
     if (s->drbg != NULL)
         return RAND_DRBG_generate(s->drbg, rnd, size, 0, NULL, 0);
+#else
+    if (s->drbg != NULL) {
+        /*
+         * Formally we must lock s->drbg around bit-generation calls.
+         * However, this DRBG is unique to a given SSL object, and we already
+         * require that SSL objects are only accessed by a single thread at
+         * a given time.  In general, RAND_DRBG objects have the ability to
+         * be the parent of child RAND_DRBG objects, which could provide another
+         * route to potential parallel access of the DRBG via
+         * get_entropy_from_parent(), but at present the per-SSL DRBG
+         * instantiation never will have a child.  As such, we can rely
+         * on the application's serialization of SSL accesses for the
+         * needed concurrency protection here.
+         */
+        return RAND_DRBG_generate(s->drbg, rnd, size, 0, NULL, 0);
+    }
+#endif
     return RAND_bytes(rnd, (int)size);
 }

@@ -126,6 +126,13 @@ struct rand_drbg_st {
     unsigned int reseed_counter;
     unsigned int reseed_interval;
     size_t seedlen;
+
+#ifndef OPENSSL_NO_AKAMAI
+    /*
+     * state and ctr are mutable during operation and require the lock (if
+     * present) to be held across accesses.
+     */
+#endif
     DRBG_STATUS state;
 
     /* Application data, mainly used in the KATs. */
