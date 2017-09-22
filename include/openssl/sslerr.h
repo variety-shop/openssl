@@ -474,6 +474,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_R_BIO_NOT_SET                                128
 # define SSL_R_BLOCK_CIPHER_PAD_IS_WRONG                  129
 # define SSL_R_BN_LIB                                     130
+# define SSL_R_BUCKET_COPY_FAILED                         993
 # define SSL_R_CALLBACK_FAILED                            234
 # define SSL_R_CANNOT_CHANGE_CIPHER                       109
 # define SSL_R_CA_DN_LENGTH_MISMATCH                      131
@@ -617,6 +618,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_R_PSK_NO_CLIENT_CB                           224
 # define SSL_R_PSK_NO_SERVER_CB                           225
 # define SSL_R_READV_IN_PROGRESS                          997
+# define SSL_R_READV_NO_DTLS                              996
 # define SSL_R_READ_BIO_NOT_SET                           211
 # define SSL_R_READ_TIMEOUT_EXPIRED                       312
 # define SSL_R_RECORD_LENGTH_MISMATCH                     213
@@ -724,6 +726,8 @@ int ERR_load_SSL_strings(void);
 # define SSL_R_USE_SRTP_NOT_NEGOTIATED                    369
 # define SSL_R_VERSION_TOO_HIGH                           166
 # define SSL_R_VERSION_TOO_LOW                            396
+# define SSL_R_WRITEV_IN_PROGRESS                         995
+# define SSL_R_WRITEV_NO_DTLS                             994
 # define SSL_R_WRONG_CERTIFICATE_TYPE                     383
 # define SSL_R_WRONG_CIPHER_RETURNED                      261
 # define SSL_R_WRONG_CURVE                                378
