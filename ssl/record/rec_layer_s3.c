@@ -337,6 +337,9 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, size_t len,
     size_t n, split_send_fragment, maxpipes;
 #if !defined(OPENSSL_NO_MULTIBLOCK) && EVP_CIPH_FLAG_TLS1_1_MULTIBLOCK
     size_t max_send_fragment, nw;
+# ifndef OPENSSL_NO_AKAMAI_IOVEC
+    SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
+# endif
 #endif
     SSL3_BUFFER *wb = &s->rlayer.wbuf[0];
     int i;
@@ -405,6 +408,9 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, size_t len,
     if (type == SSL3_RT_APPLICATION_DATA &&
         len >= 4 * (max_send_fragment = s->max_send_fragment) &&
         s->compress == NULL && s->msg_callback == NULL &&
+# ifndef OPENSSL_NO_AKAMAI_IOVEC
+        ex_data->writev_buckets == NULL &&
+# endif
         !SSL_WRITE_ETM(s) && SSL_USE_EXPLICIT_IV(s) &&
         EVP_CIPHER_flags(EVP_CIPHER_CTX_cipher(s->enc_write_ctx)) &
         EVP_CIPH_FLAG_TLS1_1_MULTIBLOCK) {
@@ -643,6 +649,9 @@ int do_ssl3_write(SSL *s, int type, const unsigned char *buf,
     SSL_SESSION *sess;
     size_t totlen = 0, len, wpinited = 0;
     size_t j;
+#ifndef OPENSSL_NO_AKAMAI_IOVEC
+    SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
+#endif
 
     for (j = 0; j < numpipes; j++)
         totlen += pipelens[j];
@@ -846,10 +855,34 @@ int do_ssl3_write(SSL *s, int type, const unsigned char *buf,
                 goto err;
             }
         } else {
+#ifndef OPENSSL_NO_AKAMAI_IOVEC
+            if (ex_data->writev_buckets == NULL) {
+                if (!WPACKET_memcpy(thispkt, thiswr->input, thiswr->length)) {
+                    SSLerr(SSL_F_DO_SSL3_WRITE, ERR_R_INTERNAL_ERROR);
+                    goto err;
+                }
+            } else if (thiswr->length != 0) {
+                unsigned char *dest;
+                size_t ret;
+                if (!WPACKET_allocate_bytes(thispkt, thiswr->length, &dest)) {
+                    SSLerr(SSL_F_DO_SSL3_WRITE, ERR_R_INTERNAL_ERROR);
+                    goto err;
+                }
+                ret = SSL_BUCKET_cpy_out(dest, ex_data->writev_buckets,
+                                         ex_data->writev_count, ex_data->writev_offset,
+                                         thiswr->length);
+                if (ret != thiswr->length) {
+                    SSLerr(SSL_F_DO_SSL3_WRITE, SSL_R_BUCKET_COPY_FAILED);
+                    goto err;
+                }
+                ex_data->writev_offset += ret;
+            }
+#else
             if (!WPACKET_memcpy(thispkt, thiswr->input, thiswr->length)) {
                 SSLerr(SSL_F_DO_SSL3_WRITE, ERR_R_INTERNAL_ERROR);
                 goto err;
             }
+#endif
             SSL3_RECORD_reset_input(&wr[j]);
         }
 
