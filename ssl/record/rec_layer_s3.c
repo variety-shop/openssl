@@ -348,6 +348,9 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
 #if !defined(OPENSSL_NO_MULTIBLOCK) && EVP_CIPH_FLAG_TLS1_1_MULTIBLOCK
     unsigned int max_send_fragment, nw;
     unsigned int u_len = (unsigned int)len;
+# ifndef OPENSSL_NO_AKAMAI_IOVEC
+    SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
+# endif
 #endif
     SSL3_BUFFER *wb = &s->rlayer.wbuf[0];
     int i;
@@ -409,6 +412,9 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
     if (type == SSL3_RT_APPLICATION_DATA &&
         u_len >= 4 * (max_send_fragment = s->max_send_fragment) &&
         s->compress == NULL && s->msg_callback == NULL &&
+# ifndef OPENSSL_NO_AKAMAI_IOVEC
+        ex_data->writev_buckets == NULL &&
+# endif
         !SSL_WRITE_ETM(s) && SSL_USE_EXPLICIT_IV(s) &&
         EVP_CIPHER_flags(EVP_CIPHER_CTX_cipher(s->enc_write_ctx)) &
         EVP_CIPH_FLAG_TLS1_1_MULTIBLOCK) {
@@ -638,6 +644,9 @@ int do_ssl3_write(SSL *s, int type, const unsigned char *buf,
     SSL_SESSION *sess;
     unsigned int totlen = 0;
     unsigned int j;
+#ifndef OPENSSL_NO_AKAMAI_IOVEC
+    SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
+#endif
 
     for (j = 0; j < numpipes; j++)
         totlen += pipelens[j];
@@ -795,7 +804,21 @@ int do_ssl3_write(SSL *s, int type, const unsigned char *buf,
                 goto err;
             }
         } else {
+#ifndef OPENSSL_NO_AKAMAI_IOVEC
+            if (ex_data->writev_buckets != NULL) {
+                size_t ret = SSL_BUCKET_cpy_out(wr[j].data, ex_data->writev_buckets,
+                                                ex_data->writev_count, ex_data->writev_offset,
+                                                wr[j].length);
+                if (ret != wr[j].length) {
+                    SSLerr(SSL_F_DO_SSL3_WRITE, SSL_R_BUCKET_COPY_FAILED);
+                    goto err;
+                }
+                ex_data->writev_offset += ret;
+            } else
+                memcpy(wr[j].data, wr[j].input, wr[j].length);
+#else
             memcpy(wr[j].data, wr[j].input, wr[j].length);
+#endif
             SSL3_RECORD_reset_input(&wr[j]);
         }
 

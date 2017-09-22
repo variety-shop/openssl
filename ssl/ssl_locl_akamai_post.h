@@ -81,6 +81,9 @@ struct ssl_ex_data_akamai_st
 # ifndef OPENSSL_NO_AKAMAI_IOVEC
     SSL_BUCKET *readv_buckets;
     unsigned int readv_count;
+    SSL_BUCKET *writev_buckets;
+    unsigned int writev_count;
+    size_t writev_offset;
 # endif
 # ifndef OPENSSL_NO_AKAMAI_RSALG
     unsigned char server_random[SSL3_RANDOM_SIZE];
