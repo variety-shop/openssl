@@ -777,7 +777,7 @@ static void do_app_data_step(PEER *peer)
 # endif
         read_bytes = MIN(peer->bytes_to_read, (peer->read_buf_len - (peer->bytes_read % peer->read_buf_len)));
 # ifndef OPENSSL_NO_AKAMAI_IOVEC
-        if (read_bytes > 3) {
+        if (read_bytes > 3 && !SSL_is_dtls(peer->ssl)) {
             /* really simply way to force the use of more than one bucket */
             SSL_BUCKET ssl_buckets[3];
             ssl_buckets[0].iov_base = &peer->read_buf[(peer->bytes_read % peer->read_buf_len)];
@@ -826,8 +826,7 @@ static void do_app_data_step(PEER *peer)
         ret = SSL_write(peer->ssl, peer->write_buf, write_bytes);
 #else
 # ifndef OPENSSL_NO_AKAMAI_IOVEC
-        if (write_bytes > 3)
-        {
+        if (write_bytes > 3 && !SSL_is_dtls(peer->ssl)) {
             /* really simply way to force the use of more than one bucket */
             SSL_BUCKET ssl_buckets[3];
             ssl_buckets[0].iov_base = &peer->write_buf[(peer->bytes_written % peer->write_buf_len)];
