@@ -155,7 +155,8 @@ static const EXTENSION_DEFINITION ext_defs[] = {
     },
     {
         TLSEXT_TYPE_supported_groups,
-        SSL_EXT_CLIENT_HELLO | SSL_EXT_TLS1_3_ENCRYPTED_EXTENSIONS,
+        SSL_EXT_CLIENT_HELLO | SSL_EXT_TLS1_3_ENCRYPTED_EXTENSIONS
+        | SSL_EXT_TLS1_2_SERVER_HELLO,
         NULL, tls_parse_ctos_supported_groups, NULL,
         tls_construct_stoc_supported_groups,
         tls_construct_ctos_supported_groups, NULL
