@@ -2264,7 +2264,6 @@ SSL_R_BAD_WRITE_RETRY:127:bad write retry
 SSL_R_BIO_NOT_SET:128:bio not set
 SSL_R_BLOCK_CIPHER_PAD_IS_WRONG:129:block cipher pad is wrong
 SSL_R_BN_LIB:130:bn lib
-SSL_R_BUCKET_COPY_FAILED:997:bucket copy failed
 SSL_R_CANNOT_CHANGE_CIPHER:109:cannot change cipher
 SSL_R_CA_DN_LENGTH_MISMATCH:131:ca dn length mismatch
 SSL_R_CA_KEY_TOO_SMALL:397:ca key too small
@@ -2405,7 +2404,6 @@ SSL_R_PSK_IDENTITY_NOT_FOUND:223:psk identity not found
 SSL_R_PSK_NO_CLIENT_CB:224:psk no client cb
 SSL_R_PSK_NO_SERVER_CB:225:psk no server cb
 SSL_R_READV_IN_PROGRESS:999:readv in progress
-SSL_R_READV_NO_DTLS:996:readv no dtls
 SSL_R_READ_BIO_NOT_SET:211:read bio not set
 SSL_R_READ_TIMEOUT_EXPIRED:312:read timeout expired
 SSL_R_RECORD_LENGTH_MISMATCH:213:record length mismatch
@@ -2487,8 +2485,6 @@ SSL_R_UNSUPPORTED_STATUS_TYPE:329:unsupported status type
 SSL_R_USE_SRTP_NOT_NEGOTIATED:369:use srtp not negotiated
 SSL_R_VERSION_TOO_HIGH:166:version too high
 SSL_R_VERSION_TOO_LOW:396:version too low
-SSL_R_WRITEV_IN_PROGRESS:995:writev in progress
-SSL_R_WRITEV_NO_DTLS:994:writev no dtls
 SSL_R_WRONG_CERTIFICATE_TYPE:383:wrong certificate type
 SSL_R_WRONG_CIPHER_RETURNED:261:wrong cipher returned
 SSL_R_WRONG_CURVE:378:wrong curve
