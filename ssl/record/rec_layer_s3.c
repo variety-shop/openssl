@@ -602,6 +602,9 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
             }
         }
 
+#ifndef OPNESSL_NO_AKAMAI_IOVEC
+        ex_data->writev_offset = tot;
+#endif
         i = do_ssl3_write(s, type, &(buf[tot]), pipelens, numpipes, 0);
         if (i <= 0) {
             /* XXX should we ssl3_release_write_buffer if i<0? */
@@ -646,6 +649,7 @@ int do_ssl3_write(SSL *s, int type, const unsigned char *buf,
     unsigned int j;
 #ifndef OPENSSL_NO_AKAMAI_IOVEC
     SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
+    size_t writev_totlen = 0;
 #endif
 
     for (j = 0; j < numpipes; j++)
@@ -791,6 +795,9 @@ int do_ssl3_write(SSL *s, int type, const unsigned char *buf,
         SSL3_RECORD_set_data(&wr[j], outbuf[j] + eivlen);
         SSL3_RECORD_set_length(&wr[j], (int)pipelens[j]);
         SSL3_RECORD_set_input(&wr[j], (unsigned char *)&buf[totlen]);
+#ifndef OPENSSL_NO_AKAMAI_IOVEC
+        writev_totlen = totlen;
+#endif
         totlen += pipelens[j];
 
         /*
@@ -807,13 +814,13 @@ int do_ssl3_write(SSL *s, int type, const unsigned char *buf,
 #ifndef OPENSSL_NO_AKAMAI_IOVEC
             if (ex_data->writev_buckets != NULL) {
                 size_t ret = SSL_BUCKET_cpy_out(wr[j].data, ex_data->writev_buckets,
-                                                ex_data->writev_count, ex_data->writev_offset,
+                                                ex_data->writev_count,
+                                                ex_data->writev_offset + writev_totlen,
                                                 wr[j].length);
                 if (ret != wr[j].length) {
                     SSLerr(SSL_F_DO_SSL3_WRITE, SSL_R_BUCKET_COPY_FAILED);
                     goto err;
                 }
-                ex_data->writev_offset += ret;
             } else
                 memcpy(wr[j].data, wr[j].input, wr[j].length);
 #else
