@@ -1003,7 +1003,7 @@ int SSL_writev(SSL *s, const SSL_BUCKET *buckets, int count)
     ex_data->writev_buckets = (SSL_BUCKET*)buckets;
     ex_data->writev_count = count;
     ex_data->writev_offset = 0;
-    ret = SSL_write(s, NULL, len);
+    ret = SSL_write(s, buckets, len);
     ex_data->writev_buckets = NULL;
     ex_data->writev_count = 0;
     ex_data->writev_offset = 0;
