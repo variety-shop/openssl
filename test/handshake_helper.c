@@ -842,16 +842,24 @@ static void do_app_data_step(PEER *peer)
         ret = SSL_write(peer->ssl, peer->write_buf, write_bytes);
 #else
 # ifndef OPENSSL_NO_AKAMAI_IOVEC
-        if (write_bytes > 3 && !SSL_is_dtls(peer->ssl)) {
+        if (write_bytes > 128 && !SSL_is_dtls(peer->ssl)) {
             /* really simply way to force the use of more than one bucket */
-            SSL_BUCKET ssl_buckets[3];
+            SSL_BUCKET ssl_buckets[6];
             ssl_buckets[0].iov_base = &peer->write_buf[(peer->bytes_written % peer->write_buf_len)];
-            ssl_buckets[0].iov_len = 1;
+            ssl_buckets[0].iov_len = write_bytes / 6;
             ssl_buckets[1].iov_base = (unsigned char*)ssl_buckets[0].iov_base + ssl_buckets[0].iov_len;
-            ssl_buckets[1].iov_len = 1;
+            ssl_buckets[1].iov_len = write_bytes / 6 + 1;
             ssl_buckets[2].iov_base = (unsigned char*)ssl_buckets[1].iov_base + ssl_buckets[1].iov_len;
-            ssl_buckets[2].iov_len = write_bytes - ssl_buckets[0].iov_len - ssl_buckets[1].iov_len;
+            ssl_buckets[2].iov_len = write_bytes / 6 + 2;
+            ssl_buckets[3].iov_base = (unsigned char*)ssl_buckets[2].iov_base + ssl_buckets[2].iov_len;
+            ssl_buckets[3].iov_len = write_bytes / 6 + 3;
+            ssl_buckets[4].iov_base = (unsigned char*)ssl_buckets[3].iov_base + ssl_buckets[3].iov_len;
+            ssl_buckets[4].iov_len = write_bytes / 6 + 4;
+            ssl_buckets[5].iov_base = (unsigned char*)ssl_buckets[4].iov_base + ssl_buckets[4].iov_len;
+            ssl_buckets[5].iov_len = write_bytes - ssl_buckets[0].iov_len - ssl_buckets[1].iov_len - ssl_buckets[2].iov_len
+                - ssl_buckets[3].iov_len - ssl_buckets[4].iov_len;
             ret = SSL_writev(peer->ssl, ssl_buckets, 3);
+            ret += SSL_writev(peer->ssl, &ssl_buckets[3], 3);
         } else
 # endif /* OPENSSL_NO_AKAMAI_IOVEC */
         ret = SSL_write(peer->ssl, &peer->write_buf[(peer->bytes_written % peer->write_buf_len)], write_bytes);
