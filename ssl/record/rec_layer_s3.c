@@ -348,9 +348,9 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
 #if !defined(OPENSSL_NO_MULTIBLOCK) && EVP_CIPH_FLAG_TLS1_1_MULTIBLOCK
     unsigned int max_send_fragment, nw;
     unsigned int u_len = (unsigned int)len;
-# ifndef OPENSSL_NO_AKAMAI_IOVEC
+#endif
+#ifndef OPENSSL_NO_AKAMAI_IOVEC
     SSL_EX_DATA_AKAMAI* ex_data = SSL_get_ex_data_akamai(s);
-# endif
 #endif
     SSL3_BUFFER *wb = &s->rlayer.wbuf[0];
     int i;
@@ -602,7 +602,7 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
             }
         }
 
-#ifndef OPNESSL_NO_AKAMAI_IOVEC
+#ifndef OPENSSL_NO_AKAMAI_IOVEC
         ex_data->writev_offset = tot;
 #endif
         i = do_ssl3_write(s, type, &(buf[tot]), pipelens, numpipes, 0);
