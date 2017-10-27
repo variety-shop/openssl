@@ -874,8 +874,7 @@ int SSL_CTX_add_session(SSL_CTX *ctx, SSL_SESSION *c)
 #else
             while ((long)lh_SSL_SESSION_num_items(session_list->sessions)
                     > SSL_CTX_sess_get_cache_size(ctx)) {
-                if (session_list != NULL
-                    && !remove_session_lock(ctx, session_list->session_cache_tail, 0))
+                if (!remove_session_lock(ctx, session_list->session_cache_tail, 0))
                     break;
                 else
                     ctx->stats.sess_cache_full++;
