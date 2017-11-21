@@ -559,6 +559,10 @@ ifdef ASAN_BUILD
   $P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION := -no-fomit-frame-pointer
 endif
 
+# Define the $P/OPENSSL-CC as the compiler to use for static builds
+# Use '=' for assignements here
+$P/configure.ts: $P/OPENSSL-CC = CC="$(CC)"
+
 $P/buildenv.NO_FOMIT_FRAME_POINTER.$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER)):
 	if [ ! -e $P/buildenv.NO_FOMIT_FRAME_POINTER.$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER)) ]; then \
 		if [ -e $P/buildenv.NO_FOMIT_FRAME_POINTER.* ]; then \
@@ -588,7 +592,7 @@ $P/CONFIGURE_PREREQUISITES := $P/Configure \
 
 # Next line intentional "=" - krose, 12/10/2001
 $P/% : CONFIGURE_SHARED = cd $P && (./Configure $($P/SHAREDFEATURES) $($P/CONFIGFLAGS))
-$P/% : CONFIGURE_STATIC = cd $P && (./Configure $($P/CONFIGFEATURES) $($P/CONFIGFLAGS))
+$P/% : CONFIGURE_STATIC = cd $P && (./Configure $($P/CONFIGFEATURES) $($P/CONFIGFLAGS)) $($P/OPENSSL-CC)
 $P/% : CONFIGURE_STEP = $(if $($P/NOSHARED),$(CONFIGURE_STATIC),$(CONFIGURE_SHARED))
 $P/% : GENERATE_BUILD = $($P/SYSTEM_MAKE) -C $P build_generated
 $P/% : MAKE_STEP = $($P/SYSTEM_MAKE) -C $P $($P/OPENSSL-TARGET)
