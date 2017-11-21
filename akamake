@@ -119,7 +119,7 @@ $P/CONFIGFEATURES := $($P/CONFIGFEATURES) \
 else # ifndef MASTER
 # Compiling OpenSSL as a component
 
-OPENSSL111-USERS := mghost-client-side quic quic-tools ISSM ghasan
+OPENSSL111-USERS := mghost-client-side quic quic-tools ISSM ghasan ISSM-ASAN
 ifeq ($(findstring $(MASTER-C),$(OPENSSL111-USERS)),)
 $(error OpenSSL 1.1.1 is not available for your component; use OpenSSL 1.1.0 or earlier)
 endif
