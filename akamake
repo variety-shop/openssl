@@ -592,7 +592,7 @@ $P/CONFIGURE_PREREQUISITES := $P/Configure \
 
 # Next line intentional "=" - krose, 12/10/2001
 $P/% : CONFIGURE_SHARED = cd $P && (./Configure $($P/SHAREDFEATURES) $($P/CONFIGFLAGS))
-$P/% : CONFIGURE_STATIC = cd $P && (./Configure $($P/CONFIGFEATURES) $($P/CONFIGFLAGS)) $($P/OPENSSL-CC)
+$P/% : CONFIGURE_STATIC = cd $P && ($($P/OPENSSL-CC) ./Configure $($P/CONFIGFEATURES) $($P/CONFIGFLAGS))
 $P/% : CONFIGURE_STEP = $(if $($P/NOSHARED),$(CONFIGURE_STATIC),$(CONFIGURE_SHARED))
 $P/% : GENERATE_BUILD = $($P/SYSTEM_MAKE) -C $P build_generated
 $P/% : MAKE_STEP = $($P/SYSTEM_MAKE) -C $P $($P/OPENSSL-TARGET)
