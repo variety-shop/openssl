@@ -463,6 +463,8 @@ our %disabled = ( # "what"         => "comment"
 		  "sctp"                => "default",
 		  "seed"                => "akamai-default",
 		  "shared"              => "akamai-default",
+		  "sm3"                 => "akamai-default",
+		  "sm4"                 => "akamai-default",
 		  "srp"	                => "akamai-default",
 		  "srtp"                => "akamai-default",
 		  "ssl-trace"           => "default",
