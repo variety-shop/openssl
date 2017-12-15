@@ -190,6 +190,11 @@ doc-nits
 test/core
 test/gen
 
+# new stuff
+
+libcrypto.map
+libssl.map
+
 # Akamake generated files
 *.ts
 buildenv.*
