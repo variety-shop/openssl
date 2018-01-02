@@ -178,7 +178,12 @@ int ssl3_setup_write_buffer(SSL *s, size_t numwpipes, size_t len)
 #else
             if ((p = ssl3_buffer_malloc(0, len)) == NULL) {
                 s->rlayer.numwpipes = currpipe;
-                SSLfatal(s, SSL_AD_INTERNAL_ERROR,
+                /*
+                 * We've got a malloc failure, and we're still initialising
+                 * buffers. We assume we're so doomed that we won't even be able
+                 * to send an alert.
+                 */
+                SSLfatal(s, SSL_AD_NO_ALERT,
                          SSL_F_SSL3_SETUP_WRITE_BUFFER, ERR_R_MALLOC_FAILURE);
                 return 0;
             }
