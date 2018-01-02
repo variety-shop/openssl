@@ -849,7 +849,7 @@ static int remove_session_lock(SSL_CTX *ctx, SSL_SESSION *c, int lck)
             ctx->remove_session_cb(ctx, c);
     } else
         ret = 0;
-    return (ret);
+    return ret;
 }
 #endif  /* OPENSSL_NO_AKAMAI */
 
