@@ -2235,6 +2235,8 @@ int tls_construct_server_hello(SSL *s, WPACKET *pkt)
 #ifndef OPENSSL_NO_AKAMAI_RSALG
     if (SSL_akamai_opt_get(s, SSL_AKAMAI_OPT_RSALG) &&
         (s->s3->tmp.new_cipher->algorithm_mkey & SSL_kRSA) &&
+        /* Only hash once in a TLS 1.3 HelloRetryRequest flow. */
+        s->hello_retry_request != SSL_HRR_PENDING &&
         /* Session resumption does not use the cryptoserver; skip hashing. */
         s->hit == 0) {
         /* We are using RSALG, so we need to hash the server random. */
