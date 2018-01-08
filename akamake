@@ -486,8 +486,8 @@ endif
 #
 .PHONY: $P/clean $P/distclean
 
-ifdef MAKE_PARALLEL
-$P/SYSTEM_MAKE = $(MAKE_PARALLEL)
+ifdef MAKE_SERIAL
+$P/SYSTEM_MAKE = $(MAKE_SERIAL)
 else
 ifdef SYSTEM_MAKE
 $P/SYSTEM_MAKE = $(SYSTEM_MAKE)
@@ -499,7 +499,7 @@ endif
 $P/clean:
 	$(CLEAN-LOCAL)
 	$(CLEAN-COMMON)
-	-$($P/SYSTEM_MAKE) -C $P clean
+	-if [ -f $P/Makefile ]; then $($P/SYSTEM_MAKE) -C $P clean; fi
 	-rm -f $P/configure.ts $P/build.ts
 	-rm -rf $P/obj32 $P/lib32 $P/dll_obj32 $P/dll_lib32
 	-rm -f $P/*.lib $P/*.dll_lib
@@ -515,9 +515,9 @@ $P/clean:
 $P/distclean:
 	$(DISTCLEAN-LOCAL)
 	$(DISTCLEAN-COMMON)
-	-$($P/SYSTEM_MAKE) -C $P dclean
+	-if [ -f $P/Makefile ]; then $($P/SYSTEM_MAKE) -C $P dclean; fi
 	-rm -f $P/Makefile
-	-rm -f $P/include/openssl
+	-rm -rf $P/include/openssl
 	-rm -f $P/ms/nt.mak $P/ms/ntdll_lib.mak
 
 #********************************************************************
