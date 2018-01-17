@@ -899,8 +899,10 @@ static int ssl_akamai_set_cipher_list_helper(SSL_CTX* ctx, const char* pref, con
     sk_SSL_CIPHER_sort(sk_tmp);
 
     *pref_len = sk_pref_len;
+    sk_SSL_CIPHER_free(*sk_ret);
     *sk_ret = sk_pref;
     sk_pref = NULL;
+    sk_SSL_CIPHER_free(*sk_by_id);
     *sk_by_id = sk_tmp;
     sk_tmp = NULL;
 
