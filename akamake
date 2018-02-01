@@ -48,7 +48,7 @@ ifndef ATTR_ONLY
 OPENSSL-PATH := $(call get-component-path,openssl)
 ifeq ($(LD_LIBRARY_PATH),)
 LD_LIBRARY_PATH := $(OPENSSL-PATH)
-else
+else ifeq ($(findstring $(OPENSSL-PATH),$(LD_LIBRARY_PATH)),)
 LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(OPENSSL-PATH)
 endif
 export LD_LIBRARY_PATH
