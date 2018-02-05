@@ -899,14 +899,16 @@ int do_ssl3_write(SSL *s, int type, const unsigned char *buf,
 #ifndef OPENSSL_NO_AKAMAI_IOVEC
             if (ex_data->writev_buckets == NULL) {
                 if (!WPACKET_memcpy(thispkt, thiswr->input, thiswr->length)) {
-                    SSLerr(SSL_F_DO_SSL3_WRITE, ERR_R_INTERNAL_ERROR);
+                    SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_DO_SSL3_WRITE,
+                             ERR_R_INTERNAL_ERROR);
                     goto err;
                 }
             } else if (thiswr->length != 0) {
                 unsigned char *dest;
                 size_t ret;
                 if (!WPACKET_allocate_bytes(thispkt, thiswr->length, &dest)) {
-                    SSLerr(SSL_F_DO_SSL3_WRITE, ERR_R_INTERNAL_ERROR);
+                    SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_DO_SSL3_WRITE,
+                             ERR_R_INTERNAL_ERROR);
                     goto err;
                 }
                 ret = SSL_BUCKET_cpy_out(dest, ex_data->writev_buckets,
@@ -914,7 +916,8 @@ int do_ssl3_write(SSL *s, int type, const unsigned char *buf,
                                          ex_data->writev_offset + writev_totlen,
                                          thiswr->length);
                 if (ret != thiswr->length) {
-                    SSLerr(SSL_F_DO_SSL3_WRITE, SSL_R_BUCKET_COPY_FAILED);
+                    SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_DO_SSL3_WRITE,
+                             SSL_R_BUCKET_COPY_FAILED);
                     goto err;
                 }
             }
