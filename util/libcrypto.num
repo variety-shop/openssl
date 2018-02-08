@@ -4288,8 +4288,8 @@ TS_CONF_set_ess_cert_id_digest          4230	1_1_1	EXIST::FUNCTION:TS
 ESS_SIGNING_CERT_V2_free                4231	1_1_1	EXIST::FUNCTION:TS
 ESS_SIGNING_CERT_V2_dup                 4232	1_1_1	EXIST::FUNCTION:TS
 ESS_CERT_ID_V2_new                      4233	1_1_1	EXIST::FUNCTION:TS
-PEM_read_bio_ex                         4234	1_1_1	EXIST::FUNCTION:
-PEM_bytes_read_bio_secmem               4235	1_1_1	EXIST::FUNCTION:
+PEM_read_bio_ex                         4234	1_1_0e	EXIST::FUNCTION:
+PEM_bytes_read_bio_secmem               4235	1_1_0e	EXIST::FUNCTION:
 EVP_DigestSign                          4236	1_1_1	EXIST::FUNCTION:
 EVP_DigestVerify                        4237	1_1_1	EXIST::FUNCTION:
 UI_method_get_data_duplicator           4238	1_1_1	EXIST::FUNCTION:
@@ -4588,5 +4588,6 @@ AKAMAI_prf                              10007	1_1_0c	EXIST::FUNCTION:AKAMAI
 AKAMAI_algorithm2_to_md                 10008	1_1_0c	EXIST::FUNCTION:AKAMAI
 AKAMAI_rsalg_hash                       10009	1_1_0c	EXIST::FUNCTION:AKAMAI
 X509_STORE_CTX_akamai_set0_store        10010	1_1_0c	EXIST::FUNCTION:
+ASN1_TIME_akamai_cmp_time_t             10011	1_1_0e	EXIST::FUNCTION:AKAMAI,DEPRECATEDIN_1_2_0
 ASN1_TIME_akamai_get                    10012	1_1_0e	EXIST::FUNCTION:AKAMAI
 OPENSSL_akamai_timegm                   10013	1_1_0e	EXIST::FUNCTION:AKAMAI
