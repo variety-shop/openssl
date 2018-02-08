@@ -459,6 +459,10 @@ int ASN1_TIME_akamai_get(const ASN1_TIME *s, time_t *t, struct tm *tm);
 /* in crypto/o_time.c due to static function dependencies */
 /* returns 0 on error, 1 on success */
 int OPENSSL_akamai_timegm(struct tm *tm, time_t *t);
+
+/* 1.1.0 -> 1.1.1 ABI compatibility; TODO: remove in 1.2 */
+DEPRECATEDIN_1_2_0(int ASN1_TIME_akamai_cmp_time_t(const ASN1_TIME *s, time_t t))
+
 #endif /* OPENSSL_NO_AKAMAI */
 
 # ifdef  __cplusplus
