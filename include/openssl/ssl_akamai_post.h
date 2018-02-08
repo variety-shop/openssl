@@ -236,6 +236,19 @@ int SSL_akamai_reset_fragment_size(SSL *s, unsigned int size);
 /* Replaces SSL_CTX_sessions() and OPENSSL_LH_stats_bio() for shared session cache. */
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b);
 
+/* 1.1.0 -> 1.1.1 ABI compatibility; TODO: remove in 1.2 */
+
+DEPRECATEDIN_1_2_0(void SSL_CTX_set_early_cb(SSL_CTX *c, SSL_client_hello_cb_fn cb, void *arg))
+DEPRECATEDIN_1_2_0(int SSL_early_isv2(SSL *s))
+DEPRECATEDIN_1_2_0(unsigned int SSL_early_get0_legacy_version(SSL *s))
+DEPRECATEDIN_1_2_0(size_t SSL_early_get0_random(SSL *s, const unsigned char **out))
+DEPRECATEDIN_1_2_0(size_t SSL_early_get0_session_id(SSL *s, const unsigned char **out))
+DEPRECATEDIN_1_2_0(size_t SSL_early_get0_ciphers(SSL *s, const unsigned char **out))
+DEPRECATEDIN_1_2_0(size_t SSL_early_get0_compression_methods(SSL *s, const unsigned char **out))
+DEPRECATEDIN_1_2_0(int SSL_early_get0_ext(SSL *s, unsigned int type, const unsigned char **out, size_t *outlen))
+DEPRECATEDIN_1_2_0(int SSL_akamai_free_buffers(SSL *ssl))
+DEPRECATEDIN_1_2_0(int SSL_akamai_alloc_buffers(SSL *ssl))
+
 /* session (ticket) app data */
 /* makes a copy of |data| */
 DEPRECATEDIN_1_2_0(int SSL_SESSION_akamai_set1_ticket_appdata(SSL_SESSION *ss, const void *data, int len))
