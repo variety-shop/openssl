@@ -245,6 +245,10 @@ int SSL_CTX_akamai_opt_set(SSL_CTX* s, enum SSL_AKAMAI_OPT opt)
         unsigned int val = 1 << opt;
         ret = (ex_data->options & val) ? 1 : 0;
         ex_data->options |= val;
+
+        /* special case */
+        if (opt == SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION)
+            SSL_CTX_set_options(s, SSL_OP_NO_RENEGOTIATION);
     }
     return ret;
 }
@@ -259,6 +263,10 @@ int SSL_CTX_akamai_opt_clear(SSL_CTX* s, enum SSL_AKAMAI_OPT opt)
         unsigned int val = 1 << opt;
         ret = (ex_data->options & val) ? 1 : 0;
         ex_data->options &= ~val;
+
+        /* special case */
+        if (opt == SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION)
+            SSL_CTX_clear_options(s, SSL_OP_NO_RENEGOTIATION);
     }
     return ret;
 }
@@ -272,6 +280,10 @@ int SSL_CTX_akamai_opt_get(SSL_CTX* s, enum SSL_AKAMAI_OPT opt)
     if (akamai_opt_is_ok(opt)) {
         unsigned int val = 1 << opt;
         ret = (ex_data->options & val) ? 1 : 0;
+
+        /* special case */
+        if (opt == SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION)
+            ret |= (SSL_CTX_get_options(s) & SSL_OP_NO_RENEGOTIATION) ? 1 : 0;
     }
     return ret;
 }
@@ -286,6 +298,10 @@ int SSL_akamai_opt_set(SSL* s, enum SSL_AKAMAI_OPT opt)
         unsigned int val = 1 << opt;
         ret = (ex_data->options & val) ? 1 : 0;
         ex_data->options |= val;
+
+        /* special case */
+        if (opt == SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION)
+            SSL_set_options(s, SSL_OP_NO_RENEGOTIATION);
     }
     return ret;
 }
@@ -300,6 +316,10 @@ int SSL_akamai_opt_clear(SSL* s, enum SSL_AKAMAI_OPT opt)
         unsigned int val = 1 << opt;
         ret = (ex_data->options & val) ? 1 : 0;
         ex_data->options &= ~val;
+
+        /* special case */
+        if (opt == SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION)
+            SSL_clear_options(s, SSL_OP_NO_RENEGOTIATION);
     }
     return ret;
 }
@@ -313,6 +333,10 @@ int SSL_akamai_opt_get(SSL* s, enum SSL_AKAMAI_OPT opt)
     if (akamai_opt_is_ok(opt)) {
         unsigned int val = 1 << opt;
         ret = (ex_data->options & val) ? 1 : 0;
+
+        /* special case */
+        if (opt == SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION)
+            ret |= (SSL_get_options(s) & SSL_OP_NO_RENEGOTIATION) ? 1 : 0;
     }
     return ret;
 }
@@ -1123,6 +1147,60 @@ const char *SSL_default_akamai_cipher_list(void)
     return cipher_list;
 }
 
+/* 1.1.0 -> 1.1.1 ABI compatibility; TODO: remove in 1.2 */
+
+void SSL_CTX_set_early_cb(SSL_CTX *c, SSL_client_hello_cb_fn cb,
+                          void *arg)
+{
+    SSL_CTX_set_client_hello_cb(c, cb, arg);
+}
+
+int SSL_early_isv2(SSL *s)
+{
+    return SSL_client_hello_isv2(s);
+}
+
+unsigned int SSL_early_get0_legacy_version(SSL *s)
+{
+    return SSL_client_hello_get0_legacy_version(s);
+}
+
+size_t SSL_early_get0_random(SSL *s, const unsigned char **out)
+{
+    return SSL_client_hello_get0_random(s, out);
+}
+
+size_t SSL_early_get0_session_id(SSL *s, const unsigned char **out)
+{
+    return SSL_client_hello_get0_session_id(s, out);
+}
+
+size_t SSL_early_get0_ciphers(SSL *s, const unsigned char **out)
+{
+    return SSL_client_hello_get0_ciphers(s, out);
+}
+
+size_t SSL_early_get0_compression_methods(SSL *s, const unsigned char **out)
+{
+    return SSL_client_hello_get0_compression_methods(s, out);
+}
+
+int SSL_early_get0_ext(SSL *s, unsigned int type, const unsigned char **out,
+                       size_t *outlen)
+{
+    return SSL_client_hello_get0_ext(s, type, out, outlen);
+}
+
+int SSL_akamai_free_buffers(SSL *ssl)
+{
+    return SSL_free_buffers(ssl);
+}
+
+int SSL_akamai_alloc_buffers(SSL *ssl)
+{
+    return SSL_alloc_buffers(ssl);
+}
+
 int SSL_SESSION_akamai_set1_ticket_appdata(SSL_SESSION *ss, const void *data, int len)
 {
     if (SSL_SESSION_set1_ticket_appdata(ss, data, len))
@@ -1142,6 +1220,25 @@ int SSL_SESSION_akamai_get_ticket_appdata(SSL_SESSION *ss, void *data, int len)
         }
     }
     return 0;
+}
+
+const SSL_CIPHER *SSL_akamai_get_tmp_cipher(const SSL *ssl)
+{
+    if (ssl->s3 != NULL)
+        return ssl->s3->tmp.new_cipher;
+    return NULL;
+}
+
+/* NO-OPS */
+
+int SSL_INTERNAL_get_sigandhash(unsigned char *p, const EVP_PKEY *pk, const EVP_MD *md)
+{
+    return NID_undef;
+}
+
+void SSL_INTERNAL_set_handshake_header(SSL *s, int type, unsigned long len)
+{
+    return;
 }
 
 #endif /* OPENSSL_NO_AKAMAI */

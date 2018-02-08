@@ -41,7 +41,8 @@ const char *SSL_default_akamai_cipher_list(void);
 
 /* AKAMAI OPTIONS */
 typedef enum SSL_AKAMAI_OPT {
-    SSL_AKAMAI_OPT_RSALG = 0,
+    SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION = 0,
+    SSL_AKAMAI_OPT_RSALG,
     SSL_AKAMAI_OPT_NO_EXTMS,
     /* insert here... */
     SSL_AKAMAI_OPT_LIMIT
@@ -234,6 +235,22 @@ int SSL_akamai_reset_fragment_size(SSL *s, unsigned int size);
 
 /* Replaces SSL_CTX_sessions() and OPENSSL_LH_stats_bio() for shared session cache. */
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b);
+
+/* 1.1.0 -> 1.1.1 ABI compatibility; TODO: remove in 1.2 */
+
+DEPRECATEDIN_1_2_0(void SSL_CTX_set_early_cb(SSL_CTX *c, SSL_client_hello_cb_fn cb, void *arg))
+DEPRECATEDIN_1_2_0(int SSL_early_isv2(SSL *s))
+DEPRECATEDIN_1_2_0(unsigned int SSL_early_get0_legacy_version(SSL *s))
+DEPRECATEDIN_1_2_0(size_t SSL_early_get0_random(SSL *s, const unsigned char **out))
+DEPRECATEDIN_1_2_0(size_t SSL_early_get0_session_id(SSL *s, const unsigned char **out))
+DEPRECATEDIN_1_2_0(size_t SSL_early_get0_ciphers(SSL *s, const unsigned char **out))
+DEPRECATEDIN_1_2_0(size_t SSL_early_get0_compression_methods(SSL *s, const unsigned char **out))
+DEPRECATEDIN_1_2_0(int SSL_early_get0_ext(SSL *s, unsigned int type, const unsigned char **out, size_t *outlen))
+DEPRECATEDIN_1_2_0(int SSL_akamai_free_buffers(SSL *ssl))
+DEPRECATEDIN_1_2_0(int SSL_akamai_alloc_buffers(SSL *ssl))
+DEPRECATEDIN_1_2_0(const SSL_CIPHER *SSL_akamai_get_tmp_cipher(const SSL *ssl))
+DEPRECATEDIN_1_2_0(int SSL_INTERNAL_get_sigandhash(unsigned char *p, const EVP_PKEY *pk, const EVP_MD *md))
+DEPRECATEDIN_1_2_0(void SSL_INTERNAL_set_handshake_header(SSL *s, int type, unsigned long len))
 
 /* session (ticket) app data */
 /* makes a copy of |data| */
