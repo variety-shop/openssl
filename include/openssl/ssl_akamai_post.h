@@ -41,7 +41,8 @@ const char *SSL_default_akamai_cipher_list(void);
 
 /* AKAMAI OPTIONS */
 typedef enum SSL_AKAMAI_OPT {
-    SSL_AKAMAI_OPT_RSALG = 0,
+    SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION = 0,
+    SSL_AKAMAI_OPT_RSALG,
     SSL_AKAMAI_OPT_NO_EXTMS,
     /* insert here... */
     SSL_AKAMAI_OPT_LIMIT
