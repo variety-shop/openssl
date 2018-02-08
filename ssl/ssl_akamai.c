@@ -245,6 +245,10 @@ int SSL_CTX_akamai_opt_set(SSL_CTX* s, enum SSL_AKAMAI_OPT opt)
         unsigned int val = 1 << opt;
         ret = (ex_data->options & val) ? 1 : 0;
         ex_data->options |= val;
+
+        /* special case */
+        if (opt == SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION)
+            SSL_CTX_set_options(s, SSL_OP_NO_RENEGOTIATION);
     }
     return ret;
 }
@@ -259,6 +263,10 @@ int SSL_CTX_akamai_opt_clear(SSL_CTX* s, enum SSL_AKAMAI_OPT opt)
         unsigned int val = 1 << opt;
         ret = (ex_data->options & val) ? 1 : 0;
         ex_data->options &= ~val;
+
+        /* special case */
+        if (opt == SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION)
+            SSL_CTX_clear_options(s, SSL_OP_NO_RENEGOTIATION);
     }
     return ret;
 }
@@ -272,6 +280,10 @@ int SSL_CTX_akamai_opt_get(SSL_CTX* s, enum SSL_AKAMAI_OPT opt)
     if (akamai_opt_is_ok(opt)) {
         unsigned int val = 1 << opt;
         ret = (ex_data->options & val) ? 1 : 0;
+
+        /* special case */
+        if (opt == SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION)
+            ret |= (SSL_CTX_get_options(s) & SSL_OP_NO_RENEGOTIATION) ? 1 : 0;
     }
     return ret;
 }
@@ -286,6 +298,10 @@ int SSL_akamai_opt_set(SSL* s, enum SSL_AKAMAI_OPT opt)
         unsigned int val = 1 << opt;
         ret = (ex_data->options & val) ? 1 : 0;
         ex_data->options |= val;
+
+        /* special case */
+        if (opt == SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION)
+            SSL_set_options(s, SSL_OP_NO_RENEGOTIATION);
     }
     return ret;
 }
@@ -300,6 +316,10 @@ int SSL_akamai_opt_clear(SSL* s, enum SSL_AKAMAI_OPT opt)
         unsigned int val = 1 << opt;
         ret = (ex_data->options & val) ? 1 : 0;
         ex_data->options &= ~val;
+
+        /* special case */
+        if (opt == SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION)
+            SSL_clear_options(s, SSL_OP_NO_RENEGOTIATION);
     }
     return ret;
 }
@@ -313,6 +333,10 @@ int SSL_akamai_opt_get(SSL* s, enum SSL_AKAMAI_OPT opt)
     if (akamai_opt_is_ok(opt)) {
         unsigned int val = 1 << opt;
         ret = (ex_data->options & val) ? 1 : 0;
+
+        /* special case */
+        if (opt == SSL_AKAMAI_OPT_DISALLOW_RENEGOTIATION)
+            ret |= (SSL_get_options(s) & SSL_OP_NO_RENEGOTIATION) ? 1 : 0;
     }
     return ret;
 }
