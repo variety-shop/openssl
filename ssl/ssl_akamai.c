@@ -1385,4 +1385,58 @@ const char *SSL_default_akamai_cipher_list(void)
     return cipher_list;
 }
 
+/* 1.1.0 -> 1.1.1 ABI compatibility; TODO: remove in 1.2 */
+
+void SSL_CTX_set_early_cb(SSL_CTX *c, SSL_client_hello_cb_fn cb,
+                          void *arg)
+{
+    SSL_CTX_set_client_hello_cb(c, cb, arg);
+}
+
+int SSL_early_isv2(SSL *s)
+{
+    return SSL_client_hello_isv2(s);
+}
+
+unsigned int SSL_early_get0_legacy_version(SSL *s)
+{
+    return SSL_client_hello_get0_legacy_version(s);
+}
+
+size_t SSL_early_get0_random(SSL *s, const unsigned char **out)
+{
+    return SSL_client_hello_get0_random(s, out);
+}
+
+size_t SSL_early_get0_session_id(SSL *s, const unsigned char **out)
+{
+    return SSL_client_hello_get0_session_id(s, out);
+}
+
+size_t SSL_early_get0_ciphers(SSL *s, const unsigned char **out)
+{
+    return SSL_client_hello_get0_ciphers(s, out);
+}
+
+size_t SSL_early_get0_compression_methods(SSL *s, const unsigned char **out)
+{
+    return SSL_client_hello_get0_compression_methods(s, out);
+}
+
+int SSL_early_get0_ext(SSL *s, unsigned int type, const unsigned char **out,
+                       size_t *outlen)
+{
+    return SSL_client_hello_get0_ext(s, type, out, outlen);
+}
+
+int SSL_akamai_free_buffers(SSL *ssl)
+{
+    return SSL_free_buffers(ssl);
+}
+
+int SSL_akamai_alloc_buffers(SSL *ssl)
+{
+    return SSL_alloc_buffers(ssl);
+}
+
 #endif /* OPENSSL_NO_AKAMAI */
