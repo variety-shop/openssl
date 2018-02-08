@@ -117,4 +117,11 @@ int AKAMAI_prf(int alg_nid,
     return ret;
 }
 
+/* 1.1.0 -> 1.1.1 ABI compatibility; TODO: remove in 1.2 */
+
+int ASN1_TIME_akamai_cmp_time_t(const ASN1_TIME *s, time_t t)
+{
+    return ASN1_TIME_cmp_time_t(s, t);
+}
+
 #endif
