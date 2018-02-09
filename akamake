@@ -481,18 +481,18 @@ $P/TARGETS :=
 $P/SRC :=
 
 ifdef FIPSBUILD
-$(error OpenSSL 1.1.0 does not support FIPS)
+$(error OpenSSL 1.1.1 does not support FIPS)
 endif
 
 ifdef MAKE_PARALLEL
 $P/SYSTEM_MAKE = $(MAKE_PARALLEL)
-else
-ifdef SYSTEM_MAKE
+else ifdef MAKE_SERIAL
+$P/SYSTEM_MAKE = $(MAKE_SERIAL)
+else ifdef SYSTEM_MAKE
 $P/SYSTEM_MAKE = $(SYSTEM_MAKE)
 else
 $P/SYSTEM_MAKE = make
 endif
-endif # ifdef MAKE_PARALLEL
 
 #
 # clean up rules
@@ -676,9 +676,11 @@ $P/configure.ts: $($P/CONFIGURE_PREREQUISITES)
 	@$(CHECK_SHARED_FLAGS)
 	$(CONFIGURE_STEP)
 	$(GENERATE_BUILD)
+	@perl $P/configdata.pm -d
 	@echo "Configure Step: $(CONFIGURE_STEP)" > $@
 	@echo "No Shared: $($P/NOSHARED)" >> $@
 	@echo "Make Step: $(MAKE_STEP)" >> $@
+	@perl $P/configdata.pm -d >> $@
 
 $(addprefix $(call get-headers-local-path)/,$($P/CONFIG-GEN-HEADERS)) : $P/configure.ts
 	@if [ ! -e $@ ]; then \
