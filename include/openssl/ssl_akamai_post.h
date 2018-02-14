@@ -248,6 +248,7 @@ DEPRECATEDIN_1_2_0(size_t SSL_early_get0_compression_methods(SSL *s, const unsig
 DEPRECATEDIN_1_2_0(int SSL_early_get0_ext(SSL *s, unsigned int type, const unsigned char **out, size_t *outlen))
 DEPRECATEDIN_1_2_0(int SSL_akamai_free_buffers(SSL *ssl))
 DEPRECATEDIN_1_2_0(int SSL_akamai_alloc_buffers(SSL *ssl))
+DEPRECATEDIN_1_2_0(const SSL_CIPHER *SSL_akamai_get_tmp_cipher(const SSL *ssl))
 
 /* session (ticket) app data */
 /* makes a copy of |data| */

@@ -1225,4 +1225,11 @@ int SSL_SESSION_akamai_get_ticket_appdata(SSL_SESSION *ss, void *data, int len)
     return 0;
 }
 
+const SSL_CIPHER *SSL_akamai_get_tmp_cipher(const SSL *ssl)
+{
+    if (ssl->s3 != NULL)
+        return ssl->s3->tmp.new_cipher;
+    return NULL;
+}
+
 #endif /* OPENSSL_NO_AKAMAI */
