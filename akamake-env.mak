@@ -3,24 +3,6 @@
 # FILE OFFSET BITS
 $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS)  $(filter %=64,-D_FILE_OFFSET_BITS=$(BUILDENV.FILE_OFFSET_BITS-master))
 
-# CONFIGURE PROFILE: these are mutually-exclusive
-ifeq ($(AKAMAKE-GCC-VERSION),3.3)
-$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-ppro-gcc33$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION))
-else # ifeq ($(AKAMAKE-GCC-VERSION),3.3)
-
-ifeq ($(AKAMAKE-GCC-VERSION),3.4)
-$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-ppro-gcc34$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION))
-else # ifeq ($(AKAMAKE-GCC-VERSION),3.4)
-
-ifeq ($(AKAMAKE-GCC-VERSION),4.0)
-$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-ppro-gcc40$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION))
-else # ifeq ($(AKAMAKE-GCC-VERSION),4.0)
-
-ifeq ($(AKAMAKE-GCC-VERSION),4.1)
-# Note: alsi6 doesn't set AKAMAKE-GCC-VERSION
-$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-ppro-gcc41$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION))
-else # ifeq ($(AKAMAKE-GCC-VERSION),4.1)
-
 ifdef AKAMAKE-ALSI6-BUILD
 
 ifdef AKAMAKE-LINUX-BUILD-64
@@ -66,25 +48,25 @@ $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-ccmalloc
 else # ifneq ($(filter ccmalloc,$(MAKECMDGOALS)),)
 
 ifneq ($(filter debug,$(MAKECMDGOALS)),)
-ifeq ($(filter osx-10.6,$(BUILDENV.OS)),)
+ifndef AKAMAKE-DARWIN-BUILD
 $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-debug
-else # ifeq ($(filter osx-10.6,$(BUILDENV.OS),)
+else # ifndef AKAMAKE-DARWIN-BUILD
 ifeq ($(KERNEL_BITS),64)
 $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-debug-darwin-x86_64
 else # ifeq ($(KERNEL_BITS),64)
 $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-debug-darwin-i386
 endif # ifeq ($(KERNEL_BITS),64)
-endif # ifeq ($(filter osx-10.6,$(BUILDENV.OS),)
+endif # ifndef AKAMAKE-DARWIN-BUILD
 
 else # ifneq ($(filter debug,$(MAKECMDGOALS)),)
 
-ifneq ($(filter osx-10.6,$(BUILDENV.OS)),)
+ifdef AKAMAKE-DARWIN-BUILD
 ifeq ($(KERNEL_BITS),64)
 $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) darwin64-x86_64-cc
 else # ifeq ($(KERNEL_BITS),64)
 $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) darwin-i386-cc
 endif # ifeq ($(KERNEL_BITS),64)
-endif # ifneq ($(filter osx-10.6,$(BUILDENV.OS)),)
+endif # ifdef AKAMAKE-DARWIN-BUILD
 
 ifneq ($(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION)),)
 
@@ -98,7 +80,3 @@ endif # ifdef AKAMAKE-ALSI9-BUILD/AKAMAKE-ALSI9-LITE-BUILD
 endif # ifdef AKAMAKE-ALSI8-BUILD/AKAMAKE-ALSI8-LITE-BUILD
 endif # ifdef AKAMAKE-ALSI7-BUILD/AKAMAKE-ALSI7-LITE-BUILD
 endif # ifdef AKAMAKE-ALSI6-BUILD
-endif # ifeq ($(AKAMAKE-GCC-VERSION),4.1)
-endif # ifeq ($(AKAMAKE-GCC-VERSION),4.0)
-endif # ifeq ($(AKAMAKE-GCC-VERSION),3.4)
-endif # ifeq ($(AKAMAKE-GCC-VERSION),3.3)

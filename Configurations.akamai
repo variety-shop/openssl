@@ -9,14 +9,6 @@ my $no_asm_filler="::::::::::::::::::void";
 "akamai-debug",        "gcc:-ggdb -O0 -Wall::-D_REENTRANT::::${no_asm_filler}::::::::",
 "akamai-debug-darwin-i386",        "cc:-arch i386 -ggdb3 -O0 -Wall::-D_REENTRANT:MACOSX:::${no_asm_filler}::::::::",
 "akamai-debug-darwin-x86_64",        "cc:-arch x86_64 -ggdb3 -O0 -Wall::-D_REENTRANT:MACOSX::DES_INT:${no_asm_filler}::::::::",
-"akamai-linux-ppro-gcc33",     "gcc:-DL_ENDIAN -O3 -fomit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl -lpthread:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
-"akamai-linux-ppro-gcc33-no-fomit-frame-pointer",     "gcc:-DL_ENDIAN -O3 -ggdb -fno-omit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl -lpthread:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
-"akamai-linux-ppro-gcc34",     "gcc:-DL_ENDIAN -O3-fomit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl -lpthread:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
-"akamai-linux-ppro-gcc34-no-fomit-frame-pointer",     "gcc:-DL_ENDIAN -O3 -ggdb -fno-omit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl -lpthread:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
-"akamai-linux-ppro-gcc40",     "gcc:-DL_ENDIAN -O3 -fomit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl -lpthread:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
-"akamai-linux-ppro-gcc40-no-fomit-frame-pointer",     "gcc:-DL_ENDIAN -O3 -ggdb -fno-omit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl -lpthread:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
-"akamai-linux-ppro-gcc41",     "gcc:-DL_ENDIAN -O3 -fomit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl -lpthread:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
-"akamai-linux-ppro-gcc41-no-fomit-frame-pointer",     "gcc:-DL_ENDIAN -O3 -ggdb -fno-omit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl -lpthread:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
 
 #alsi6
 "akamai-linux-ppro-alsi6",     "gcc:-DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -fomit-frame-pointer -march=pentiumpro -Wall::-D_REENTRANT::-ldl -lpthread:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
