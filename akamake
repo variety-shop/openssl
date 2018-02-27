@@ -112,13 +112,6 @@ $P/CONFIGFEATURES := $($P/CONFIGFEATURES) \
 else # ifndef MASTER
 # Compiling OpenSSL as a component
 
-OPENSSL111-USERS := mghost-client-side quic quic-tools ISSM ghasan ISSM-ASAN \
-	mghost-client-side/src/manifest_manipulation/lib2 \
-	mghost-client-side/src/manifest_manipulation/lib2/unittest
-ifeq ($(findstring $(MASTER-C),$(OPENSSL111-USERS)),)
-$(error OpenSSL 1.1.1 is not available for your component; use OpenSSL 1.1.0 or earlier)
-endif
-
 # We need to determine whether we're building static libraries or shared libraries.
 #
 # The result of this will be stored in $P/BUILDENV.OPENSSL_LINKAGE-master,
