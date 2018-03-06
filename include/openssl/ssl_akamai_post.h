@@ -249,6 +249,8 @@ DEPRECATEDIN_1_2_0(int SSL_early_get0_ext(SSL *s, unsigned int type, const unsig
 DEPRECATEDIN_1_2_0(int SSL_akamai_free_buffers(SSL *ssl))
 DEPRECATEDIN_1_2_0(int SSL_akamai_alloc_buffers(SSL *ssl))
 DEPRECATEDIN_1_2_0(const SSL_CIPHER *SSL_akamai_get_tmp_cipher(const SSL *ssl))
+DEPRECATEDIN_1_2_0(int SSL_INTERNAL_get_sigandhash(unsigned char *p, const EVP_PKEY *pk, const EVP_MD *md))
+DEPRECATEDIN_1_2_0(void SSL_INTERNAL_set_handshake_header(SSL *s, int type, unsigned long len))
 
 /* session (ticket) app data */
 /* makes a copy of |data| */

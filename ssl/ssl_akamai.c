@@ -1232,4 +1232,16 @@ const SSL_CIPHER *SSL_akamai_get_tmp_cipher(const SSL *ssl)
     return NULL;
 }
 
+/* NO-OPS */
+
+int SSL_INTERNAL_get_sigandhash(unsigned char *p, const EVP_PKEY *pk, const EVP_MD *md)
+{
+    return NID_undef;
+}
+
+void SSL_INTERNAL_set_handshake_header(SSL *s, int type, unsigned long len)
+{
+    return;
+}
+
 #endif /* OPENSSL_NO_AKAMAI */
