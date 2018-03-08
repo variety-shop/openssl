@@ -313,14 +313,6 @@ ifeq ($(AKAMAKE-LINUX-BUILD-64),1)
 endif
 
 ifeq ($(AKARELEASE_PLATFORM),btf-anaconda)
-AKAMAKE-OPENSSL-WITH-FPIC := 1
-endif
-
-ifdef AKAMAKE-LINUX-BUILD-64
-AKAMAKE-OPENSSL-WITH-FPIC := 1
-endif
-
-ifdef AKAMAKE-OPENSSL-WITH-FPIC
 $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) -fPIC
 endif
 
@@ -591,8 +583,8 @@ $P/CONFIGURE_PREREQUISITES := $P/Configure \
 	$P/buildenv.NO_FOMIT_FRAME_POINTER.$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER))
 
 # Next line intentional "=" - krose, 12/10/2001
-$P/% : CONFIGURE_SHARED = cd $P && (./Configure $($P/SHAREDFEATURES) $($P/CONFIGFLAGS))
-$P/% : CONFIGURE_STATIC = cd $P && ($($P/OPENSSL-CC) ./Configure $($P/CONFIGFEATURES) $($P/CONFIGFLAGS))
+$P/% : CONFIGURE_SHARED = cd $P && (./Configure $($P/SHAREDFEATURES) CFLAGS="$($P/CONFIGFLAGS)" $($P/BUILDTARGET))
+$P/% : CONFIGURE_STATIC = cd $P && ($($P/OPENSSL-CC) ./Configure $($P/CONFIGFEATURES) CFLAGS="$($P/CONFIGFLAGS)" $($P/BUILDTARGET))
 $P/% : CONFIGURE_STEP = $(if $($P/NOSHARED),$(CONFIGURE_STATIC),$(CONFIGURE_SHARED))
 $P/% : GENERATE_BUILD = $($P/SYSTEM_MAKE) -C $P build_generated
 $P/% : MAKE_STEP = $($P/SYSTEM_MAKE) -C $P $($P/OPENSSL-TARGET)
@@ -606,7 +598,7 @@ ifeq ($(filter ActiveState,$(shell perl -v)),)
 $(error "WIN32 version of openssl requires use of ActiveState Perl (http://www.ActiveState.com)" )
 endif # ifeq ($(filter ActiveState,$(shell perl -v)),)
 
-$P/% : CONFIGURE_STEP = cd $P && perl Configure $($P/CONFIGFEATURES) $($P/CONFIGFLAGS)
+$P/% : CONFIGURE_STEP = cd $P && perl Configure $($P/CONFIGFEATURES) CFLAGS="$($P/CONFIGFLAGS)" $($P/BUILDTARGET)
 $P/% : GENERATE_BUILD := cd $P && $(NMAKE) -f makefile build_generated
 $P/% : MAKE_STEP := cd $P && $(NMAKE) -f makefile
 $P/% : EXTRA_STEP := \
