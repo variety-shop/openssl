@@ -1264,6 +1264,27 @@ SSL_TICKET_RETURN tls_get_ticket_from_client(SSL *s, CLIENTHELLO_MSG *hello,
                                                  keyname_len,
                                                  retv, s->session_ctx->ticket_cb_data);
     }
+#ifndef OPENSSL_NO_AKAMAI_CB
+    /* Backwards compatibility: call the Akamai callback if no upstream callback */
+    else if (SSL_get_akamai_cb(s) != NULL) {
+        SSL_AKAMAI_CB_DATA akamai_cb_data;
+        int r;
+        size_t keyname_len = size;
+
+        if (keyname_len > TLSEXT_KEYNAME_LENGTH)
+            keyname_len = TLSEXT_KEYNAME_LENGTH;
+        memset(&akamai_cb_data, 0, sizeof(akamai_cb_data));
+        akamai_cb_data.retval = retv;
+        akamai_cb_data.src[0] = (void*)PACKET_data(&ticketext->data);
+        akamai_cb_data.src_len[0] = keyname_len;
+        akamai_cb_data.sess = *ret;
+        r = SSL_get_akamai_cb(s)(s, SSL_AKAMAI_CB_DECRYPTED_TICKET, &akamai_cb_data);
+        if (r == 1)
+            retv = (int)akamai_cb_data.retval;
+        else if (r == -1)
+            retv = SSL_TICKET_FATAL_ERR_OTHER;
+    }
+#endif
 
     switch (retv) {
     case SSL_TICKET_NO_DECRYPT:

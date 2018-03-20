@@ -51,6 +51,10 @@ struct ssl_ctx_ex_data_akamai_st
 
     /* count of preferred ciphers */
     int akamai_cipher_count;
+
+# ifndef OPENSSL_NO_AKAMAI_CB
+    SSL_AKAMAI_CB akamai_cb;
+# endif
 };
 
 typedef struct ssl_ex_data_akamai_st SSL_EX_DATA_AKAMAI;

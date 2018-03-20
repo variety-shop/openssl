@@ -2,7 +2,8 @@
 
 =head1 NAME
 
-SSL_get_akamai_cb, SSL_set_akamai_cb - handle event callback function
+SSL_set_akamai_cb, SSL_get_akamai_cb, SSL_CTX_set_akamai_cb,
+SSL_CTX_get_akamai_cb - handle event callback function
 
 =head1 SYNOPSIS
 
@@ -10,16 +11,26 @@ SSL_get_akamai_cb, SSL_set_akamai_cb - handle event callback function
 
  void SSL_set_akamai_cb(SSL *ssl, SSL_AKAMAI_CB cb);
  SSL_AKAMAI_CB SSL_get_akamai_cb(SSL *ssl);
+ void SSL_CTX_set_akamai_cb(SSL_CTX *ctx, SSL_AKAMAI_CB cb);
+ SSL_AKAMAI_CB SSL_CTX_get_akamai_cb(SSL_CTX *ctx);
 
 =head1 DESCRIPTION
 
 SSL_set_akamai_cb() assigns B<cb> to be the Akamai callback,
 called when private key operations need to be performed for an SSL object.
 
-When B<cb> is NULL, no callback function is used.
+SSL_CTX_set_akamai_cb() assigns B<cb> to be the fallback Akamai callback,
+in case a callback is not set via SSL_set_akamai_cb().
+
+When the SSL B<cb> is NULL, the SSL_CTX B<cb> callback is used. If both
+callbacks are NULL, then no callback function is used.
 
 SSL_get_akamai_cb() returns a pointer to the currently set callback
-function.
+function; if a callback has not been explicitly set in B<ssl>, then the
+callback is retrived from the B<ssl>'s SSL_CTX.
+
+SSL_CTX_get_akamai_cb() returns a pointer to the currently set callback
+function in the B<ctx>.
 
 SSL_AKAMAI_CB() is the application defined callback. It is invoked whenever
 the SSL object has a task to perform that handles private keys during
@@ -29,6 +40,11 @@ the connect/accept handshake period.
 
 If no SSL_AKAMAI_CB() is registered all such tasks are directly executed
 by the SSL object.
+
+=head1 RETURN VALUES
+
+The SSL_get_akamai_cb() and SSL_CTX_get_akamai_cb() return a pointer
+to the callback function.
 
 =head1 CALLBACK ARGUMENTS
 
@@ -122,7 +138,7 @@ as follows:
  typedef struct ssl_akamai_cb_data_st SSL_AKAMAI_CB_DATA;
 
 The B<pkey> is the public key. B<md> is the message digest type used for signing.
-Multiple B<src> and B<src_len>fields are provided, unused fields have B<src>=NULL and B<src_len>=0.
+Multiple B<src> and B<src_len> fields are provided, unused fields have B<src>=NULL and B<src_len>=0.
 The B<dst_len> indicates the length of the destination buffer. If it is 0, then there
 is no specified limit, although the general SSL record size is a practical limit.
 The B<retval> field is used to return the actual return value; the length of the signature,
@@ -145,7 +161,7 @@ this file except in compliance with the License.  You can obtain a copy
 in the file LICENSE in the source distribution or at
 L<https://www.openssl.org/source/license.html>.
 
-Copyright (C) 2016 Akamai Technologies. ALL RIGHTS RESERVED.
+Copyright (C) 2016-2017 Akamai Technologies. ALL RIGHTS RESERVED.
 
 This code was originally developed by Akamai Technologies and
 contributed to the OpenSSL project under the terms of the Corporate
