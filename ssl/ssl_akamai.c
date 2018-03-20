@@ -901,7 +901,20 @@ void SSL_set_akamai_cb(SSL *s, SSL_AKAMAI_CB cb)
 
 SSL_AKAMAI_CB SSL_get_akamai_cb(SSL *s)
 {
-    return SSL_get_ex_data_akamai(s)->akamai_cb;
+    SSL_AKAMAI_CB cb = SSL_get_ex_data_akamai(s)->akamai_cb;
+    if (cb == NULL)
+        cb = SSL_CTX_get_akamai_cb(SSL_get_SSL_CTX(s));
+    return cb;
+}
+
+void SSL_CTX_set_akamai_cb(SSL_CTX *ctx, SSL_AKAMAI_CB cb)
+{
+    SSL_CTX_get_ex_data_akamai(ctx)->akamai_cb = cb;
+}
+
+SSL_AKAMAI_CB SSL_CTX_get_akamai_cb(SSL_CTX *ctx)
+{
+    return SSL_CTX_get_ex_data_akamai(ctx)->akamai_cb;
 }
 
 # endif /* OPENSSL_NO_AKAMAI_CB */
@@ -1108,6 +1121,27 @@ const char *SSL_default_akamai_cipher_list(void)
         "AES128-SHA";
 
     return cipher_list;
+}
+
+int SSL_SESSION_akamai_set1_ticket_appdata(SSL_SESSION *ss, const void *data, int len)
+{
+    if (SSL_SESSION_set1_ticket_appdata(ss, data, len))
+        return len;
+    return 0;
+}
+
+int SSL_SESSION_akamai_get_ticket_appdata(SSL_SESSION *ss, void *data, int len)
+{
+    size_t tlen = 0;
+    void *tdata = NULL;
+
+    if (SSL_SESSION_get0_ticket_appdata(ss, &tdata, &tlen)) {
+        if (tdata != NULL && tlen < (size_t)len) {
+            memcpy(data, tdata, tlen);
+            return (int)tlen;
+        }
+    }
+    return 0;
 }
 
 #endif /* OPENSSL_NO_AKAMAI */
