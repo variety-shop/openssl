@@ -1495,6 +1495,29 @@ SSL_TICKET_STATUS tls_decrypt_ticket(SSL *s, const unsigned char *etick,
         }
     }
 
+#ifndef OPENSSL_NO_AKAMAI_CB
+    /* Backwards compatibility: call the Akamai callback if no upstream callback */
+    if (s->session_ctx->decrypt_ticket_cb == NULL
+           && SSL_get_akamai_cb(s) != NULL) {
+        SSL_AKAMAI_CB_DATA akamai_cb_data;
+        int r;
+        size_t keyname_len = eticklen;
+
+        if (keyname_len > TLSEXT_KEYNAME_LENGTH)
+            keyname_len = TLSEXT_KEYNAME_LENGTH;
+        memset(&akamai_cb_data, 0, sizeof(akamai_cb_data));
+        akamai_cb_data.retval = ret;
+        akamai_cb_data.src[0] = (unsigned char*)etick;
+        akamai_cb_data.src_len[0] = keyname_len;
+        akamai_cb_data.sess = sess;
+        r = SSL_get_akamai_cb(s)(s, SSL_AKAMAI_CB_DECRYPTED_TICKET, &akamai_cb_data);
+        if (r == 1)
+            ret = (int)akamai_cb_data.retval;
+        else if (r == -1)
+            ret = SSL_TICKET_FATAL_ERR_OTHER;
+    }
+#endif
+
     if (s->ext.session_secret_cb == NULL || SSL_IS_TLS13(s)) {
         switch (ret) {
         case SSL_TICKET_NO_DECRYPT:

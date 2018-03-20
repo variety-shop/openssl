@@ -548,5 +548,9 @@ SSL_akamai_remove_session               10067	1_1_0d	EXIST::FUNCTION:AKAMAI
 SSL_akamai_reset_fragment_size          10069	1_1_0d	EXIST::FUNCTION:AKAMAI
 SSL_rsalg_get_server_random             10079	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
 SSL_akamai_get_prf                      10080	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_RSALG
+SSL_SESSION_akamai_get_ticket_appdata   10081	1_1_0e	EXIST::FUNCTION:AKAMAI,DEPRECATEDIN_1_2_0
+SSL_SESSION_akamai_set1_ticket_appdata  10082	1_1_0e	EXIST::FUNCTION:AKAMAI,DEPRECATEDIN_1_2_0
+SSL_CTX_get_akamai_cb                   10083	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_CB
+SSL_CTX_set_akamai_cb                   10084	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_CB
 SSL_CTX_akamai_session_stats_bio        10085	1_1_0e	EXIST::FUNCTION:AKAMAI
 SSL_default_akamai_cipher_list          10086	1_1_1	EXIST::FUNCTION:AKAMAI
