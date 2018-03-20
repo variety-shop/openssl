@@ -4236,6 +4236,13 @@ int tls_construct_new_session_ticket(SSL *s, WPACKET *pkt)
         tctx->generate_ticket_cb(s, tctx->ticket_cb_data) == 0)
         goto err;
 
+#ifndef OPENSSL_NO_AKAMAI_CB
+    /* Backwards compatibility: call the Akamai callback if no upstream callback */
+    else if (SSL_get_akamai_cb(s) != NULL &&
+             SSL_get_akamai_cb(s)(s, SSL_AKAMAI_CB_GENERATE_TICKET, NULL) < 0)
+        goto err;
+#endif
+
     /*
      * If we are using anti-replay protection then we behave as if
      * SSL_OP_NO_TICKET is set - we are caching tickets anyway so there

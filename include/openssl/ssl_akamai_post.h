@@ -142,12 +142,15 @@ struct ssl_akamai_cb_data_st {
     void* dst;
     size_t dst_len;
     long retval;
+    SSL_SESSION *sess; /* deprecated, remove in 1.2 */
 };
 typedef struct ssl_akamai_cb_data_st SSL_AKAMAI_CB_DATA;
 
 typedef int (*SSL_AKAMAI_CB)(SSL*, int event, SSL_AKAMAI_CB_DATA* data);
 void SSL_set_akamai_cb(SSL *ssl, SSL_AKAMAI_CB cb);
 __owur SSL_AKAMAI_CB SSL_get_akamai_cb(SSL *ssl);
+void SSL_CTX_set_akamai_cb(SSL_CTX *ctx, SSL_AKAMAI_CB cb);
+__owur SSL_AKAMAI_CB SSL_CTX_get_akamai_cb(SSL_CTX *ctx);
 
 /* Akamai Callback Events - Private Key Operations */
 /* DOES NOT SUPPORT GOST! */
@@ -160,8 +163,12 @@ __owur SSL_AKAMAI_CB SSL_get_akamai_cb(SSL *ssl);
 #   define SSL_AKAMAI_CB_SERVER_SIGN_KX           3
 /* generate the master secret */
 #   define SSL_AKAMAI_CB_SERVER_MASTER_SECRET     4
+/* about to send a session ticket - deprecated, remove in 1.2 */
+#   define SSL_AKAMAI_CB_GENERATE_TICKET          5
+/* just decoded a session ticket - deprecated, remove in 1.2 */
+#   define SSL_AKAMAI_CB_DECRYPTED_TICKET         6
 /* server is signing cert verify */
-#   define SSL_AKAMAI_CB_SERVER_SIGN_CERT_VRFY    5
+#   define SSL_AKAMAI_CB_SERVER_SIGN_CERT_VRFY    7
 
 #  endif /* OPENSSL_NO_AKAMAI_CB */
 
@@ -226,6 +233,16 @@ int SSL_akamai_reset_fragment_size(SSL *s, unsigned int size);
 
 /* Replaces SSL_CTX_sessions() and OPENSSL_LH_stats_bio() for shared session cache. */
 void SSL_CTX_akamai_session_stats_bio(SSL_CTX *ctx, BIO *b);
+
+/* session (ticket) app data */
+/* makes a copy of |data| */
+DEPRECATEDIN_1_2_0(int SSL_SESSION_akamai_set1_ticket_appdata(SSL_SESSION *ss, const void *data, int len))
+/*
+ * copies into |data|, |len| == 0 returns the length without copy, otherwise, returns
+ * data length copied actually copied up to |len|, 0 return means no data or error
+ * (i.e. |data| == NULL)
+*/
+DEPRECATEDIN_1_2_0(int SSL_SESSION_akamai_get_ticket_appdata(SSL_SESSION *ss, void *data, int len))
 
 #  ifdef  __cplusplus
 }
