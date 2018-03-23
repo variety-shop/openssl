@@ -260,42 +260,44 @@ d1_srtp.o: ../include/openssl/x509.h ../include/openssl/x509_vfy.h d1_srtp.c
 d1_srtp.o: srtp.h ssl_locl.h ssl_locl_akamai_post.h ssl_locl_akamai_pre.h
 d1_srvr.o: ../e_os.h ../include/openssl/asn1.h ../include/openssl/bio.h
 d1_srvr.o: ../include/openssl/bn.h ../include/openssl/buffer.h
-d1_srvr.o: ../include/openssl/comp.h ../include/openssl/crypto.h
-d1_srvr.o: ../include/openssl/dh.h ../include/openssl/dsa.h
-d1_srvr.o: ../include/openssl/dtls1.h ../include/openssl/e_os2.h
-d1_srvr.o: ../include/openssl/ec.h ../include/openssl/ecdh.h
-d1_srvr.o: ../include/openssl/ecdsa.h ../include/openssl/err.h
-d1_srvr.o: ../include/openssl/evp.h ../include/openssl/hmac.h
-d1_srvr.o: ../include/openssl/kssl.h ../include/openssl/lhash.h
-d1_srvr.o: ../include/openssl/md5.h ../include/openssl/obj_mac.h
-d1_srvr.o: ../include/openssl/objects.h ../include/openssl/opensslconf.h
-d1_srvr.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
-d1_srvr.o: ../include/openssl/pem.h ../include/openssl/pem2.h
-d1_srvr.o: ../include/openssl/pkcs7.h ../include/openssl/pqueue.h
-d1_srvr.o: ../include/openssl/rand.h ../include/openssl/rsa.h
-d1_srvr.o: ../include/openssl/safestack.h ../include/openssl/sha.h
-d1_srvr.o: ../include/openssl/srtp.h ../include/openssl/ssl.h
-d1_srvr.o: ../include/openssl/ssl2.h ../include/openssl/ssl23.h
-d1_srvr.o: ../include/openssl/ssl3.h ../include/openssl/stack.h
+d1_srvr.o: ../include/openssl/crypto.h ../include/openssl/dh.h
+d1_srvr.o: ../include/openssl/dsa.h ../include/openssl/dtls1.h
+d1_srvr.o: ../include/openssl/e_os2.h ../include/openssl/ec.h
+d1_srvr.o: ../include/openssl/ecdh.h ../include/openssl/ecdsa.h
+d1_srvr.o: ../include/openssl/err.h ../include/openssl/evp.h
+d1_srvr.o: ../include/openssl/hmac.h ../include/openssl/kssl.h
+d1_srvr.o: ../include/openssl/lhash.h ../include/openssl/md5.h
+d1_srvr.o: ../include/openssl/obj_mac.h ../include/openssl/objects.h
+d1_srvr.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
+d1_srvr.o: ../include/openssl/ossl_typ.h ../include/openssl/pem.h
+d1_srvr.o: ../include/openssl/pem2.h ../include/openssl/pkcs7.h
+d1_srvr.o: ../include/openssl/pqueue.h ../include/openssl/rand.h
+d1_srvr.o: ../include/openssl/rsa.h ../include/openssl/safestack.h
+d1_srvr.o: ../include/openssl/sha.h ../include/openssl/srtp.h
+d1_srvr.o: ../include/openssl/ssl.h ../include/openssl/ssl2.h
+d1_srvr.o: ../include/openssl/ssl23.h ../include/openssl/ssl3.h
+d1_srvr.o: ../include/openssl/ssl_akamai_post.h
+d1_srvr.o: ../include/openssl/ssl_akamai_pre.h ../include/openssl/stack.h
 d1_srvr.o: ../include/openssl/symhacks.h ../include/openssl/tls1.h
 d1_srvr.o: ../include/openssl/x509.h ../include/openssl/x509_vfy.h d1_srvr.c
-d1_srvr.o: ssl_locl.h
+d1_srvr.o: ssl_locl.h ssl_locl_akamai_post.h ssl_locl_akamai_pre.h
 kssl.o: ../crypto/o_time.h ../include/openssl/asn1.h ../include/openssl/bio.h
-kssl.o: ../include/openssl/buffer.h ../include/openssl/comp.h
-kssl.o: ../include/openssl/crypto.h ../include/openssl/dtls1.h
-kssl.o: ../include/openssl/e_os2.h ../include/openssl/ec.h
-kssl.o: ../include/openssl/ecdh.h ../include/openssl/ecdsa.h
-kssl.o: ../include/openssl/evp.h ../include/openssl/hmac.h
-kssl.o: ../include/openssl/krb5_asn.h ../include/openssl/kssl.h
-kssl.o: ../include/openssl/lhash.h ../include/openssl/obj_mac.h
-kssl.o: ../include/openssl/objects.h ../include/openssl/opensslconf.h
-kssl.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
-kssl.o: ../include/openssl/pem.h ../include/openssl/pem2.h
-kssl.o: ../include/openssl/pkcs7.h ../include/openssl/pqueue.h
-kssl.o: ../include/openssl/safestack.h ../include/openssl/sha.h
-kssl.o: ../include/openssl/srtp.h ../include/openssl/ssl.h
-kssl.o: ../include/openssl/ssl2.h ../include/openssl/ssl23.h
-kssl.o: ../include/openssl/ssl3.h ../include/openssl/stack.h
+kssl.o: ../include/openssl/buffer.h ../include/openssl/crypto.h
+kssl.o: ../include/openssl/dtls1.h ../include/openssl/e_os2.h
+kssl.o: ../include/openssl/ec.h ../include/openssl/ecdh.h
+kssl.o: ../include/openssl/ecdsa.h ../include/openssl/evp.h
+kssl.o: ../include/openssl/hmac.h ../include/openssl/krb5_asn.h
+kssl.o: ../include/openssl/kssl.h ../include/openssl/lhash.h
+kssl.o: ../include/openssl/obj_mac.h ../include/openssl/objects.h
+kssl.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
+kssl.o: ../include/openssl/ossl_typ.h ../include/openssl/pem.h
+kssl.o: ../include/openssl/pem2.h ../include/openssl/pkcs7.h
+kssl.o: ../include/openssl/pqueue.h ../include/openssl/safestack.h
+kssl.o: ../include/openssl/sha.h ../include/openssl/srtp.h
+kssl.o: ../include/openssl/ssl.h ../include/openssl/ssl2.h
+kssl.o: ../include/openssl/ssl23.h ../include/openssl/ssl3.h
+kssl.o: ../include/openssl/ssl_akamai_post.h
+kssl.o: ../include/openssl/ssl_akamai_pre.h ../include/openssl/stack.h
 kssl.o: ../include/openssl/symhacks.h ../include/openssl/tls1.h
 kssl.o: ../include/openssl/x509.h ../include/openssl/x509_vfy.h kssl.c
 kssl.o: kssl_lcl.h
