@@ -730,7 +730,7 @@ static int ssl_akamai_set_cipher_list_helper(SSL* ssl, SSL_CTX* ctx,
     STACK_OF(SSL_CIPHER) *sk_pref = NULL;
     STACK_OF(SSL_CIPHER) *sk_tmp = NULL;
     STACK_OF(SSL_CIPHER) *sk_must = NULL;
-    STACK_OF(SSL_CIPHER) *tls13_ciphersuites;
+    STACK_OF(SSL_CIPHER) *tls13_ciphersuites = NULL;
     int sk_pref_len = 0;
     int i;
 
