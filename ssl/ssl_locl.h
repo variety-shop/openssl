@@ -587,6 +587,8 @@ struct ssl_session_st {
 # ifndef OPENSSL_NO_SRP
     char *srp_username;
 # endif
+    unsigned char *cache_id;
+    size_t cache_id_len;
     unsigned char *ticket_appdata;
     size_t ticket_appdata_len;
     uint32_t flags;
@@ -1644,6 +1646,9 @@ struct ssl_st {
     void *record_padding_arg;
     size_t block_padding;
 
+    unsigned char *cache_id;
+    size_t cache_id_len;
+
     CRYPTO_RWLOCK *lock;
     RAND_DRBG *drbg;
 
@@ -2682,6 +2687,8 @@ void ssl_comp_free_compression_methods_int(void);
 
 /* ssl_mcnf.c */
 void ssl_ctx_system_config(SSL_CTX *ctx);
+
+long ssl_ctx_set_sess_cache_mode(SSL_CTX *ctx, long new_mode);
 
 # else /* OPENSSL_UNIT_TEST */
 

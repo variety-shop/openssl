@@ -187,6 +187,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_SSL_ENABLE_CT                              402
 # define SSL_F_SSL_GENERATE_PKEY_GROUP                    559
 # define SSL_F_SSL_GENERATE_SESSION_ID                    547
+# define SSL_F_SSL_GET1_PREVIOUS_CLIENT_SESSION           640
 # define SSL_F_SSL_GET_NEW_SESSION                        181
 # define SSL_F_SSL_GET_PREV_SESSION                       217
 # define SSL_F_SSL_GET_SERVER_CERT_INDEX                  322
@@ -221,8 +222,10 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_SSL_SESSION_DUP                            348
 # define SSL_F_SSL_SESSION_NEW                            189
 # define SSL_F_SSL_SESSION_PRINT_FP                       190
+# define SSL_F_SSL_SESSION_SET1_CACHE_ID                  641
 # define SSL_F_SSL_SESSION_SET1_ID                        423
 # define SSL_F_SSL_SESSION_SET1_ID_CONTEXT                312
+# define SSL_F_SSL_SET1_CACHE_ID                          642
 # define SSL_F_SSL_SET_ALPN_PROTOS                        344
 # define SSL_F_SSL_SET_CERT                               191
 # define SSL_F_SSL_SET_CERT_AND_KEY                       621
@@ -458,6 +461,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_R_ATTEMPT_TO_REUSE_SESSION_IN_DIFFERENT_CONTEXT 272
 # define SSL_R_AT_LEAST_TLS_1_0_NEEDED_IN_FIPS_MODE       143
 # define SSL_R_AT_LEAST_TLS_1_2_NEEDED_IN_SUITEB_MODE     158
+# define SSL_R_BAD_CACHE_MODE                             294
 # define SSL_R_BAD_CHANGE_CIPHER_SPEC                     103
 # define SSL_R_BAD_CIPHER                                 186
 # define SSL_R_BAD_DATA                                   390
@@ -662,6 +666,8 @@ int ERR_load_SSL_strings(void);
 # define SSL_R_SCSV_RECEIVED_WHEN_RENEGOTIATING           345
 # define SSL_R_SCT_VERIFICATION_FAILED                    208
 # define SSL_R_SERVERHELLO_TLSEXT                         275
+# define SSL_R_SESSION_ALREADY_IN_CACHE                   295
+# define SSL_R_SESSION_ALREADY_SET                        296
 # define SSL_R_SESSION_ID_CONTEXT_UNINITIALIZED           277
 # define SSL_R_SHUTDOWN_WHILE_IN_INIT                     407
 # define SSL_R_SIGNATURE_ALGORITHMS_ERROR                 360
