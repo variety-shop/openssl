@@ -4467,3 +4467,4 @@ ECDSA_METHOD_get_verify                 884807	EXIST::FUNCTION:AKAMAI,ECDSA
 DH_security_bits                        884808	EXIST::FUNCTION:DH
 Poly1305_Init                           884809	EXIST::FUNCTION:POLY1305
 BN_security_bits                        884810	EXIST::FUNCTION:
+FIPS_akamai_enable                      884811	EXIST::FUNCTION:

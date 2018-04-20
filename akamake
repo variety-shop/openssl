@@ -462,6 +462,7 @@ $P/myclean:
 	-rm -f $P/akamake-dynamic-build-deps.mak
 	-rm -f $P/akamake-headers.mak
 	-rm -f $P/krb5.h
+	-rm -f $P/fips_premain_dso
 	-find $P -name "Makefile.save" -delete
 	-find $P -name "*.gc??" -delete
 
@@ -517,8 +518,8 @@ $P/CONFIGURE_PREREQUISITES := $P/Configure $P/Makefile.org $P/akamake $P/builden
 
 # Define the $P/OPENSSL-CC as the compiler to use
 # Use '=' for assignements here
-$P/OPENSSL-CC = CC="$(CC)"
 ifdef FIPSBUILD
+# for fipscanister
 # FIPS requires their own linker to build correctly so we're doing that here - sverasch 7/24/14
 $P/OPENSSL-CC = CC="$($P/FIPSLD)" FIPSLD_CC="$(CC)"
 endif # ifdef FIPSBUILD

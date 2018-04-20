@@ -4884,6 +4884,7 @@ OPENSSL_102 {
 		SSL_INTERNAL_get_sign_pkey;
 		SSL_get_preferred_ciphers;
 		SSL_CTX_akamai_opt_clear;
+		FIPS_akamai_enable;
 	local:
 		*;
 };

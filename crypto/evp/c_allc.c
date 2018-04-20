@@ -62,6 +62,91 @@
 #include <openssl/pkcs12.h>
 #include <openssl/objects.h>
 
+#ifndef OPENSSL_NO_AKAMAI
+# include <stdlib.h>
+# include <sys/types.h>
+# include <sys/stat.h>
+# include <fcntl.h>
+# include <unistd.h>
+
+void FIPS_akamai_enable(void)
+{
+# ifdef OPENSSL_FIPS
+    char *env = getenv("AKAMAI_OPENSSL_FIPS");
+    BIO *output = NULL;
+    int force = 0;
+    int do_abort = 0;
+    pid_t pid;
+    char name[128];
+    int fd;
+    ssize_t sz;
+    char* state = "disabled";
+
+    if (FIPS_mode())
+        return;
+    if (env == NULL)
+        return;
+
+    pid = getpid();
+    /* get the current process name */
+    fd = open("/proc/self/cmdline", O_RDONLY);
+    if (fd != -1) {
+        sz = read(fd, name, sizeof(name));
+        if (sz != -1) {
+            if (sz < sizeof(name))
+                name[sz] = '\0';
+            else
+                name[sizeof(name)-1] = '\0';
+        }
+        close(fd);
+    }
+    if (fd == -1 || sz == -1) {
+        strcpy(name, "unknown application");
+    }
+
+    if (!strcmp(env, "FORCE_FIPS_STDOUT")) {
+        output = BIO_new_fp(stdout, BIO_NOCLOSE);
+        force = 1;
+    } else if (!strcmp(env, "FORCE_FIPS_STDERR")) {
+        output = BIO_new_fp(stderr, BIO_NOCLOSE);
+        force = 1;
+    } else if (!strcmp(env, "FORCE_FIPS_SYSLOG")) {
+        output = BIO_new(BIO_s_log());
+        force = 1;
+    } else if (!strcmp(env, "CONTINUE_FIPS_STDOUT")) {
+        output = BIO_new_fp(stdout, BIO_NOCLOSE);
+    } else if (!strcmp(env, "CONTINUE_FIPS_STDERR")) {
+        output = BIO_new_fp(stderr, BIO_NOCLOSE);
+    } else if (!strcmp(env, "CONTINUE_FIPS_SYSLOG")) {
+        output = BIO_new(BIO_s_log());
+    } else {
+        /* Unknown value */
+        fprintf(stderr, "Bad environment value\n");
+        abort();
+    }
+
+    if (output == NULL) {
+        fprintf(stderr, "Unable to open output BIO\n");
+        abort();
+    }
+
+    if (FIPS_mode_set(1)) {
+        state = "enabled";
+    } else {
+        ERR_print_errors(output);
+        if (force)
+            do_abort = 1;
+    }
+
+    BIO_printf(output, "FIPS=%s PID=%d NAME=%s\n", state, pid, name);
+    BIO_free(output);
+
+    if (do_abort)
+        abort();
+# endif
+}
+#endif
+
 void OpenSSL_add_all_ciphers(void)
 {
 
@@ -244,5 +329,9 @@ void OpenSSL_add_all_ciphers(void)
 # ifndef OPENSSL_NO_POLY1305
     EVP_add_cipher(EVP_chacha20_poly1305());
 # endif
+#endif
+
+#ifndef OPENSSL_NO_AKAMAI
+    FIPS_akamai_enable();
 #endif
 }
