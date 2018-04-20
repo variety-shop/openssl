@@ -47,9 +47,9 @@ $P/%: P := $P
 ifndef ATTR_ONLY
 OPENSSL-PATH := $(call get-component-path,openssl)
 ifeq ($(LD_LIBRARY_PATH),)
-LD_LIBRARY_PATH := $(OPENSSL-PATH)
-else ifeq ($(findstring $(OPENSSL-PATH),$(LD_LIBRARY_PATH)),)
-LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(OPENSSL-PATH)
+LD_LIBRARY_PATH := $(COMMON)/lib
+else ifeq ($(findstring $(COMMON)/lib,$(LD_LIBRARY_PATH)),)
+LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(COMMON)/lib
 endif
 export LD_LIBRARY_PATH
 
@@ -342,9 +342,9 @@ $P/EXP-TREE-dist := $($P/EXP-LIBS)
 else
 ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),shared)
 # SHARED definitions
-$P/EXP-LIBS := libopenssl$(EXT_SO) libssl$(EXT_SO) libcrypto$(EXT_SO)
+$P/EXP-LIBS := libopenssl$(EXT_SO) libssl$(EXT_SO) libcrypto$(EXT_SO) libssl$(EXT_SO).102.0.0 libcrypto$(EXT_SO).102.0.0
 $P/EXP-TREES := dist
-$P/EXP-TREE-dist := $(patsubst %$(EXT_SO),%$(EXT_SO).102.0.0,$(filter-out libopenssl%,$($P/EXP-LIBS)))
+$P/EXP-TREE-dist := $($P/EXP-LIBS)
 $(call declare-so-deps, ssl, crypto)
 $(call declare-so-deps, crypto, dl)
 $(call declare-so-deps, crypto, pthread)
