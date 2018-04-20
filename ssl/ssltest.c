@@ -1102,6 +1102,13 @@ static void print_details(SSL *c_ssl, const char *prefix)
     BIO_printf(bio_stdout, "\n");
 }
 
+#ifndef OPENSSL_NO_AKAMAI
+# ifdef OPENSSL_FIPS
+#  undef CRYPTO_NUM_LOCKS
+#  define CRYPTO_NUM_LOCKS 42
+# endif
+#endif
+
 static void lock_dbg_cb(int mode, int type, const char *file, int line)
 {
     static int modes[CRYPTO_NUM_LOCKS]; /* = {0, 0, ... } */

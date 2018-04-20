@@ -163,6 +163,10 @@ BIO *bio_err = NULL;
 # endif
 static char OPENSSL_PERFORCE_ID_SSL[] USED = "$Id: $";
 static char OPENSSL_VERSION_ID_SSL[] USED = "$" "Id: Akamai-" OPENSSL_VERSION_TEXT " $";
+# ifdef OPENSSL_FIPS
+#  undef CRYPTO_NUM_LOCKS
+#  define CRYPTO_NUM_LOCKS 42
+# endif
 #endif
 
 static void lock_dbg_cb(int mode, int type, const char *file, int line)

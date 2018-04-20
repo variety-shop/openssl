@@ -123,6 +123,13 @@ static double SSLeay_MSVC5_hack = 0.0; /* and for VC1.5 */
 
 DECLARE_STACK_OF(CRYPTO_dynlock)
 
+#ifndef OPENSSL_NO_AKAMAI
+# ifdef OPENSSL_FIPS
+#  undef CRYPTO_NUM_LOCKS
+#  define CRYPTO_NUM_LOCKS 42
+# endif
+#endif
+
 /* real #defines in crypto.h, keep these upto date */
 static const char *const lock_names[CRYPTO_NUM_LOCKS] = {
     "<<ERROR>>",
