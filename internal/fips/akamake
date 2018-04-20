@@ -1,0 +1,37 @@
+#! /bin/sh
+# -*- Makefile -*-
+magic_startup_code=a; cd `echo "$0" | sed 's@^[^/]*$@.@; s@/[^/]*$@@;'` && exec make -f `basename $0` ${1+"$@"}
+
+C := openssl/internal/fips
+
+all: build
+BASE_PATH := $(firstword $(BASE_PATH) $(subst /$C-xx,,$(CURDIR)-xx))
+REF_PATH := $(firstword $(REF_PATH) NoValidPath)
+AKAMAKE := $(firstword $(wildcard $(BASE_PATH)/Akamake) $(REF_PATH)/Akamake)
+P := $(BASE_PATH)/$C
+$P/O := $(BASE_PATH)/openssl
+
+$P/MODULES := NO-OP
+
+M := NO-OP
+
+$P/$M-DEP-COMP := openssl-fips
+
+$(call assert_min_version,openssl-fips,2.0.16)
+
+$P/$M-3RD-PARTY := $P/no-op
+
+$P/no-op:
+
+$P/BUILDENV.linux.CC-supported := ALL
+$P/BUILDENV.linux.FILE_OFFSET_BITS-supported := ALL
+$P/BUILDENV.windows.CC-supported := ALL
+$P/BUILDENV.windows.FILE_OFFSET_BITS-supported := ALL
+
+# The interface to FIPS is through the $(COMMON)/fips directory
+$($P/O)/configure.ts : $($P/O)/SHAREDFEATURES := $($($P/O)/SHAREDFEATURES) shared fips --with-fipsdir=$(COMMON)/fips
+$($P/O)/configure.ts: $(COMMON)/fips/openssl-fips.ts
+
+$($P/O)/build.ts: $(COMMON)/fips/check-fips.ts
+
+include $(AKAMAKE)/akamake.m.master
