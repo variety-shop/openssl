@@ -60,8 +60,6 @@
 # include <openssl/symhacks.h>
 # include <openssl/ct.h>
 
-# include <openssl/akabssl.h>
-
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -2566,4 +2564,7 @@ int ERR_load_SSL_strings(void);
 # ifdef  __cplusplus
 }
 # endif
+
+# include <openssl/akabssl.h>
+
 #endif

@@ -10,6 +10,9 @@
 #if defined(__cplusplus)
 
 extern "C++" {
+
+#include <memory>
+
 namespace bssl {
 
 namespace internal {
