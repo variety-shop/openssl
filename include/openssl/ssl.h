@@ -60,6 +60,8 @@
 # include <openssl/symhacks.h>
 # include <openssl/ct.h>
 
+# include <openssl/akabssl.h>
+
 #ifdef  __cplusplus
 extern "C" {
 #endif
