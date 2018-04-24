@@ -37,6 +37,31 @@ struct Deleter {
   }
 };
 
+template <typename T, typename CleanupRet, void (*init)(T *),
+          CleanupRet (*cleanup)(T *)>
+class StackAllocated {
+ public:
+  StackAllocated() { init(&ctx_); }
+  ~StackAllocated() { cleanup(&ctx_); }
+
+  StackAllocated(const StackAllocated<T, CleanupRet, init, cleanup> &) = delete;
+  T& operator=(const StackAllocated<T, CleanupRet, init, cleanup> &) = delete;
+
+  T *get() { return &ctx_; }
+  const T *get() const { return &ctx_; }
+
+  T *operator->() { return &ctx_; }
+  const T *operator->() const { return &ctx_; }
+
+  void Reset() {
+    cleanup(&ctx_);
+    init(&ctx_);
+  }
+
+ private:
+  T ctx_;
+};
+
 }  // namespace internal
 
 #define BORINGSSL_MAKE_DELETER(type, deleter)     \
@@ -62,6 +87,34 @@ BORINGSSL_MAKE_DELETER(BIO, BIO_free)
 } // namespace bssl
 } // extern C++
 
+extern "C" {
+
+// ssl_select_cert_result_t enumerates the possible results from selecting a
+// certificate with |select_certificate_cb|.
+enum ssl_select_cert_result_t {
+  // ssl_select_cert_success indicates that the certificate selection was
+  // successful.
+  ssl_select_cert_success = 1,
+  // ssl_select_cert_retry indicates that the operation could not be
+  // immediately completed and must be reattempted at a later point.
+  ssl_select_cert_retry = 0,
+  // ssl_select_cert_error indicates that a fatal error occured and the
+  // handshake should be terminated.
+  ssl_select_cert_error = -1,
+};
+
+
+static inline int SSL_CTX_set_strict_cipher_list(SSL_CTX *ctx, const char *str)
+{
+    return SSL_CTX_set_cipher_list(ctx, str);
+}
+
+static inline int SSL_set_strict_cipher_list(SSL *ssl, const char *str)
+{
+    return SSL_set_cipher_list(ssl, str);
+}
+
+} // extern C
 #endif
 
 #endif
