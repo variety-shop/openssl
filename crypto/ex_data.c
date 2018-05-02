@@ -434,6 +434,10 @@ static int int_new_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
     void *ptr;
     CRYPTO_EX_DATA_FUNCS **storage = NULL;
     EX_CLASS_ITEM *item = def_get_class(class_index);
+#ifndef OPENSSL_NO_AKAMAI
+    int toret = 0;
+#endif
+
     if (!item)
         /* error is already set */
         return 0;
@@ -453,6 +457,7 @@ static int int_new_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
         CRYPTOerr(CRYPTO_F_INT_NEW_EX_DATA, ERR_R_MALLOC_FAILURE);
         return 0;
     }
+#ifdef OPENSSL_NO_AKAMAI
     for (i = 0; i < mx; i++) {
         if (storage[i] && storage[i]->new_func) {
             ptr = CRYPTO_get_ex_data(ad, i);
@@ -463,6 +468,21 @@ static int int_new_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
     if (storage)
         OPENSSL_free(storage);
     return 1;
+#else
+    for (i = 0; i < mx; i++) {
+        if (storage[i] && storage[i]->new_func) {
+            ptr = CRYPTO_get_ex_data(ad, i);
+            if (!storage[i]->new_func(obj, ptr, ad, i,
+                                      storage[i]->argl, storage[i]->argp))
+                goto err;
+        }
+    }
+    toret = 1;
+ err:
+    if (storage)
+        OPENSSL_free(storage);
+    return toret;
+#endif
 }
 
 /* Same thread-safety notes as for "int_new_ex_data" */
@@ -473,6 +493,10 @@ static int int_dup_ex_data(int class_index, CRYPTO_EX_DATA *to,
     void *ptr;
     CRYPTO_EX_DATA_FUNCS **storage = NULL;
     EX_CLASS_ITEM *item;
+#ifndef OPENSSL_NO_AKAMAI
+    int toret = 0;
+#endif
+
     if (!from->sk)
         /* 'to' should be "blank" which *is* just like 'from' */
         return 1;
@@ -505,6 +529,7 @@ static int int_dup_ex_data(int class_index, CRYPTO_EX_DATA *to,
         CRYPTOerr(CRYPTO_F_INT_DUP_EX_DATA, ERR_R_MALLOC_FAILURE);
         return 0;
     }
+#ifdef OPENSSL_NO_AKAMAI
     for (i = 0; i < mx; i++) {
         ptr = CRYPTO_get_ex_data(from, i);
         if (storage[i] && storage[i]->dup_func)
@@ -515,6 +540,21 @@ static int int_dup_ex_data(int class_index, CRYPTO_EX_DATA *to,
     if (storage)
         OPENSSL_free(storage);
     return 1;
+#else
+    for (i = 0; i < mx; i++) {
+        ptr = CRYPTO_get_ex_data(from, i);
+        if (storage[i] && storage[i]->dup_func)
+            if (!storage[i]->dup_func(to, from, &ptr, i,
+                                      storage[i]->argl, storage[i]->argp))
+                goto err;
+        CRYPTO_set_ex_data(to, i, ptr);
+    }
+    toret = 1;
+ err:
+    if (storage)
+        OPENSSL_free(storage);
+    return toret;
+#endif
 }
 
 /* Same thread-safety notes as for "int_new_ex_data" */
