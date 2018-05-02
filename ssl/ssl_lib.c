@@ -432,11 +432,14 @@ SSL *SSL_new(SSL_CTX *ctx)
 #ifdef OPENSSL_NO_AKAMAI
     CRYPTO_new_ex_data(CRYPTO_EX_INDEX_SSL, s, &s->ex_data);
 #else
-    if (!CRYPTO_new_ex_data(CRYPTO_EX_INDEX_SSL, s, &s->ex_data))
+    if (!CRYPTO_new_ex_data(CRYPTO_EX_INDEX_SSL, s, &s->ex_data)) {
         goto err;
-    else {
+    } else {
         SSL_EX_DATA_AKAMAI *ex_data = SSL_get_ex_data_akamai(s);
         SSL_CTX_EX_DATA_AKAMAI *ctx_data = SSL_CTX_get_ex_data_akamai(ctx);
+
+        if (ex_data == NULL)
+            goto err;
         ex_data->options = ctx_data->options;
         ex_data->app_verify_callback = ctx->app_verify_callback;
         ex_data->app_verify_arg = ctx->app_verify_arg;
@@ -1927,9 +1930,6 @@ static IMPLEMENT_LHASH_COMP_FN(ssl_session, SSL_SESSION)
 
 SSL_CTX *SSL_CTX_new(const SSL_METHOD *meth)
 {
-#if !defined(OPENSSL_NO_AKAMAI) && !defined(OPENSSL_NO_SECURE_HEAP)
-    SSL_CTX_EX_DATA_AKAMAI *akamai;
-#endif
     SSL_CTX *ret = NULL;
 
     if (meth == NULL) {
@@ -2053,13 +2053,18 @@ SSL_CTX *SSL_CTX_new(const SSL_METHOD *meth)
 #ifdef OPENSSL_NO_AKAMAI
     CRYPTO_new_ex_data(CRYPTO_EX_INDEX_SSL_CTX, ret, &ret->ex_data);
 #else
-    if (!CRYPTO_new_ex_data(CRYPTO_EX_INDEX_SSL_CTX, ret, &ret->ex_data))
+    if (!CRYPTO_new_ex_data(CRYPTO_EX_INDEX_SSL_CTX, ret, &ret->ex_data)) {
         goto err;
+    } else {
+        SSL_CTX_EX_DATA_AKAMAI *ex_data = SSL_CTX_get_ex_data_akamai(ret);
+
+        if (ex_data == NULL)
+            goto err;
 # if !defined(OPENSSL_NO_SECURE_HEAP)
-    akamai = SSL_CTX_get_ex_data_akamai(ret);;
-    if (RAND_bytes(akamai->tlsext_tick_hmac_key, 32) <= 0)
-        ret->options |= SSL_OP_NO_TICKET;
+        if (RAND_bytes(ex_data->tlsext_tick_hmac_key, 32) <= 0)
+            ret->options |= SSL_OP_NO_TICKET;
 # endif
+    }
 #endif
 
     ret->extra_certs = NULL;

@@ -89,15 +89,15 @@ static int ssl_ctx_ex_data_akamai_dup(CRYPTO_EX_DATA* to,
     SSL_CTX_EX_DATA_AKAMAI** orig = from_d;
     SSL_CTX_EX_DATA_AKAMAI* new = CRYPTO_get_ex_data(to, idx);
     SSL_CTX_SESSION_LIST *session_list;
-    int ok = 1;
-    if (orig == NULL)
-        return 0;
-    if (*orig == NULL) {
-        *orig = new;
-        return (new != NULL);
-    }
-    if (new == NULL)
-        return 0;
+    int ok = 0;
+
+    /*
+     * ssl_ctx_ex_data_akamai_new always sets our ex_data, or else fails
+     * the parent object construction, so we can consider it an error if
+     * either has not yet been set.
+     */
+    if (*orig == NULL || new == NULL)
+        goto err;
 
     /* free any items in the new one - they will be overwritten */
 #ifndef OPENSSL_NO_SECURE_HEAP
@@ -120,15 +120,17 @@ static int ssl_ctx_ex_data_akamai_dup(CRYPTO_EX_DATA* to,
 #ifndef OPENSSL_NO_SECURE_HEAP
     if (new->tlsext_tick_hmac_key != NULL) {
         new->tlsext_tick_hmac_key = OPENSSL_secure_malloc(32);
-        if (new->tlsext_tick_hmac_key == NULL)
-            ok = 0;
-        else {
+        if (new->tlsext_tick_hmac_key == NULL) {
+            goto err;
+        } else {
             new->tlsext_tick_aes_key = new->tlsext_tick_hmac_key + 16;
             memcpy(new->tlsext_tick_hmac_key, (*orig)->tlsext_tick_hmac_key, 32);
         }
     }
 #endif
-
+    ok = 1;
+ err:
+    /* ALWAYS assign the original pointer */
     *orig = new;
     return ok;
 }
@@ -192,15 +194,15 @@ static int ssl_ex_data_akamai_dup(CRYPTO_EX_DATA* to,
      **/
     SSL_EX_DATA_AKAMAI** orig = from_d;
     SSL_EX_DATA_AKAMAI* new = CRYPTO_get_ex_data(to, idx);
-    int ok = 1;
-    if (orig == NULL)
-        return 0;
-    if (*orig == NULL) {
-        *orig = new;
-        return (new != NULL);
-    }
-    if (new == NULL)
-        return 0;
+    int ok = 0;
+
+    /*
+     * ssl_ex_data_akamai_new always sets our ex_data, or else fails the
+     * parent object construction, so we can consider it an error if
+     * either has not yet been set.
+     */
+    if (*orig == NULL || new == NULL)
+        goto err;
 
     /* free any items in the new one - they will be overwritten */
 
@@ -214,6 +216,9 @@ static int ssl_ex_data_akamai_dup(CRYPTO_EX_DATA* to,
     /* reset stats */
     new->bytes_written = new->bytes_read = 0;
 
+    ok = 1;
+ err:
+    /* ALWAYS assign the original pointer */
     *orig = new;
     return ok;
 }
@@ -1283,7 +1288,7 @@ int SSL_akamai_update_client_verify_sig(SSL *s, unsigned char* buffer, unsigned 
         n += 2;
     }
 
-    /* 
+    /*
      * Copy in length and signature (2 bytes).  s2n() adds 2 to p, so
      * we don't need to add anything else to it before writing the
      * contents of "buffer" to the handshake data.
