@@ -542,7 +542,7 @@ my $no_sse2=0;
 
 &usage if ($#ARGV < 0);
 
-my $user_cflags="-include crypto/include/internal/bypass_to_sgxssl.h";
+my $user_cflags=" -include $config{sourcedir}/crypto/include/internal/bypass_to_sgxssl.h";
 my @user_defines=("GETPID_IS_MEANINGLESS");
 $config{openssl_api_defines}=[];
 $config{openssl_algorithm_defines}=[];
