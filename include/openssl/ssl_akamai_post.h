@@ -217,11 +217,13 @@ void AKAMAI_openssl_get_memory_stats(void (*cb)(const AKAMAI_EX_DATA_STATS*, voi
 __owur int SSL_akamai_ticket_expected(const SSL *s);
 
 /* Certificate query information used in the functions below */
-/* Bitmap of cert types - based on SSL_PKEY_XXX constants */
-#define SSL_AKAMAI_CERT_RSA         (1 << 0)
-#define SSL_AKAMAI_CERT_DSA_SIGN    (1 << 1)
-#define SSL_AKAMAI_CERT_ECC         (1 << 2)
-#define SSL_AKAMAI_CERT_ED25519     (1 << 3)
+/* Bitmap of cert types */
+#define SSL_AKAMAI_CERT_RSA           (1 << 0)
+#define SSL_AKAMAI_CERT_DSA_SIGN      (1 << 1)
+#define SSL_AKAMAI_CERT_ECC           (1 << 2)
+#define SSL_AKAMAI_CERT_ED25519       (1 << 3)
+#define SSL_AKAMAI_CERT_ED448         (1 << 4)
+#define SSL_AKAMAI_CERT_RSA_PSS_SIGN  (1 << 5)
 /* no GOST support */
 
 /* returns an SSL_AKAMAI_CERT-type value, 0 on error */
