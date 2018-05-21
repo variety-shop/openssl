@@ -401,6 +401,11 @@ $(COMMON)/lib/libssl$(EXT_SO).102.0.0: $(COMMON)/lib/libssl$(EXT_SO)
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
 
+# Ensure that once a library is linked, its runtime version is also available
+# in common/lib, for anything that needs to run during the build
+$(COMMON)/lib/libcrypto$(EXT_A).dep: $(COMMON)/lib/libcrypto$(EXT_SO).102.0.0
+$(COMMON)/lib/libssl$(EXT_A).dep: $(COMMON)/lib/libssl$(EXT_SO).102.0.0
+
 else
 $(error BUILDENV.OPENSSL_LINKAGE-master is $(BUILDENV.OPENSSL_LINKAGE-master), neither static nor shared for !windows)
 endif
