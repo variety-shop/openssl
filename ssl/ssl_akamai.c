@@ -854,32 +854,16 @@ size_t SSL_rsalg_get_server_random(SSL* s, unsigned char *out, size_t outlen)
 
 int SSL_get_X509_pubkey_digest(SSL* s, unsigned char* hash)
 {
-    unsigned long alg_a = 0;
-    int algorithm_auth_index = -1;
+    X509 *x509;
 
-    /*
-     * Note that this logic is similar to ssl_lib.c:ssl_get_sign_pkey
-     * (in how it looks up our signing cert).
-     * Also note we are not supporting DSA here.
-     */
-    if (s->s3  == NULL || s->s3->tmp.new_cipher == NULL ||
-        s->cert == NULL)
+    if (s->s3->tmp.cert != NULL && s->s3->tmp.cert->x509 != NULL)
+        x509 = s->s3->tmp.cert->x509;
+    else if (s->cert->key != NULL && s->cert->key->x509 != NULL)
+        x509 = s->cert->key->x509;
+    else
         return 0;
 
-    alg_a = s->s3->tmp.new_cipher->algorithm_auth;
-
-    if ((alg_a & SSL_aRSA))
-        algorithm_auth_index = SSL_PKEY_RSA;
-    else if ((alg_a & SSL_aECDSA))
-        algorithm_auth_index = SSL_PKEY_ECC;
-
-    /* once we know which index we need to use, we can compute the SHA-256 hash */
-    if (algorithm_auth_index == -1 || s->cert->pkeys[algorithm_auth_index].x509 == NULL)
-        return 0;
-
-    /* we should still have a valid public key, even if our private key is not here */
-    return X509_pubkey_digest(s->cert->pkeys[algorithm_auth_index].x509,
-                              EVP_sha256(), hash, NULL);
+    return X509_pubkey_digest(x509, EVP_sha256(), hash, NULL);
 }
 
 int SSL_akamai_get_prf(SSL *s)
@@ -1066,6 +1050,7 @@ int SSL_akamai_ticket_expected(const SSL *s)
 int SSL_akamai_get_cert_type(const X509 *x, const EVP_PKEY *pkey)
 {
     size_t i;
+
     if (pkey == NULL)
         pkey = X509_get0_pubkey(x);
 
@@ -1080,6 +1065,10 @@ int SSL_akamai_get_cert_type(const X509 *x, const EVP_PKEY *pkey)
             return SSL_AKAMAI_CERT_ECC;
         case SSL_PKEY_ED25519:
             return SSL_AKAMAI_CERT_ED25519;
+        case SSL_PKEY_ED448:
+            return SSL_AKAMAI_CERT_ED448;
+        case SSL_PKEY_RSA_PSS_SIGN:
+            return SSL_AKAMAI_CERT_RSA_PSS_SIGN;
         default:
             break;
     }
