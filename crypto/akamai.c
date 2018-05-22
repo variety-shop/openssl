@@ -117,6 +117,70 @@ int AKAMAI_prf(int alg_nid,
     return ret;
 }
 
+/* Use with CRYPTO_set_mem_functions() */
+
+void *OPENSSL_akamai_malloc(size_t num, const char *file, int line)
+{
+    void **ret = NULL;
+
+    (void)file; (void)line;
+
+    if (num == 0)
+        return NULL;
+
+    ret = malloc(num + sizeof(void*));
+    if (ret != NULL) {
+        *ret = ret;
+        return ret + 1;
+    }
+    return NULL;
+}
+
+void OPENSSL_akamai_free(void *str, const char *file, int line)
+{
+    void **tmp;
+    (void)file; (void)line;
+
+    if (str == NULL)
+        return;
+
+    tmp = str;
+    tmp--;
+    if (*tmp != tmp)
+        OPENSSL_die("OPENSSL_akamai_free: bad pointer", file, line);
+
+    *tmp = NULL; /* checks for double free */
+    free(tmp);
+}
+
+void *OPENSSL_akamai_realloc(void *str, size_t num, const char *file, int line)
+{
+    void **ret;
+    void **tmp;
+
+    if (str == NULL)
+        return OPENSSL_akamai_malloc(num, file, line);
+
+    if (num == 0) {
+        OPENSSL_akamai_free(str, file, line);
+        return NULL;
+    }
+
+    tmp = str;
+    tmp--;
+    if (*tmp != tmp)
+        OPENSSL_die("OPENSSL_akamai_realloc: bad pointer", file, line);
+
+    *tmp = NULL; /* checks for double free */
+
+    ret = realloc(tmp, num + sizeof(void*));
+    if (ret != NULL) {
+        *ret = ret;
+        return ret + 1;
+    }
+    return NULL;
+}
+
 /* 1.1.0 -> 1.1.1 ABI compatibility; TODO: remove in 1.2 */
 
 int ASN1_TIME_akamai_cmp_time_t(const ASN1_TIME *s, time_t t)

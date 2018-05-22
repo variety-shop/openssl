@@ -4512,3 +4512,6 @@ X509_STORE_CTX_akamai_set0_store        10010	1_1_0c	EXIST::FUNCTION:
 ASN1_TIME_akamai_cmp_time_t             10011	1_1_0e	EXIST::FUNCTION:AKAMAI,DEPRECATEDIN_1_2_0
 ASN1_TIME_akamai_get                    10012	1_1_0e	EXIST::FUNCTION:AKAMAI
 OPENSSL_akamai_timegm                   10013	1_1_0e	EXIST::FUNCTION:AKAMAI
+OPENSSL_akamai_malloc                   10014	1_1_1	EXIST::FUNCTION:AKAMAI
+OPENSSL_akamai_free                     10015	1_1_1	EXIST::FUNCTION:AKAMAI
+OPENSSL_akamai_realloc                  10016	1_1_1	EXIST::FUNCTION:AKAMAI

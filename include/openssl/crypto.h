@@ -461,6 +461,10 @@ int ASN1_TIME_akamai_get(const ASN1_TIME *s, time_t *t, struct tm *tm);
 /* returns 0 on error, 1 on success */
 int OPENSSL_akamai_timegm(struct tm *tm, time_t *t);
 
+void *OPENSSL_akamai_realloc(void *str, size_t num, const char *file, int line);
+void OPENSSL_akamai_free(void* str, const char *file, int line);
+void *OPENSSL_akamai_malloc(size_t num, const char *file, int line);
+
 /* 1.1.0 -> 1.1.1 ABI compatibility; TODO: remove in 1.2 */
 DEPRECATEDIN_1_2_0(int ASN1_TIME_akamai_cmp_time_t(const ASN1_TIME *s, time_t t))
 
