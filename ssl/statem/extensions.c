@@ -923,7 +923,10 @@ static int final_server_name(SSL *s, unsigned int context, int sent)
         ret = s->session_ctx->ext.servername_cb(s, &altmp,
                                        s->session_ctx->ext.servername_arg);
 
-    if (!sent) {
+    /* Only TLS 1.3 has per-connection SSL_SESSIONs.  Elsewhere we
+     * would break the thread-safety model by touching it, if this
+     * is not a new session. */
+    if ((SSL_IS_TLS13(s) || !s->hit) && !sent) {
         OPENSSL_free(s->session->ext.hostname);
         s->session->ext.hostname = NULL;
     }
