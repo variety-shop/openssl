@@ -427,12 +427,7 @@ $P/TARGETS :=
 $P/MODULES :=
 $P/SRC :=
 
-ifdef FIPSBUILD
-# Include fipscanister build variables.
-$(call always-include-if-exist,$(call get-component-path,fipscanister)/enable_fips_with_akamai_openssl.mk)
-$P/DEP-COMPS := $($P/DEP-COMPS) fipscanister
-$P/NOSHARED := $($P/NOSHARED) fips
-endif # ifdef FIPSBUILD
+$(call always-include,$P/akamake.fipscanister.mak)
 
 ifdef MAKE_SERIAL
 $P/SYSTEM_MAKE = $(MAKE_SERIAL)
@@ -481,33 +476,6 @@ ifndef AKAMAKE-WIN-BUILD
 
 #### LINUX and UNIX ####
 
-ifdef FIPSBUILD
-#### fipscanister has all the modules precompiled due to compliance reasons, so we'll have to specify which one ####
-#### we'll want to use here, this is the same environment detection used in the fipscanister akamake ####
-
-# [jhorsfal 03/09/2017] Updates for GCDS, Removed OS selection code, this should all come from fipscanister variables.
-
-# OS Specific FIPS lib directory
-$P/FIPS_LIBDIR = $($(call get-component-path,fipscanister)/FIPS_LIBDIR)
-# OS Specific FIPS root
-$P/CURRENT_OS_FIPS_DIR = $($(call get-component-path,fipscanister)/FIPSDIR)
-# FIPS Linker
-$P/FIPSLD = $($(call get-component-path,fipscanister)/FIPSLD)
-# FIPS build target
-$P/FIPS_BUILD_TARGET = $(call get-component-path,fipscanister)/akamake.auto_os.ts
-# Assert minnimum fips version
-$(call assert_min_version,fipscanister,2.0.13)
-
-$P/% : FIPSFLAGS = fips --with-fipsdir=$($P/CURRENT_OS_FIPS_DIR) --with-fipslibdir=$($P/FIPS_LIBDIR)
-
-$P/buildenv.FIPS: $($P/FIPS_BUILD_TARGET)
-	echo "FIPS build enabled" > $P/buildenv.FIPS
-else # ifdef FIPSBUILD
-$P/% : FIPSFLAGS =
-$P/buildenv.FIPS:
-	echo "FIPS build disabled" > $P/buildenv.FIPS
-endif # ifdef FIPSBUILD
-
 # SPOILER ALERT!  Do not read this if you want to spend a long time
 # figuring out how config picks a platform!
 # akamake-env.mak includes checks for each platform, and assigns the
@@ -515,14 +483,6 @@ endif # ifdef FIPSBUILD
 # script. ./config is not used
 
 $P/CONFIGURE_PREREQUISITES := $P/Configure $P/Makefile.org $P/akamake $P/buildenv.FIPS
-
-# Define the $P/OPENSSL-CC as the compiler to use
-# Use '=' for assignements here
-ifdef FIPSBUILD
-# for fipscanister
-# FIPS requires their own linker to build correctly so we're doing that here - sverasch 7/24/14
-$P/OPENSSL-CC = CC="$($P/FIPSLD)" FIPSLD_CC="$(CC)"
-endif # ifdef FIPSBUILD
 
 # Next line intentional "=" - krose, 12/10/2001
 $P/% : MAKE_STEP = $($P/SYSTEM_MAKE) -C $P $($P/OPENSSL-CC) $($P/OPENSSL-TARGET)
