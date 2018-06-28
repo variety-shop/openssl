@@ -1,62 +1,42 @@
-#! /bin/sh
+#!/usr/bin/make -f
 # -*- Makefile -*-
-magic_startup_code=a; cd `echo "$0" | sed 's@^[^/]*$@.@; s@/[^/]*$@@;'` && exec make -f `basename $0` ${1+"$@"}
-#
-# This file contains component specific dependency rules.
+magic_startup_code=a; ORIG_CWD=$(pwd); cd $(dirname "$0") && exec make ORIG_CWD=${ORIG_CWD} ORIG_AKM_DIRNAME=$(dirname "$0") -f "$(basename $0)" "$@"
+### DO NOT EDIT ABOVE ################################################
 
-#
-# No operating system (environment) rules are contained here directly.
-# They are include from Akamake-env file.  Autoconf stuff takes
-# place in the akamake-env file.
-#
-# Detail discussion: quality.akamai.com/Release/CommonMake.html
-#
-
-all: build  # build is defined in Akamake/akamaster.mak
-
-
-#********************************************************************
-#**** Section 1:  establish essential paths and component title ****
-#****      TODO:  fill in component directory information
-#********************************************************************
-
-# C: name of this component's directory
 C := openssl
 
+### DO NOT EDIT BELOW ################################################
+all: build
 
-#********************************************************************
-#**** Section 2:  directory construction, load of environment file
-#********************************************************************
+P := $(if $P,$P,$(patsubst %/,%,$(dir $(if $(filter /%,$(firstword $(MAKEFILE_LIST))),$(firstword $(MAKEFILE_LIST)),$(abspath $(firstword $(shell bash -c pwd) $(CURDIR))/$(firstword $(MAKEFILE_LIST)))))))
+PROG := $C
 
-# akamake definitions, do NOT edit
-BASE_PATH := $(firstword $(BASE_PATH) $(subst /$C-xx,,$(CURDIR)-xx))
-P := $(BASE_PATH)/$C
+BASE_PATH := $(firstword $(BASE_PATH) $(patsubst %/$C,%,$P))
 REF_PATH := $(firstword $(REF_PATH) NoValidPath)
-AKAMAKE := $(firstword $(wildcard $(BASE_PATH)/Akamake) $(REF_PATH)/Akamake)
+$P/PROG := $P/$(PROG)
+AKAMAKE := $(firstword $(AKAMAKE) $(wildcard $(BASE_PATH)/Akamake $(REF_PATH)/Akamake))
 
-# This include can come from the standard environment file in
-# $(AKAMAKE) directory.  It will automatically load a local
-# akamake-env.mak, if it exists.
+ifeq ($(AKAMAKE),)
+$(error Cannot find Akamake path; check definitions or checkout of Akamake)
+endif
+
 ifndef ATTR_ONLY
 -include $(AKAMAKE)/akamake-env.mak
 endif
+### DO NOT EDIT ABOVE ################################################
 
 # We need this earlier than most akamake files
 $P/%: P := $P
 
+# This wraps most of this Akamake file
 ifndef ATTR_ONLY
-OPENSSL-PATH := $(call get-component-path,openssl)
+
 ifeq ($(LD_LIBRARY_PATH),)
 LD_LIBRARY_PATH := $(COMMON)/lib
 else ifeq ($(findstring $(COMMON)/lib,$(LD_LIBRARY_PATH)),)
 LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(COMMON)/lib
-endif
+endif # ifeq ($(LD_LIBRARY_PATH),)
 export LD_LIBRARY_PATH
-
-# If akamai_lib is here, make sure it's at least 6.5
-ifneq ($(wildcard $(BASE_PATH)/akamai_lib/componentinfo.xml),)
-$(call assert_min_version,akamai_lib,6.5)
-endif
 
 # Disable OpenSSL ciphers/prototools
 # See Configure script to see automatically disabled/enabled features
@@ -65,10 +45,11 @@ endif
 # Note: no-cast no-ripemd breaks keyagent
 
 ifndef MASTER
-# Compiling OpenSSL as the master
+# Compiling OpenSSL as the master/standalone mode
 
-# Compiling OpenSSL in standalone mode
-# only enable TLSv1, keep DTLSv1/SSLv3/v2 disabled
+$(call assert_min_version,Akamake,5.0.6)
+
+# We are setting the default here, so put the literal first
 $P/OPENSSL-TARGET := all $($P/OPENSSL-TARGET)
 $P/BUILDENV.linux.OPENSSL_LINKAGE-master := shared
 ifeq ($(BUILDENV.BASEOS),linux)
@@ -96,6 +77,18 @@ $P/CONFIGFEATURES := $($P/CONFIGFEATURES) \
 
 else # ifndef MASTER
 # Compiling OpenSSL as a component
+
+# In case we're being compiled with Akamake 4
+ifndef include-if-exist
+include $P/akamake-4-to-5.mak
+endif # ifndef include-if-exist
+
+$(call assert_min_version,Akamake,4.4.2)
+
+# If akamai_lib is here, make sure it's at least 6.5
+ifneq ($(call have-C,akamai_lib),)
+$(call assert_min_version,akamai_lib,6.5)
+endif # ifneq ($(call have-C,akamai_lib),)
 
 # We need to determine whether we're building static libraries or shared libraries.
 #
@@ -128,17 +121,17 @@ else # ifndef MASTER
 
 ifdef BUILDENV.OPENSSL_LINKAGE-master
 
-# This case is where Akamake has done the work for us
+# This case is where Akamake has done the work for us (still not in Akamake 5)
 ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),static)
 $P/NOSHARED := $($P/NOSHARED) BUILDENV.OPENSSL_LINKAGE-master
 # Enforce rule (1) -- if BUILDENV.OPENSSL_LINKAGE-master is set, $(MASTER) had better
 # be directly DEP-COMPing on openssl/enable/static; otherwise, it's an error.
-ifneq ($(strip $(filter openssl/enable/static $(MASTER)/DEP-COMPS)),openssl/enable/static)
+ifneq ($(strip $(filter openssl/enable/static,$($(MASTER)/DEP-COMPS))),openssl/enable/static)
 $P/ONLY-ONE-SET := $$P/BUILDENV.linux.OPENSSL_LINKAGE-master
 endif # openssl/enable/static in $(MASTER)/DEP-COMPS
 endif # ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),static)
 
-else # defined(BUILDENV.OPENSSL_LINKAGE-master)
+else # ifdef BUILDENV.OPENSSL_LINKAGE-master
 
 # This is where we implement compatibility logic because we can't depend on
 # a new-enough Akamake.  (In particular, a new-enough Akamake doesn't exist
@@ -165,7 +158,7 @@ ifneq ($(strip $($(MASTER)/BUILDENV.$(BUILDENV.BASEOS).OPENSSL_LINKAGE-master)),
 # set $P/BUILDENV.linux.OPENSSL_LINKAGE-master to static, which violates
 # condition (1), so we set $P/ONLY-ONE-SET and print a pretty error message later.
 $P/ONLY-ONE-SET := openssl/enable/static
-endif
+endif # ifneq ($(strip $($(MASTER)/BUILDENV.$(BUILDENV.BASEOS).OPENSSL_LINKAGE-master)),static)
 BUILDENV.OPENSSL_LINKAGE-master := static
 
 else # ifeq ($(filter openssl/enable/static,$($(MASTER)/DEP-COMPS)),openssl/enable/static)
@@ -178,10 +171,10 @@ endif # ifeq ($(filter openssl/enable/static,$($(MASTER)/DEP-COMPS)),openssl/ena
 ifeq ($(strip $($(MASTER)/BUILDENV.$(BUILDENV.BASEOS).OPENSSL_LINKAGE-master)),static)
 ifneq ($(filter openssl/enable/static,$($(MASTER)/DEP-COMPS)),openssl/enable/static)
 $P/ONLY-ONE-SET := $$P/BUILDENV.OPENSSL_LINKAGE-master
-endif
-endif
+endif # ifneq ($(filter openssl/enable/static,$($(MASTER)/DEP-COMPS)),openssl/enable/static)
+endif # ifeq ($(strip $($(MASTER)/BUILDENV.$(BUILDENV.BASEOS).OPENSSL_LINKAGE-master)),static)
 
-else # $(BUILDENV.BASEOS) == linux
+else # ifeq ($(BUILDENV.BASEOS),linux)
 
 # Shared library is only supported on linux
 
@@ -189,23 +182,29 @@ BUILDENV.OPENSSL_LINKAGE-master := static
 # $P/NOSHARED is not used for windows, but is used for macos
 $P/NOSHARED := $($P/NOSHARED) non-linux
 
-endif # $(BUILDENV.BASEOS) == linux
+endif # ifeq ($(BUILDENV.BASEOS),linux)
 
-endif # defined(BUILDENV.OPENSSL_LINKAGE-master)
+endif # ifdef BUILDENV.OPENSSL_LINKAGE-master
 
 ifdef $P/ONLY-ONE-SET
 # Report the error
-S:=***
-D:=$S OpenSSL $(call get_ci_version,$C) defaults to shared libraries by default
-E:=$S but the master component can opt to fail back to static linkage by doing both of
-F:=$S DEP-COMPing on openssl/enable/static and setting
-G:=$S $$P/BUILDENV.linux.OPENSSL_LINKAGE-master to static
-H:=$S ERROR: only $($P/ONLY-ONE-SET) was defined but not the other
-K:=$S Please refer to:
-L:=$S    https://gsd.akamai.com/wiki/display/OPENSSL/Shared+Library+Support
-M:=$S for additional support.
-$(foreach Z, S D E F G S H S K L M S,$(call echo-stderr,$($Z)))$(error $(ERROR))
-endif
+ERROR := Only $($P/ONLY-ONE-SET) was defined but not the other
+define MESSAGE
+*** OpenSSL $(call get_ci_version,$C) defaults to using shared libraries
+*** but the master component can opt to fail back to static linkage by doing both of
+*** DEP-COMPing on openssl/enable/static and setting:
+***
+*** $$P/BUILDENV.linux.OPENSSL_LINKAGE-master := static
+***
+*** Please refer to:
+***
+*** https://collaborate.akamai.com/confluence/display/OPENSSL/Shared+Library+Support
+***
+*** for additional support.
+endef
+$(call alog-multiline-info,ERROR,buildenv,$C,$(ERROR),$(MESSAGE))
+$(error $(ERROR))
+endif # ifdef $P/ONLY-ONE-SET
 
 # Check that the master component has opted in to shard or static; don't
 # let it sneak by on a "default shared" behavior.
@@ -214,33 +213,39 @@ endif
 ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 ifeq ($(BUILDENV.BASEOS),linux)
 ifndef $(MASTER)/BUILDENV.$(BUILDENV.BASEOS).OPENSSL_LINKAGE-master
-S:=***
-D:=$S The 7.x series of openssl components is designed to generate shared
-E:=$S libraries for libcrypto and libssl.  This has several advantages for
-F:=$S component owners, described at
-G:=$S https://gsd.akamai.com/wiki/display/OPENSSL/Shared+Library+Support .
-H:=$S However, components using shared libraries from openssl will roll at
-I:=$S runtime unless the corresponding openssl-suite is included in the
-J:=$S release being installed.  Please notify your release manager that you
-K:=$S are including openssl shared libraries and of the need to include
-L:=$S openssl-suite in the release, and set the
-M:=$S $$P/BUILDENV.linux.OPENSSL_LINKAGE-master
-N:=$S akamake variable to shared to disable this message.  Alternately, use
-O:=$S The instructions on the Confluence page to revert to static linkage.
-$(foreach Z, S D E F G H I J K L S M S N O S,$(call echo-stderr,$($Z)))
-$(error Must opt in/out of openssl shared linkage)
+ERROR := Must opt in/out of openssl shared linkage
+define MESSAGE
+*** The 7.x series of openssl components is designed to generate shared
+*** libraries for libcrypto and libssl.  This has several advantages for
+*** component owners, described at
+***
+*** https://collaborate.akamai.com/confluence/display/OPENSSL/Shared+Library+Support
+***
+*** However, components using shared libraries from openssl will roll at
+*** runtime unless the corresponding openssl-suite is included in the
+*** release being installed.  Please notify your release manager that you
+*** are including openssl shared libraries and of the need to include
+*** openssl-suite in the release, and set:
+***
+*** $$P/BUILDENV.linux.OPENSSL_LINKAGE-master := shared
+***
+*** to disable this message.  Alternately, use the instructions on the
+*** Confluence page to revert to static linkage.
+endef
+$(call alog-multiline-info,ERROR,buildenv,$C,$(ERROR),$(MESSAGE))
+$(error $(ERROR))
 endif # ifndef $(MASTER)/BUILDENV.$(BUILDENV.BASEOS).OPENSSL_LINKAGE-master
 endif # ifeq ($(BUILDENV.BASEOS),linux)
 endif # ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 
-#Set the make target for shared/static appropriately
+# Set the make target for shared/static appropriately
 ifeq ($(BUILDENV.OPENSSL_LINKAGE-master),shared)
 $P/OPENSSL-TARGET := all $($P/OPENSSL-TARGET)
-else
+else # ifeq ($(BUILDENV.OPENSSL_LINKAGE-master),shared)
 $P/OPENSSL-TARGET := build_crypto $($P/OPENSSL-TARGET)
-endif
+endif # ifeq ($(BUILDENV.OPENSSL_LINKAGE-master),shared)
 
-endif # defined(MASTER)
+endif # ifndef MASTER
 # master/component check done
 
 # BUILDENV.OPENSSL_LINKAGE-master will now always be set (ifndef ATTR_ONLY)
@@ -275,51 +280,26 @@ $P/SHAREDFEATURES := $($P/SHAREDFEATURES) \
 	enable-tls1
 
 ifeq ($(AKAMAKE-LINUX-BUILD-64),1)
-	$P/SHAREDFEATURES := $($P/SHAREDFEATURES) enable-ec_nistp_64_gcc_128
-endif
+$P/SHAREDFEATURES := $($P/SHAREDFEATURES) enable-ec_nistp_64_gcc_128
+AKAMAKE-OPENSSL-WITH-FPIC := 1
+endif # ifeq ($(AKAMAKE-LINUX-BUILD-64),1)
 
 ifeq ($(AKARELEASE_PLATFORM),btf-anaconda)
 AKAMAKE-OPENSSL-WITH-FPIC := 1
-endif
-
-ifdef AKAMAKE-LINUX-BUILD-64
-AKAMAKE-OPENSSL-WITH-FPIC := 1
-endif
+endif # ifeq ($(AKARELEASE_PLATFORM),btf-anaconda)
 
 ifdef AKAMAKE-OPENSSL-WITH-FPIC
 $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) -fPIC
-endif
+endif # ifdef AKAMAKE-OPENSSL-WITH-FPIC
 
 ifdef GCOV
 # enable coverage
 $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) -ftest-coverage -fprofile-arcs
+endif # ifdef GCOV
+
+ifdef ASAN_BUILD
+$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) -no-fomit-frame-pointer
 endif
-
-# NOTE: changes to compiler options (CFLAGS & CXXFLAGS) and
-#        addition of operating system specific libraries (LIBS)
-#        need to be isolated in a local akamake-env.mak file.
-#
-# Add search path += statements here for CPPFLAGS (-I options)
-#   and LIBS (-L options) IF AND ONLY IF the local akamake-env.mak
-#   file is not necessary.  The "$P/% : " prefix is essential.
-#
-# Also, $P/DEP-LIBS is automatically transformed and added to LIBS.
-
-# $P/% : CPPFLAGS +=
-# $P/% : DEFS +=
-
-ifeq ($(MAKECMDGOALS),debug)
-# $P/% : DEFS += -DDEBUG
-endif
-# $P/% : LIBS +=
-
-#********************************************************************
-#**** Section 3:  Exported Interface
-#****      TODO:  Fill in directory names and header/library files
-#********************************************************************
-
-# REMINDER:  All variables, target, and prerequisites need $P prefix
-#            Key variables are $P/HEADERS and $P/EXP-LIBS
 
 #  HEADERS-LOCAL-DIRECTORY: relative directory of exported interface headers
 # HEADERS-COMMON-DIRECTORY: destination directory in common/include for
@@ -327,109 +307,7 @@ endif
 $P/HEADERS-LOCAL-DIRECTORY := include/openssl
 $P/HEADERS-COMMON-DIRECTORY := openssl
 
-#     LIBS_LOCAL_DIRECTORY: relative directory of exported library files
-$P/LIBS-LOCAL-DIRECTORY :=
-
-# $P/EXP-LIBS: List of exported library files (relative to LIBS_LOCAL_DICTORY)
-
-ifndef AKAMAKE-WIN-BUILD
-
-ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),static)
-# STATIC definitiions
-$P/EXP-LIBS := libopenssl$(EXT_A) libcrypto$(EXT_A) libssl$(EXT_A)
-$P/EXP-TREES := dist
-$P/EXP-TREE-dist := $($P/EXP-LIBS)
-else
-ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),shared)
-# SHARED definitions
-$P/EXP-LIBS := libopenssl$(EXT_SO) libssl$(EXT_SO) libcrypto$(EXT_SO) libssl$(EXT_SO).102.0.0 libcrypto$(EXT_SO).102.0.0
-$P/EXP-TREES := dist
-$P/EXP-TREE-dist := $($P/EXP-LIBS)
-$(call declare-so-deps, ssl, crypto)
-$(call declare-so-deps, crypto, dl)
-$(call declare-so-deps, crypto, pthread)
-
-# EXPLICIT RULES for some files
-
-# This might just get copied - not a big deal
-$(COMMON)/lib/libopenssl$(EXT_SO): $(COMMON)/lib/libssl$(EXT_SO)
-	@$(MKDIR) $(@D)
-	@ln -sf $< $@
-
-$(COMMON)/lib/libopenssl$(EXT_SO).dep: $(COMMON)/lib/libssl$(EXT_SO).dep
-	@$(MKDIR) $(@D)
-	@ln -sf $< $@
-
-$(COMMON)/lib/libopenssl$(EXT_A): $(COMMON)/lib/libssl$(EXT_SO)
-	@$(MKDIR) $(@D)
-	@ln -sf $< $@
-
-# Have to annoyingly set these dependencies up to get them created
-$(COMMON)/lib/libopenssl$(EXT_A).dep: $(COMMON)/lib/libopenssl$(EXT_SO)
-$(COMMON)/lib/libopenssl$(EXT_A).dep: $(COMMON)/lib/libopenssl$(EXT_SO).dep
-$(COMMON)/lib/libopenssl$(EXT_A).dep: $(COMMON)/lib/libopenssl$(EXT_A)
-
-$(COMMON)/lib/libopenssl$(EXT_A).dep: $(COMMON)/lib/libssl$(EXT_SO).dep
-	@$(MKDIR) $(@D)
-	@ln -sf $< $@
-
-$(COMMON)/lib/libssl$(EXT_A): $(COMMON)/lib/libssl$(EXT_SO).102.0.0
-
-$(COMMON)/lib/libssl$(EXT_A): $(COMMON)/lib/libssl$(EXT_SO)
-	@$(MKDIR) $(@D)
-	@ln -sf $< $@
-
-$(COMMON)/lib/libssl$(EXT_A).dep: $(COMMON)/lib/libssl$(EXT_SO).dep
-	@$(MKDIR) $(@D)
-	@ln -sf $< $@
-
-$(COMMON)/lib/libcrypto$(EXT_A): $(COMMON)/lib/libcrypto$(EXT_SO).102.0.0
-
-$(COMMON)/lib/libcrypto$(EXT_A): $(COMMON)/lib/libcrypto$(EXT_SO)
-	@$(MKDIR) $(@D)
-	@ln -sf $< $@
-
-$(COMMON)/lib/libcrypto$(EXT_A).dep: $(COMMON)/lib/libcrypto$(EXT_SO).dep
-	@$(MKDIR) $(@D)
-	@ln -sf $< $@
-
-$(COMMON)/lib/libcrypto$(EXT_SO).102.0.0: $(COMMON)/lib/libcrypto$(EXT_SO)
-	@$(MKDIR) $(@D)
-	@ln -sf $< $@
-
-$(COMMON)/lib/libssl$(EXT_SO).102.0.0: $(COMMON)/lib/libssl$(EXT_SO)
-	@$(MKDIR) $(@D)
-	@ln -sf $< $@
-
-# Ensure that once a library is linked, its runtime version is also available
-# in common/lib, for anything that needs to run during the build
-$(COMMON)/lib/libcrypto$(EXT_A).dep: $(COMMON)/lib/libcrypto$(EXT_SO).102.0.0
-$(COMMON)/lib/libssl$(EXT_A).dep: $(COMMON)/lib/libssl$(EXT_SO).102.0.0
-
-else
-$(error BUILDENV.OPENSSL_LINKAGE-master is $(BUILDENV.OPENSSL_LINKAGE-master), neither static nor shared for !windows)
-endif
-endif
-
-# STATIC and SHARED definitions
-$(call declare-lib-deps, ssl, crypto)
-$(call declare-lib-deps, crypto, dl)
-$(call declare-lib-deps, crypto, pthread)
-
-else
-# AKAMAKE-WIN-BUILD
-$P/EXP-LIBS := libopenssl$(EXT_A) libcrypto$(EXT_A) libopenssl$(EXT_SO_A) libcrypto$(EXT_SO_A)
-$(call declare-so_a-deps, openssl, crypto)
-endif
-
-ifndef quote-sh
-quote-sh=$(squote)$(subst $(squote),$(squote)$(dquote)$(squote)$(dquote)$(squote),$1)$(squote)
-endif
-
-ifndef include-if-exist
-include-if-exist=$(eval -include $1)
-endif
-
+# SPECIAL HEADER HANDLING
 ifdef IN_AKAMAKE
 
 ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
@@ -456,7 +334,7 @@ ifneq ($($P/HEADERS-MAKEFILE-LOADED),)
 # Only define this target once the above makefile has been generated, which
 # gates everything that uses openssl on that happening.
 $P/headers-defined:
-endif
+endif # ifneq ($($P/HEADERS-MAKEFILE-LOADED),)
 
 $(call headers-installed,$C): | $P/headers-defined
 $P/component-configure: | $P/headers-defined
@@ -465,45 +343,113 @@ endif # ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 
 endif # ifdef IN_AKAMAKE
 
-endif # defined(ATTR_ONLY)
+#     LIBS_LOCAL_DIRECTORY: relative directory of exported library files
+$P/LIBS-LOCAL-DIRECTORY :=
 
-#********************************************************************
-#**** Section 4:  Prerequisites (dependencies)
-#****      TODO:  List names of component directories AND specific
-#****             library files needed for this component's build
-#********************************************************************
+# $P/EXP-LIBS: List of exported library files (relative to LIBS_LOCAL_DICTORY)
+
+EXT_SO_VER = $(EXT_SO).102.0.0
+
+ifndef AKAMAKE-COMMON-BUILD
+
+ifndef AKAMAKE-WIN-BUILD
+
+ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),static)
+# STATIC definitiions
+
+$P/EXP-LIBS := libcrypto$(EXT_A) libssl$(EXT_A)
+$P/EXP-TREES := dist
+$P/EXP-TREE-dist := $($P/EXP-LIBS)
+
+else # ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),static)
+ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),shared)
+# SHARED definitions
+
+$P/EXP-LIBS := libssl$(EXT_SO) libcrypto$(EXT_SO) libssl$(EXT_SO_VER) libcrypto$(EXT_SO_VER)
+$P/EXP-TREES := dist
+$P/EXP-TREE-dist := $($P/EXP-LIBS)
+$(call declare-so-deps, ssl, crypto)
+$(call declare-so-deps, crypto, dl)
+$(call declare-so-deps, crypto, pthread)
+
+# EXPLICIT RULES for some files
+
+$(COMMON)/lib/libssl$(EXT_A): $(COMMON)/lib/libssl$(EXT_SO)
+	@$(MKDIR) $(@D)
+	@ln -sf $< $@
+
+$(COMMON)/lib/libssl$(EXT_A).dep: $(COMMON)/lib/libssl$(EXT_SO).dep
+	@$(MKDIR) $(@D)
+	@ln -sf $< $@
+
+$(COMMON)/lib/libcrypto$(EXT_A): $(COMMON)/lib/libcrypto$(EXT_SO)
+	@$(MKDIR) $(@D)
+	@ln -sf $< $@
+
+$(COMMON)/lib/libcrypto$(EXT_A).dep: $(COMMON)/lib/libcrypto$(EXT_SO).dep
+	@$(MKDIR) $(@D)
+	@ln -sf $< $@
+
+# Ensure that once a library is linked, its runtime version is also available
+# in common/lib, for anything that needs to run during the build
+
+$(COMMON)/lib/libcrypto$(EXT_A).dep: $(COMMON)/lib/libcrypto$(EXT_SO_VER)
+$(COMMON)/lib/libssl$(EXT_A).dep: $(COMMON)/lib/libssl$(EXT_SO_VER)
+
+$P/libcrypto.so $P/libssl.so: $P/build.ts
+
+else # ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),shared)
+
+$(error BUILDENV.OPENSSL_LINKAGE-master is $(BUILDENV.OPENSSL_LINKAGE-master), neither static nor shared for !windows)
+
+endif # ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),shared)
+endif # ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),static)
+
+# STATIC and SHARED definitions
+$(call declare-lib-deps, ssl, crypto)
+$(call declare-lib-deps, crypto, dl)
+$(call declare-lib-deps, crypto, pthread)
+
+else # ifndef AKAMAKE-WIN-BUILD
+
+$P/EXP-LIBS := libopenssl$(EXT_A) libcrypto$(EXT_A) libopenssl$(EXT_SO_A) libcrypto$(EXT_SO_A)
+$(call declare-so_a-deps, openssl, crypto)
+
+endif # ifndef AKAMAKE-WIN-BUILD
+
+endif # ifndef AKAMAKE-COMMON-BUILD
 
 $P/DEP-COMPS :=
 $P/DEP-LIBS :=
 $P/TARGETS :=
+$P/MODULES :=
 $P/SRC :=
 
-#$(warning FIPSBUILD is '$(FIPSBUILD)')
 ifdef FIPSBUILD
 # Include fipscanister build variables.
--include $(call get-component-path,fipscanister)/enable_fips_with_akamai_openssl.mk
+$(call always-include-if-exist,$(call get-component-path,fipscanister)/enable_fips_with_akamai_openssl.mk)
 $P/DEP-COMPS := $($P/DEP-COMPS) fipscanister
 $P/NOSHARED := $($P/NOSHARED) fips
-endif
-
-#
-# clean up rules
-#
-.PHONY: $P/clean $P/distclean
+endif # ifdef FIPSBUILD
 
 ifdef MAKE_SERIAL
 $P/SYSTEM_MAKE = $(MAKE_SERIAL)
-else
+else # ifdef MAKE_SERIAL
 ifdef SYSTEM_MAKE
 $P/SYSTEM_MAKE = $(SYSTEM_MAKE)
-else
+else # ifdef SYSTEM_MAKE
 $P/SYSTEM_MAKE = make
-endif
-endif
+endif # ifdef SYSTEM_MAKE
+endif # ifdef MAKE_SERIAL
 
-$P/clean:
-	$(CLEAN-LOCAL)
-	$(CLEAN-COMMON)
+#
+# clean up rules - outside of the NOBUILD_TARGETS check
+#
+.PHONY: $P/myclean $P/mydistclean
+
+$P/CLEAN := $P/myclean
+
+$P/myclean:
 	-if [ -f $P/Makefile ]; then $($P/SYSTEM_MAKE) -C $P clean; fi
 	-rm -f $P/configure.ts $P/build.ts
 	-rm -rf $P/obj32 $P/lib32 $P/dll_obj32 $P/dll_lib32
@@ -517,79 +463,20 @@ $P/clean:
 	-find $P -name "Makefile.save" -delete
 	-find $P -name "*.gc??" -delete
 
-$P/distclean:
-	$(DISTCLEAN-LOCAL)
-	$(DISTCLEAN-COMMON)
+$P/distclean: $P/mydistclean
+
+$P/mydisclean:
 	-if [ -f $P/Makefile ]; then $($P/SYSTEM_MAKE) -C $P dclean; fi
 	-rm -f $P/Makefile
 	-rm -rf $P/include/openssl
 	-rm -f $P/ms/nt.mak $P/ms/ntdll_lib.mak
 
-#********************************************************************
-#**** Section 5:  Standard rules for supporting $(COMMON) directory
-#********************************************************************
-
-
-
-#********************************************************************
-#**** Section 6:  Make rules necessary for building binaries, libraries,
-#****             derived headers, and third party makefile execution.
-#********************************************************************
-
-#
-# WARNING:  Do NOT assume that the make is running in the component's
-#           subdirectory.  Also do not use $P and $C within the
-#           commands for the rules.   The values are invalid by the
-#           time the rules execute.  Used Implied Rule variables.
-
-ifndef ATTR_ONLY
-
 ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
+ifndef AKAMAKE-COMMON-BUILD
 
 ifndef AKAMAKE-WIN-BUILD
 
 #### LINUX and UNIX ####
-
-# Figure out NO_FOMIT_FRAME_POINTER status
-_openssl_default-if-null = $(if $(strip $(1)),$(1),$(2))
-ifeq ($(strip $(MASTER)),)
-  # Special case: MASTER is blank in $(MASTER)/akamake.
-  # ("/OPENSSL...-master" should be unset anyway, so we would get "no"
-  # anyway...  Hmm...)
-  $P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER := no
-else
-  $P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER := $(call _openssl_default-if-null, $($(MASTER)/OPENSSL_BUILDENV.$(BUILDENV.OS).NO_FOMIT_FRAME_POINTER-master), $(call _openssl_default-if-null, $($(MASTER)/OPENSSL_BUILDENV.$(BUILDENV.BASEOS).NO_FOMIT_FRAME_POINTER-master), no))
-endif
-
-ifneq ($(strip $(OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER-master.OVERRIDE)),)
-$P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER := $(OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER-master.OVERRIDE)
-endif
-
-#  Enforce "yes" or "no" setting; set the _OPTION value, which is
-#  actually used in akamake-env.mak.
-ifeq ($(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER)),yes)
-  $P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION := -no-fomit-frame-pointer
-else
-  ifeq ($(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER)),no)
-    $P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION :=
-  else
-    $(error Invalid $P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER: "$($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER)")
-  endif
-endif
-
-ifdef ASAN_BUILD
-  $P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION := -no-fomit-frame-pointer
-endif
-
-$P/buildenv.NO_FOMIT_FRAME_POINTER.$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER)):
-	if [ ! -e $P/buildenv.NO_FOMIT_FRAME_POINTER.$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER)) ]; then \
-		if [ -e $P/buildenv.NO_FOMIT_FRAME_POINTER.* ]; then \
-			echo distcleaning opensssl due to NO_FOMIT_FRAME_POINTER change... ; \
-			cd $P && make -f akamake distclean && \
-			rm -f $P/buildenv.NO_FOMIT_FRAME_POINTER.* ; \
-		fi && \
-		touch $P/buildenv.NO_FOMIT_FRAME_POINTER.$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER)); \
-	fi
 
 ifdef FIPSBUILD
 #### fipscanister has all the modules precompiled due to compliance reasons, so we'll have to specify which one ####
@@ -619,21 +506,12 @@ $P/buildenv.FIPS:
 endif # ifdef FIPSBUILD
 
 # SPOILER ALERT!  Do not read this if you want to spend a long time
-# figuring out how config picks a platform!  "./config" is an openssl
-# script which uses "uname"-type information to choose a platform.  On
-# a typical linux system, the answer ends up being "linux-elf".  This
-# value is passed on to openssl's Configure script as the first
-# argument followed by any additional arguments to ./config.  The
-# openssl/akamake-env.mak file matches on several known compiler
-# configurations and sets "$P/CONFIGFLAGS" accordingly.  These "options"
-# include a platform specification "akamai-..." which is passed to
-# ./config.  ./config then runs "./Configure linux-elf akamai-...", so
-# this second setting overrides the first one.  -lisiecki, 10/16/2008
+# figuring out how config picks a platform!
+# akamake-env.mak includes checks for each platform, and assigns the
+# platform to $P/CONFIGFLAGS, which is passed to the ./Configure
+# script. ./config is not used
 
-# Configure options
-$P/CONFIGURE_PREREQUISITES := $P/config $P/Configure $P/Makefile.org $P/akamake $P/buildenv.NO_FOMIT_FRAME_POINTER.$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER)) $P/buildenv.FIPS
-
-$P/Makefile.org: $P/config $P/Configure
+$P/CONFIGURE_PREREQUISITES := $P/Configure $P/Makefile.org $P/akamake $P/buildenv.FIPS
 
 # Define the $P/OPENSSL-CC as the compiler to use
 # Use '=' for assignements here
@@ -641,7 +519,7 @@ $P/OPENSSL-CC = CC="$(CC)"
 ifdef FIPSBUILD
 # FIPS requires their own linker to build correctly so we're doing that here - sverasch 7/24/14
 $P/OPENSSL-CC = CC="$($P/FIPSLD)" FIPSLD_CC="$(CC)"
-endif
+endif # ifdef FIPSBUILD
 
 # Next line intentional "=" - krose, 12/10/2001
 $P/% : MAKE_STEP = $($P/SYSTEM_MAKE) -C $P $($P/OPENSSL-CC) $(if $($P/NOSHARED),$(subst default_shared,default_static,$($P/OPENSSL-TARGET)))
@@ -658,19 +536,19 @@ else # ifndef AKAMAKE-WIN-BUILD
 #### WIN32 ####
 ifeq ($(filter ActiveState,$(shell perl -v)),)
 $(error "WIN32 version of openssl requires use of ActiveState Perl (http://www.ActiveState.com)" )
-endif
+endif # ifeq ($(filter ActiveState,$(shell perl -v)),)
 
 ifdef AKAMAKE-VC9-BUILD
 $P/VC=VC9
 ifdef AKAMAKE-WIN64-BUILD
 $P/VCFG=akamai-VC-WIN64A
-else
+else # ifdef AKAMAKE-WIN64-BUILD
 $P/VCFG=akamai-VC-WIN32
-endif
-else
+endif # ifdef AKAMAKE-WIN64-BUILD
+else # ifdef AKAMAKE-VC9-BUILD
 $P/VC=VC7
 $P/VCFG=akamai-VC-WIN32
-endif
+endif # ifdef AKAMAKE-VC9-BUILD
 
 $P/CONFIGURE_PREREQUISITES := $P/Configure $P/Makefile.org $P/akamake $P/util/mk1mf.pl $P/util/mkfiles.pl $P/ms/do_aka_nt.bat
 $P/% : CONFIGURE_STEP = cd $P && perl Configure $($P/VCFG) $($P/CONFIGFEATURES) $($P/CONFIGFLAGS) && ms/do_aka_nt.bat $($P/CONFIGFEATURES) $($P/CONFIGFLAGS) $($P/VC)
@@ -690,6 +568,16 @@ $P/third-party: $P/build.ts
 
 $P/component-configure: $P/configure.ts
 
+.DELETE_ON_ERROR: $P/akamake-dynamic-build-deps.mak
+$P/akamake-dynamic-build-deps.mak:
+	(echo '$$P/build.ts: \' && find $P -name '*.[ch]' ! -name krb5.h | sort | sed -e 's ^$P $$P ;s/$$/ \\/' && echo) >$@
+
+#' Fix for syntax highlighting fail in vim/emacs
+
+ifdef IN_AKAMAKE
+$(call include-if-exist,$P/akamake-dynamic-build-deps.mak)
+endif # ifdef IN_AKAMAKE
+
 # If building a shared library, detect whether other components have attempted
 # to enable features that conflict with the set used for the shared library
 # bundle (i.e., $P/SHAREDFEATURES).
@@ -698,9 +586,9 @@ $P/component-configure: $P/configure.ts
 # --bkaduk 2016-03-28
 ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),shared)
 $P/% : CHECK_SHARED_FLAGS = $(if $($P/NOSHARED), $(error The selected feature(s) $(strip $($P/NOSHARED)) are not enabled in the shared OpenSSL library installed by the platform, define $$P/BUILDENV.$(BUILDENV.BASEOS).OPENSSL_LINKAGE-master to static in your akamake file and DEP-COMP on openssl/enable/static to build with the static library),)
-else
+else # ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),shared)
 $P/% : CHECK_SHARED_FLAGS =
-endif
+endif # ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),shared)
 # Implement a delayed (build-time) check to enforce that the master component has
 # opted in for a static build.  Any component can DEP-COMP on openssl/enable/static
 # which would otherwise drop us into an inconsistent state w.r.t. our EXP-LIBS
@@ -717,80 +605,47 @@ $P/configure.ts: $($P/CONFIGURE_PREREQUISITES)
 	@echo "No Shared: $($P/NOSHARED)" >> $@
 	@echo "Make Step: $(MAKE_STEP)" >> $@
 
-.DELETE_ON_ERROR: $P/akamake-dynamic-build-deps.mak
-$P/akamake-dynamic-build-deps.mak:
-	(echo '$$P/build.ts: \' && find $P -name '*.[ch]' ! -name krb5.h | sort | sed -e 's ^$P $$P ;s/$$/ \\/' && echo) >$@
-
-#' Fix for syntax highlighting fail in vim/emacs
-
-ifdef IN_AKAMAKE
-$(call include-if-exist,$P/akamake-dynamic-build-deps.mak)
-endif # ifdef IN_AKAMAKE
-
 # make step
 $P/build.ts: $P/configure.ts
 	$(MAKE_STEP)
 	$(EXTRA_STEP)
 	@echo "$(MAKE_STEP)" > $@
 
-$P/libcrypto.so $P/libssl.so: $P/build.ts
-
-$P/libopenssl.so: $P/libssl.so
-	@ln -fs $< $@
-
 # if ar cq fails, force creation of an empty archive
 $P/libcrypto.a $P/libssl.a: $P/build.ts
 	@ar qc $@ || (ar qc $@ $P/crypto/cversion.o && ar d $@ cversion.o)
 	@touch $@
 
-$P/libopenssl.a: $P/libcrypto.a $P/libssl.a
-	rm -f $P/libopenssl.a
-	rm -rf $P/libmake-tmp
-	mkdir $P/libmake-tmp
-	(cd $P/libmake-tmp && ar x $P/libcrypto.a && ar x $P/libssl.a && ar qc $P/libopenssl.a *)
-	rm -rf $P/libmake-tmp
-	ranlib $P/libopenssl.a
+.PHONY: $P/mytest
 
-else # ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
+$P/TESTS := $P/mytest
 
-### NON-BUILDS ###########################################################
+$P/mytest: $P/build.ts
+	$(TEST_STEP)
+	echo Test successful.
+
+endif # ifndef AKAMAKE-COMMON-BUILD
 
 endif # ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 
+endif # ifndef ATTR_ONLY
+
+######################################################################
+
 # BUILD ENVIRONMENT
 #
-# In this section, you can specify variables that affect the build
-# environment.
+# In this section, you can specify variables that affect the build environment.
+# These are just examples of syntax; don't modify or uncomment anything here
+# unless you have identified a specific requirement or restriction.
+
+# $P/BUILDENV.<OS or base OS>.<variable>-master := <single value>
+# $P/BUILDENV.<OS or base OS>.<variable>-supported := <list of supported values>
+
+# $P/BUILDENV.linux.TARGET_ARCH-master := x86_64
+# $P/BUILDENV.linux.TARGET_ARCH-supported := x86_64 i686
 
 $P/BUILDENV.linux.FILE_OFFSET_BITS-master := 32
 $P/BUILDENV.linux.FILE_OFFSET_BITS-supported := 32 64
 
-#********************************************************************
-#**** Section 7:  Include of master rules, and recursive load of
-#****             other components' and .d file make rules.  Also
-#****             set up build and unit test automation targets.
-#********************************************************************
-
-$P/test: $P/build.ts
-	$(TEST_STEP)
-	echo Test successful.
-
-include $(AKAMAKE)/akamaster.mak
-
-else
-
-dep_comp: $P/DEP-COMPS
-
-$P/DEP-COMPS:
-	@echo Akamake $($@)
-
-endif
-
-
-#********************************************************************
-#** Anything placed past this point is probably not going to work. **
-#** Especially since $P and $C are no longer valid due to recusive **
-#** make file loading in akamaster.                                **
-#********************************************************************
-P := pbad
-C := cbad
+### DO NOT EDIT BELOW ################################################
+include $(AKAMAKE)/akamake.m.master

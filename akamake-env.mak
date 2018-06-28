@@ -6,9 +6,9 @@ $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS)  $(filter %=64,-D_FILE_OFF
 ifdef AKAMAKE-ALSI6-BUILD
 
 ifdef AKAMAKE-LINUX-BUILD-64
-$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-x86_64-alsi6$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION))
+$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-x86_64-alsi6
 else # AKAMAKE-LINUX-BUILD-64
-$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-ppro-alsi6$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION))
+$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-ppro-alsi6
 endif # AKAMAKE-LINUX-BUILD-64
 
 else # ifdef AKAMAKE-ALSI6-BUILD
@@ -16,9 +16,9 @@ else # ifdef AKAMAKE-ALSI6-BUILD
 ifneq (,$(AKAMAKE-ALSI7-BUILD)$(AKAMAKE-ALSI7-LITE-BUILD))
 
 ifdef AKAMAKE-LINUX-BUILD-64
-$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-x86_64-alsi7$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION))
+$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-x86_64-alsi7
 else # AKAMAKE-LINUX-BUILD-64
-$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-i686-alsi7$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION))
+$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-i686-alsi7
 endif # AKAMAKE-LINUX-BUILD-64
 
 else # ifdef AKAMAKE-ALSI7-BUILD/AKAMAKE-ALSI7-LITE-BUILD
@@ -26,9 +26,9 @@ else # ifdef AKAMAKE-ALSI7-BUILD/AKAMAKE-ALSI7-LITE-BUILD
 ifneq (,$(AKAMAKE-ALSI8-BUILD)$(AKAMAKE-ALSI8-LITE-BUILD))
 
 ifdef AKAMAKE-LINUX-BUILD-64
-$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-x86_64-alsi8$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION))
+$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-x86_64-alsi8
 else # AKAMAKE-LINUX-BUILD-64
-$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-i686-alsi8$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION))
+$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-i686-alsi8
 endif # AKAMAKE-LINUX-BUILD-64
 
 else # ifdef AKAMAKE-ALSI8-BUILD/AKAMAKE-ALSI8-LITE-BUILD
@@ -36,9 +36,9 @@ else # ifdef AKAMAKE-ALSI8-BUILD/AKAMAKE-ALSI8-LITE-BUILD
 ifneq (,$(AKAMAKE-ALSI9-BUILD)$(AKAMAKE-ALSI9-LITE-BUILD))
 
 ifdef AKAMAKE-LINUX-BUILD-64
-$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-x86_64-alsi9$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION))
+$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-x86_64-alsi9
 else # AKAMAKE-LINUX-BUILD-64
-$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-i686-alsi9$(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION))
+$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-i686-alsi9
 endif # AKAMAKE-LINUX-BUILD-64
 
 else # ifdef AKAMAKE-ALSI9-BUILD/AKAMAKE-ALSI9-LITE-BUILD
@@ -67,12 +67,6 @@ else # ifeq ($(KERNEL_BITS),64)
 $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) darwin-i386-cc
 endif # ifeq ($(KERNEL_BITS),64)
 endif # ifdef AKAMAKE-DARWIN-BUILD
-
-ifneq ($(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION)),)
-
-$(error ERROR: $P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER not implemented on this architecture.)
-
-endif # ifneq ($(strip $($P/OPENSSL_BUILDENV_NO_FOMIT_FRAME_POINTER_OPTION)),)
 
 endif # ifneq ($(filter debug,$(MAKECMDGOALS)),)
 endif # ifneq ($(filter ccmalloc,$(MAKECMDGOALS)),)
