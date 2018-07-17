@@ -27,7 +27,8 @@ $P/BUILDENV.linux.FILE_OFFSET_BITS-supported := ALL
 $P/BUILDENV.windows.CC-supported := ALL
 $P/BUILDENV.windows.FILE_OFFSET_BITS-supported := ALL
 
-$($P/O)/OPENSSL-TARGET := $($($P/O)/OPENSSL-TARGET) build_crypto
+# We want to set to build_crypto, but only if not already set to "all"
+$($P/O)/OPENSSL-TARGET := $(if $(findstring all,$($($P/O)/OPENSSL-TARGET)),all,build_crypto)
 
 include $(AKAMAKE)/akamake.m.master
 
