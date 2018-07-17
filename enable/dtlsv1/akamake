@@ -28,8 +28,7 @@ $P/BUILDENV.linux.FILE_OFFSET_BITS-supported := ALL
 $P/BUILDENV.windows.CC-supported := ALL
 $P/BUILDENV.windows.FILE_OFFSET_BITS-supported := ALL
 
-# Appending to default, so put the literal last
-$($P/O)/OPENSSL-TARGET := $($($P/O)/OPENSSL-TARGET) all
+$($P/O)/OPENSSL-TARGET := all
 
 $($P/O)/configure.ts : $($P/O)/CONFIGFEATURES := $(filter-out no-$($P/A),$($($P/O)/CONFIGFEATURES)) enable-$($P/A)
 

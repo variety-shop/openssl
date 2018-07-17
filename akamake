@@ -82,6 +82,8 @@ endif
 ifndef MASTER
 # Compiling OpenSSL in standalone mode
 
+# We are setting to "all", so just set it, ignoring libcrypto.a
+$P/OPENSSL-TARGET := all
 $P/BUILDENV.linux.OPENSSL_LINKAGE-master := shared
 ifeq ($(BUILDENV.BASEOS),linux)
 ifndef BUILDENV.OPENSSL_LINKAGE-master
@@ -93,8 +95,6 @@ ifndef BUILDENV.OPENSSL_LINKAGE-master
 BUILDENV.OPENSSL_LINKAGE-master := static
 endif # ifndef BUILDENV.OPENSSL_LINKAGE-master
 endif # ifeq ($(BUILDENV.BASEOS),linux)
-# We are setting the default here, so put the literal first
-$P/OPENSSL-TARGET := all $($P/OPENSSL-TARGET)
 
 # TEMPORARY
 $P/BUILDENV.linux.OPENSSL_LINKAGE-master := static
@@ -277,7 +277,7 @@ endif # ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 # Set the make target for shared/static appropriately
 ifeq ($(BUILDENV.OPENSSL_LINKAGE-master),shared)
 # We are setting the default here, so put the literal first
-$P/OPENSSL-TARGET := all $($P/OPENSSL-TARGET)
+$P/OPENSSL-TARGET := all
 # TEMPORARY!
 ifdef IN_AKAMAKE
 ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
@@ -286,8 +286,8 @@ endif
 endif
 # END TEMPORARY
 else # ifeq ($(BUILDENV.OPENSSL_LINKAGE-master),shared)
-# We are setting the default here, so put the literal first
-$P/OPENSSL-TARGET := libcrypto.a $($P/OPENSSL-TARGET)
+# We want to set to libcrypto.a, but only if not already set to "all"
+$P/OPENSSL-TARGET := $(if $(findstring all,$($P/OPENSSL-TARGET)),all,libcrypto.a)
 endif # ifeq ($(BUILDENV.OPENSSL_LINKAGE-master),shared)
 
 endif # ifndef MASTER
