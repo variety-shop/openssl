@@ -27,8 +27,8 @@ $P/BUILDENV.linux.FILE_OFFSET_BITS-supported := ALL
 $P/BUILDENV.windows.CC-supported := ALL
 $P/BUILDENV.windows.FILE_OFFSET_BITS-supported := ALL
 
-# Appending to default, so put the literal last
-$($P/O)/OPENSSL-TARGET := $($($P/O)/OPENSSL-TARGET) libcrypto.a
+# We want to set to libcrypto.a, but only if not already set to "all"
+$($P/O)/OPENSSL-TARGET := $(if $(findstring all,$($($P/O)/OPENSSL-TARGET)),all,libcrypto.a)
 
 include $(AKAMAKE)/akamake.m.master
 
