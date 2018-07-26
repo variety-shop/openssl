@@ -307,6 +307,8 @@ endif
 $P/HEADERS-LOCAL-DIRECTORY := include/openssl
 $P/HEADERS-COMMON-DIRECTORY := openssl
 
+ifndef AKAMAKE-COMMON-BUILD
+
 # SPECIAL HEADER HANDLING
 ifdef IN_AKAMAKE
 
@@ -349,8 +351,6 @@ $P/LIBS-LOCAL-DIRECTORY :=
 # $P/EXP-LIBS: List of exported library files (relative to LIBS_LOCAL_DICTORY)
 
 EXT_SO_VER = $(EXT_SO).102.0.0
-
-ifndef AKAMAKE-COMMON-BUILD
 
 ifndef AKAMAKE-WIN-BUILD
 
