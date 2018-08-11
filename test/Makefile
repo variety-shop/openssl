@@ -972,8 +972,11 @@ hmactest.o: ../include/openssl/objects.h ../include/openssl/opensslconf.h
 hmactest.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
 hmactest.o: ../include/openssl/safestack.h ../include/openssl/stack.h
 hmactest.o: ../include/openssl/symhacks.h hmactest.c
-ideatest.o: ../e_os.h ../include/openssl/e_os2.h ../include/openssl/idea.h
-ideatest.o: ../include/openssl/opensslconf.h ideatest.c
+ideatest.o: ../include/openssl/buffer.h ../include/openssl/crypto.h
+ideatest.o: ../include/openssl/e_os2.h ../include/openssl/opensslconf.h
+ideatest.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
+ideatest.o: ../include/openssl/safestack.h ../include/openssl/stack.h
+ideatest.o: ../include/openssl/symhacks.h ideatest.c
 igetest.o: ../include/openssl/aes.h ../include/openssl/e_os2.h
 igetest.o: ../include/openssl/opensslconf.h ../include/openssl/ossl_typ.h
 igetest.o: ../include/openssl/rand.h igetest.c
@@ -1225,3 +1228,15 @@ wp_test.o: ../include/openssl/e_os2.h ../include/openssl/opensslconf.h
 wp_test.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
 wp_test.o: ../include/openssl/safestack.h ../include/openssl/stack.h
 wp_test.o: ../include/openssl/symhacks.h wp_test.c
+x509_time_test.o: ../e_os.h ../include/openssl/asn1.h ../include/openssl/bio.h
+x509_time_test.o: ../include/openssl/buffer.h ../include/openssl/crypto.h
+x509_time_test.o: ../include/openssl/e_os2.h ../include/openssl/ec.h
+x509_time_test.o: ../include/openssl/ecdh.h ../include/openssl/ecdsa.h
+x509_time_test.o: ../include/openssl/evp.h ../include/openssl/lhash.h
+x509_time_test.o: ../include/openssl/obj_mac.h ../include/openssl/objects.h
+x509_time_test.o: ../include/openssl/opensslconf.h
+x509_time_test.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
+x509_time_test.o: ../include/openssl/pkcs7.h ../include/openssl/safestack.h
+x509_time_test.o: ../include/openssl/sha.h ../include/openssl/stack.h
+x509_time_test.o: ../include/openssl/symhacks.h ../include/openssl/x509.h
+x509_time_test.o: ../include/openssl/x509_vfy.h testutil.h x509_time_test.c
