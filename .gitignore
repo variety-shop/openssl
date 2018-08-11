@@ -131,3 +131,4 @@ third-party
 akamake-dynamic-build-deps.mak
 akamake-headers.mak
 .akamake-state
+test/gen/
