@@ -2294,6 +2294,8 @@ int tls_construct_server_hello(SSL *s, WPACKET *pkt)
     unsigned char *session_id;
     int usetls13 = SSL_IS_TLS13(s) || s->hello_retry_request == SSL_HRR_PENDING;
 
+    ssl_timestamp(s, SSL_TS_START_TLS_CONSTRUCT_SERVER_HELLO);
+    
     version = usetls13 ? TLS1_2_VERSION : s->version;
 
 #ifndef OPENSSL_NO_AKAMAI_RSALG
@@ -2405,6 +2407,7 @@ int tls_construct_server_hello(SSL *s, WPACKET *pkt)
     }
 
     /* for incident F-CS-2975083 */
+    ssl_timestamp(s, SSL_TS_END_TLS_CONSTRUCT_SERVER_HELLO);
     if (s->is_visa)
         SSL_print_timestamps(s);
 

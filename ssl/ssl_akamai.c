@@ -1446,18 +1446,20 @@ const SSL_CIPHER *SSL_akamai_get_tmp_cipher(const SSL *ssl)
     return NULL;
 }
 
+#define entry(X) [X] = #X
 
-static char* timestamp_names[] =
+static char timestamp_names[][64] =
 {
-    "SSL_TS_BEFORE_SR_CLNT_HELLO",
-    "SSL_TS_BEFORE_CLIENT_HELLO_CB",
-    "SSL_TS_AFTER_CLIENT_HELLO_CB",
-    "SSL_TS_BEFORE_SERVERNAME_CB",
-    "SSL_TS_AFTER_SERVERNAME_CB",
-    "SSL_TS_AFTER_SR_CLNT_HELLO",
-    "SSL_TS_BEFORE_SR_END_OF_EARLY_DATA",
-    "SSL_TS_AFTER_SR_END_OF_EARLY_DATA"
-
+    entry(SSL_TS_BEFORE_SR_CLNT_HELLO),
+    entry(SSL_TS_BEFORE_CLIENT_HELLO_CB),
+    entry(SSL_TS_AFTER_CLIENT_HELLO_CB),
+    entry(SSL_TS_BEFORE_SERVERNAME_CB),
+    entry(SSL_TS_AFTER_SERVERNAME_CB),
+    entry(SSL_TS_AFTER_SR_CLNT_HELLO),
+    entry(SSL_TS_BEFORE_SR_END_OF_EARLY_DATA),
+    entry(SSL_TS_AFTER_SR_END_OF_EARLY_DATA),
+    entry(SSL_TS_START_TLS_CONSTRUCT_SERVER_HELLO),
+    entry(SSL_TS_END_TLS_CONSTRUCT_SERVER_HELLO),
 };
 
 void ssl_timestamp(SSL* ssl, int n)
@@ -1480,7 +1482,9 @@ void SSL_print_timestamps(SSL* ssl)
     int i;
     uint64_t base;
     uint64_t ts;
-#define TS_BUFFER 2048
+
+    /* <spc><name>=%ld.9.9dl = 1+1+n+9, assume n < 9 */
+#define TS_BUFFER (sizeof(timestamp_names) + SSL_NUM_TIMESTAMPS * 20)
 
     buffer = OPENSSL_malloc(TS_BUFFER);
     if (buffer == NULL) {
