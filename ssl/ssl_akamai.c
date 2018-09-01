@@ -1470,7 +1470,7 @@ void ssl_timestamp(SSL* ssl, int n)
     }
 }
 
-#define timespec_to_nsec(ts) ((ts)->tv_sec * 1000000000 + (ts)->tv_nsec)
+#define timespec_to_nsec(ts) ((uint64_t)(ts)->tv_sec * 1000000000 + (uint64_t)(ts)->tv_nsec)
 
 void SSL_print_timestamps(SSL* ssl)
 {
@@ -1491,6 +1491,11 @@ void SSL_print_timestamps(SSL* ssl)
     base = timespec_to_nsec(&ssl->timestamps[0]);
 
     for (i = 0; i <= ssl->last_timestamp; i++) {
+
+        if (ssl->timestamps[i].tv_sec == 0 &&
+            ssl->timestamps[i].tv_nsec == 0)
+            continue;
+
         ts = timespec_to_nsec(&ssl->timestamps[i]) - base;
 
         ret = snprintf(buffer + offset, TS_BUFFER - offset - 1, " %s=%ld.%9.9ld", timestamp_names[i],
