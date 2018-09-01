@@ -2294,6 +2294,8 @@ __owur const struct openssl_ssl_test_functions *SSL_test_functions(void);
 __owur int SSL_free_buffers(SSL *ssl);
 __owur int SSL_alloc_buffers(SSL *ssl);
 
+void SSL_print_timestamps(SSL* ssl);
+
 extern const char SSL_version_str[];
 
 

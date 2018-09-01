@@ -1446,4 +1446,60 @@ const SSL_CIPHER *SSL_akamai_get_tmp_cipher(const SSL *ssl)
     return NULL;
 }
 
+
+static char* timestamp_names[] =
+{
+    "SSL_TS_BEFORE_SR_CLNT_HELLO",
+    "SSL_TS_AFTER_SR_CLNT_HELLO",
+    "SSL_TS_BEFORE_SR_END_OF_EARLY_DATA",
+    "SSL_TS_AFTER_SR_END_OF_EARLY_DATA"
+
+};
+
+void ssl_timestamp(SSL* ssl, int n)
+{
+    if (n < SSL_NUM_TIMESTAMPS) {
+        if (clock_gettime(CLOCK_MONOTONIC, &ssl->timestamps[n]))
+            memset(&ssl->timestamps[n], 0, sizeof(struct timespec));
+        else if (n > ssl->last_timestamp)
+            ssl->last_timestamp = n;
+    }
+}
+
+#define timespec_to_nsec(ts) ((ts)->tv_sec * 1000000000 + (ts)->tv_nsec)
+
+void SSL_print_timestamps(SSL* ssl)
+{
+    char* buffer;
+    int offset = 0;
+    int ret;
+    int i;
+    uint64_t base;
+    uint64_t ts;
+#define TS_BUFFER 2048
+
+    buffer = OPENSSL_malloc(TS_BUFFER);
+    if (buffer == NULL) {
+        fprintf(stderr, "SSL=%p no memory for timestamps\n", (void*)ssl);
+        return;
+    }
+
+    base = timespec_to_nsec(&ssl->timestamps[0]);
+
+    for (i = 0; i <= ssl->last_timestamp; i++) {
+        ts = timespec_to_nsec(&ssl->timestamps[i]) - base;
+
+        ret = snprintf(buffer + offset, TS_BUFFER - offset - 1, " %s=%ld.%09.9ld", timestamp_names[i],
+                       (long)(ts / 1000000000), (long)(ts % 1000000000));
+        if (ret > 0)
+            offset += ret;
+    }
+
+    fprintf(stderr, "SSL=%p%s\n", (void*)ssl, buffer);
+
+    OPENSSL_free(buffer);
+}
+
+
+
 #endif /* OPENSSL_NO_AKAMAI */

@@ -120,4 +120,6 @@ void ssl_akamai_fixup_ciphers(void);
 
 void SSL_SESSION_copy_remote_addr(SSL_SESSION *ss, SSL *s);
 
+void ssl_timestamp(SSL* ssl, int n);
+
 #endif /* HEADER_SSL_LOCL_AKAMAI_POST_H */

@@ -546,3 +546,4 @@ SSL_CTX_get_akamai_cb                   10083	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAM
 SSL_CTX_set_akamai_cb                   10084	1_1_0e	EXIST::FUNCTION:AKAMAI,AKAMAI_CB
 SSL_CTX_akamai_session_stats_bio        10085	1_1_0e	EXIST::FUNCTION:AKAMAI
 SSL_default_akamai_cipher_list          10086	1_1_1	EXIST::FUNCTION:AKAMAI
+SSL_print_timestamps                    10087	1_1_1	EXIST::FUNCTION:

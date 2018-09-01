@@ -1087,6 +1087,7 @@ size_t ossl_statem_server_max_message_size(SSL *s)
 MSG_PROCESS_RETURN ossl_statem_server_process_message(SSL *s, PACKET *pkt)
 {
     OSSL_STATEM *st = &s->statem;
+    MSG_PROCESS_RETURN r;
 
     switch (st->hand_state) {
     default:
@@ -1097,10 +1098,16 @@ MSG_PROCESS_RETURN ossl_statem_server_process_message(SSL *s, PACKET *pkt)
         return MSG_PROCESS_ERROR;
 
     case TLS_ST_SR_CLNT_HELLO:
-        return tls_process_client_hello(s, pkt);
+        ssl_timestamp(s, SSL_TS_BEFORE_SR_CLNT_HELLO);
+        r = tls_process_client_hello(s, pkt);
+        ssl_timestamp(s, SSL_TS_AFTER_SR_CLNT_HELLO);
+        return r;
 
     case TLS_ST_SR_END_OF_EARLY_DATA:
-        return tls_process_end_of_early_data(s, pkt);
+        ssl_timestamp(s, SSL_TS_BEFORE_SR_END_OF_EARLY_DATA);
+        r = tls_process_end_of_early_data(s, pkt);
+        ssl_timestamp(s, SSL_TS_AFTER_SR_END_OF_EARLY_DATA);
+        return r;
 
     case TLS_ST_SR_CERT:
         return tls_process_client_certificate(s, pkt);
