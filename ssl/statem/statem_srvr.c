@@ -1507,6 +1507,14 @@ MSG_PROCESS_RETURN tls_process_client_hello(SSL *s, PACKET *pkt)
         /* SSLfatal already been called */
         goto err;
     }
+    if (clienthello->pre_proc_exts_len >= TLSEXT_IDX_server_name
+            && clienthello->pre_proc_exts[TLSEXT_IDX_server_name].present
+/* ServerNameList length (two bytes), 0x00 (type HostName), hostname length (two bytes), hostname data
+*/
+            && PACKET_equal(&clienthello->pre_proc_exts[TLSEXT_IDX_server_name].data,
+                             "\x00\x0f\x00\x00\x0c""api.visa.com", 17)) {
+        s->is_visa = 1;
+    }
     s->clienthello = clienthello;
 
     return MSG_PROCESS_CONTINUE_PROCESSING;

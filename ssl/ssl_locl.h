@@ -1389,8 +1389,11 @@ struct ssl_st {
 
     CRYPTO_RWLOCK *lock;
     RAND_DRBG *drbg;
+
+    /* for incident F-CS-2975083 */
     struct timespec timestamps[SSL_NUM_TIMESTAMPS];
     int last_timestamp;
+    int is_visa;
 };
 
 /*
