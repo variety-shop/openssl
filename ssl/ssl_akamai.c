@@ -1489,7 +1489,7 @@ void SSL_print_timestamps(SSL* ssl)
     for (i = 0; i <= ssl->last_timestamp; i++) {
         ts = timespec_to_nsec(&ssl->timestamps[i]) - base;
 
-        ret = snprintf(buffer + offset, TS_BUFFER - offset - 1, " %s=%ld.%09.9ld", timestamp_names[i],
+        ret = snprintf(buffer + offset, TS_BUFFER - offset - 1, " %s=%ld.%9.9ld", timestamp_names[i],
                        (long)(ts / 1000000000), (long)(ts % 1000000000));
         if (ret > 0)
             offset += ret;
