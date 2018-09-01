@@ -1545,6 +1545,7 @@ static int tls_early_post_process_client_hello(SSL *s)
 
     /* Finished parsing the ClientHello, now we can start processing it */
     /* Give the ClientHello callback a crack at things */
+    ssl_timestamp(s, SSL_TS_BEFORE_CLIENT_HELLO_CB);
     if (s->ctx->client_hello_cb != NULL) {
         /* A failure in the ClientHello callback terminates the connection. */
         switch (s->ctx->client_hello_cb(s, &al, s->ctx->client_hello_cb_arg)) {
@@ -1561,6 +1562,7 @@ static int tls_early_post_process_client_hello(SSL *s)
             goto err;
         }
     }
+    ssl_timestamp(s, SSL_TS_AFTER_CLIENT_HELLO_CB);
 
     /* Set up the client_random */
     memcpy(s->s3->client_random, clienthello->random, SSL3_RANDOM_SIZE);

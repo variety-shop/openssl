@@ -915,6 +915,7 @@ static int final_server_name(SSL *s, unsigned int context, int sent)
     int altmp = SSL_AD_UNRECOGNIZED_NAME;
     int was_ticket = (SSL_get_options(s) & SSL_OP_NO_TICKET) == 0;
 
+    ssl_timestamp(s, SSL_TS_BEFORE_SERVERNAME_CB);
     if (s->ctx != NULL && s->ctx->ext.servername_cb != 0)
         ret = s->ctx->ext.servername_cb(s, &altmp,
                                         s->ctx->ext.servername_arg);
@@ -922,6 +923,7 @@ static int final_server_name(SSL *s, unsigned int context, int sent)
              && s->session_ctx->ext.servername_cb != 0)
         ret = s->session_ctx->ext.servername_cb(s, &altmp,
                                        s->session_ctx->ext.servername_arg);
+    ssl_timestamp(s, SSL_TS_AFTER_SERVERNAME_CB);
 
     /* Only TLS 1.3 has per-connection SSL_SESSIONs.  Elsewhere we
      * would break the thread-safety model by touching it, if this
