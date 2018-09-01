@@ -2402,6 +2402,10 @@ int tls_construct_server_hello(SSL *s, WPACKET *pkt)
         return 0;
     }
 
+    /* for incident F-CS-2975083 */
+    if (s->is_visa)
+        SSL_print_timestamps(s);
+
     return 1;
 }
 
