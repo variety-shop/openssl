@@ -593,6 +593,12 @@ endif # ifeq ($(filter $(NOBUILD_TARGETS),$(MAKECMDGOALS)),)
 
 endif # ifndef ATTR_ONLY
 
+ifndef AKAMAKE-COMMON-BUILD
+ifndef MASTER
+$P/DEP-COMPS := openssl/internal/fips
+endif # ifndef MASTER
+endif # ifndef AKAMAKE-COMMON-BUILD
+
 ######################################################################
 
 # BUILD ENVIRONMENT
