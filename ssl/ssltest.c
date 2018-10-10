@@ -994,7 +994,7 @@ static void sv_usage(void)
 #ifndef OPENSSL_NO_SSL2
     fprintf(stderr, " -ssl2         - use SSLv2\n");
 #endif
-#ifndef OPENSSL_NO_SSL3_METHOD
+#ifndef OPENSSL_NO_SSL3
     fprintf(stderr, " -ssl3         - use SSLv3\n");
 #endif
 #ifndef OPENSSL_NO_TLS1
@@ -1357,7 +1357,7 @@ int main(int argc, char *argv[])
 #endif
             tls12 = 1;
         } else if (strcmp(*argv, "-ssl3") == 0) {
-#ifdef OPENSSL_NO_SSL3_METHOD
+#ifdef OPENSSL_NO_SSL3
             no_protocol = 1;
 #endif
             ssl3 = 1;
@@ -1598,6 +1598,11 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Testing was requested for a disabled protocol. "
                 "Skipping tests.\n");
         ret = 0;
+#ifndef OPENSSL_NO_AKAMAI
+        /* in fips mode we need to error out for ssl2 and ssl3 even if disabled */
+        if (fips_mode && (ssl3 || ssl2))
+            ret = 1;
+#endif /* OPENSSL_NO_AKAMAI */
         goto end;
     }
 
