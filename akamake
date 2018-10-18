@@ -366,10 +366,11 @@ $P/EXP-TREE-dist := $($P/EXP-LIBS)
 else # ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),static)
 ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),shared)
 # SHARED definitions
-
 $P/EXP-LIBS := libssl$(EXT_SO) libcrypto$(EXT_SO) libssl$(EXT_SO_VER) libcrypto$(EXT_SO_VER)
-$P/EXP-TREES := dist
+$P/EXP-TREES := dist bin
 $P/EXP-TREE-dist := $($P/EXP-LIBS)
+$P/EXP-TREE-bin := openssl
+
 $(call declare-so-deps, ssl, crypto)
 $(call declare-so-deps, crypto, dl)
 $(call declare-so-deps, crypto, pthread)
@@ -391,6 +392,9 @@ $(COMMON)/lib/libcrypto$(EXT_A): $(COMMON)/lib/libcrypto$(EXT_SO)
 $(COMMON)/lib/libcrypto$(EXT_A).dep: $(COMMON)/lib/libcrypto$(EXT_SO).dep
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
+
+$P/openssl: $P/build.ts
+	cp $P/apps/openssl $@
 
 # Ensure that once a library is linked, its runtime version is also available
 # in common/lib, for anything that needs to run during the build
@@ -458,6 +462,7 @@ $P/myclean:
 	-rm -f $P/akamake-headers.mak
 	-rm -f $P/krb5.h
 	-rm -f $P/fips_premain_dso
+	-rm -f $P/openssl
 	-find $P -name "Makefile.save" -delete
 	-find $P -name "*.gc??" -delete
 
