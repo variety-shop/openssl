@@ -346,8 +346,10 @@ ifeq ($(strip $(BUILDENV.OPENSSL_LINKAGE-master)),shared)
 
 $P/EXP-LIBS := libssl$(EXT_SO) libcrypto$(EXT_SO)
 $P/EXP-LIBS := $($P/EXP-LIBS) $(patsubst %$(EXT_SO),%$(EXT_SO_VER),$($P/EXP-LIBS))
-$P/EXP-TREES := dist
+$P/EXP-TREES := dist bin
 $P/EXP-TREE-dist := $($P/EXP-LIBS)
+$P/EXP-TREE-bin := openssl
+
 $(call declare-so-deps, ssl, crypto)
 $(call declare-so-deps, crypto, dl)
 $(call declare-so-deps, crypto, pthread)
@@ -369,6 +371,9 @@ $(COMMON)/lib/libcrypto$(EXT_A): $(COMMON)/lib/libcrypto$(EXT_SO)
 $(COMMON)/lib/libcrypto$(EXT_A).dep: $(COMMON)/lib/libcrypto$(EXT_SO).dep
 	@$(MKDIR) $(@D)
 	@ln -sf $< $@
+
+$P/openssl: $P/build.ts
+	cp $P/apps/openssl $@
 
 # Ensure that once a library is linked, its runtime version is also available
 # in common/lib, for anything that needs to run during the build
@@ -431,6 +436,7 @@ $P/myclean:
 	-rm -f $P/*.lib $P/*.dll_lib
 	-rm -f $P/buildenv.*
 	-rm -f $P/MINFO
+	-rm -f $P/openssl
 	-rm -f $P/Makefile
 	-rm -f $P/makefile
 	-find $P -name "*.gc??" -delete

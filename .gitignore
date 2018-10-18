@@ -190,3 +190,4 @@ component-configure
 third-party
 akamake-dynamic-build-deps.mak
 .akamake-state
+/openssl
