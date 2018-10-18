@@ -133,3 +133,4 @@ akamake-headers.mak
 .akamake-state
 test/gen/
 fips_premain_dso
+/openssl
