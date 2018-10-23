@@ -69,6 +69,7 @@
 #  define TSAN_QUALIFIER volatile
 #  define tsan_load(ptr) __atomic_load_n((ptr), __ATOMIC_RELAXED)
 #  define tsan_store(ptr, val) __atomic_store_n((ptr), (val), __ATOMIC_RELAXED)
+#  define tsan_counter(ptr) __atomic_fetch_add((ptr), 1, __ATOMIC_RELAXED)
 #  define tsan_decr(ptr) __atomic_fetch_add((ptr), -1, __ATOMIC_RELAXED)
 #  define tsan_ld_acq(ptr) __atomic_load_n((ptr), __ATOMIC_ACQUIRE)
 #  define tsan_st_rel(ptr, val) __atomic_store_n((ptr), (val), __ATOMIC_RELEASE)
