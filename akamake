@@ -287,7 +287,7 @@ $P/configure.ts : CFLAGS += -ftest-coverage -fprofile-arcs
 endif # ifdef GCOV
 
 ifdef ASAN_BUILD
-$P/configure.ts : CFLAGS += -no-fomit-frame-pointer
+$P/configure.ts : CFLAGS += -fno-omit-frame-pointer
 endif # ifdef ASAN_BUILD
 
 #  HEADERS-LOCAL-DIRECTORY: relative directory of exported interface headers
