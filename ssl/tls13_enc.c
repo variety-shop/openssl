@@ -682,6 +682,65 @@ int tls13_change_cipher_state(SSL *s, int which)
     return ret;
 }
 
+#ifndef OPENSSL_NO_AKAMAI
+/* Minimal function to recreate the cipher state */
+int tls13_deserialize_cipher_state(SSL *s, int which)
+{
+    int ret = 0;
+    static const unsigned char client_application_traffic[] = "c ap traffic";
+    static const unsigned char server_application_traffic[] = "s ap traffic";
+    const unsigned char *label;
+    EVP_CIPHER_CTX *ciph_ctx;
+    unsigned char *iv;
+    size_t labellen;
+    unsigned char secret[EVP_MAX_MD_SIZE];
+
+    if (which & SSL3_CC_READ) {
+        if (s->enc_read_ctx != NULL) {
+            EVP_CIPHER_CTX_reset(s->enc_read_ctx);
+        } else {
+            s->enc_read_ctx = EVP_CIPHER_CTX_new();
+            if (s->enc_read_ctx == NULL)
+                goto err;
+        }
+        ciph_ctx = s->enc_read_ctx;
+        iv = s->read_iv;
+    } else {
+        if (s->enc_write_ctx != NULL) {
+            EVP_CIPHER_CTX_reset(s->enc_write_ctx);
+        } else {
+            s->enc_write_ctx = EVP_CIPHER_CTX_new();
+            if (s->enc_write_ctx == NULL)
+                goto err;
+        }
+        ciph_ctx = s->enc_write_ctx;
+        iv = s->write_iv;
+    }
+
+    if (((which & SSL3_CC_CLIENT) && (which & SSL3_CC_WRITE))
+        || ((which & SSL3_CC_SERVER) && (which & SSL3_CC_READ))) {
+        label = client_application_traffic;
+        labellen = sizeof(client_application_traffic) - 1;
+    } else {
+        label = server_application_traffic;
+        labellen = sizeof(server_application_traffic) - 1;
+    }
+
+    if (!derive_secret_key_and_iv(s, which & SSL3_CC_WRITE, ssl_handshake_md(s),
+                                  s->s3->tmp.new_sym_enc, s->master_secret,
+                                  s->server_finished_hash, label, labellen, secret, iv,
+                                  ciph_ctx)) {
+        /* SSLfatal() already called */
+        goto err;
+    }
+
+    ret = 1;
+ err:
+    OPENSSL_cleanse(secret, sizeof(secret));
+    return ret;
+}
+#endif
+
 int tls13_update_key(SSL *s, int sending)
 {
     static const unsigned char application_traffic[] = "traffic upd";

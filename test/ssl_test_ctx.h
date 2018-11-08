@@ -77,6 +77,14 @@ typedef enum {
     SSL_TEST_HANDSHAKE_POST_HANDSHAKE_AUTH
 } ssl_handshake_mode_t;
 
+#ifndef OPENSSL_NO_AKAMAI
+typedef enum {
+    SSL_TEST_SERIALIZE_NONE = 0, /* Default */
+    SSL_TEST_SERIALIZE_SERVER,
+    SSL_TEST_SERIALIZE_CLIENT,
+} ssl_serialize_t;
+#endif
+
 typedef enum {
     SSL_TEST_CT_VALIDATION_NONE = 0, /* Default */
     SSL_TEST_CT_VALIDATION_PERMISSIVE,
@@ -223,6 +231,9 @@ typedef struct {
     char *expected_cipher;
     /* Expected Session Ticket Application Data */
     char *expected_session_ticket_app_data;
+#ifndef OPENSSL_NO_AKAMAI
+    ssl_serialize_t serialize;
+#endif
 } SSL_TEST_CTX;
 
 const char *ssl_test_result_name(ssl_test_result_t result);
@@ -239,6 +250,9 @@ const char *ssl_handshake_mode_name(ssl_handshake_mode_t mode);
 const char *ssl_ct_validation_name(ssl_ct_validation_t mode);
 const char *ssl_certstatus_name(ssl_cert_status_t cert_status);
 const char *ssl_max_fragment_len_name(int MFL_mode);
+#ifndef OPENSSL_NO_AKAMAI
+const char *ssl_serialize_name(ssl_serialize_t mode);
+#endif
 
 /*
  * Load the test case context from |conf|.

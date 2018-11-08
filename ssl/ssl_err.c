@@ -36,6 +36,7 @@ static const ERR_STRING_DATA SSL_str_functs[] = {
     {ERR_PACK(ERR_LIB_SSL, SSL_F_CT_STRICT, 0), "ct_strict"},
     {ERR_PACK(ERR_LIB_SSL, SSL_F_CUSTOM_EXT_ADD, 0), "custom_ext_add"},
     {ERR_PACK(ERR_LIB_SSL, SSL_F_CUSTOM_EXT_PARSE, 0), "custom_ext_parse"},
+    {ERR_PACK(ERR_LIB_SSL, SSL_F_D2I_SSL_AKAMAI, 0), "d2i_SSL_AKAMAI"},
     {ERR_PACK(ERR_LIB_SSL, SSL_F_D2I_SSL_SESSION, 0), "d2i_SSL_SESSION"},
     {ERR_PACK(ERR_LIB_SSL, SSL_F_DANE_CTX_ENABLE, 0), "dane_ctx_enable"},
     {ERR_PACK(ERR_LIB_SSL, SSL_F_DANE_MTYPE_SET, 0), "dane_mtype_set"},

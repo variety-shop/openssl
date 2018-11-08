@@ -489,6 +489,7 @@ our %disabled = ( # "what"         => "comment"
 		  "tls1"                => "akamai-default",
 		  "tls1_1"              => "akamai-default",
 		  "tls1_2"              => "akamai-default",
+		  "tls1_3"              => "akamai-default",
                   "ubsan"               => "default",
                   "unit-test"           => "default",
                   "weak-ssl-ciphers"    => "default",

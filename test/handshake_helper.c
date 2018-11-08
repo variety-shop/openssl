@@ -817,6 +817,54 @@ static void do_handshake_step(PEER *peer)
     }
 }
 
+#ifndef OPENSSL_NO_AKAMAI
+static void do_serialize_app_data_step(const SSL_TEST_CTX *test_ctx, PEER *peer)
+{
+    if (SSL_is_init_finished(peer->ssl) &&
+        ((SSL_is_server(peer->ssl) && test_ctx->serialize == SSL_TEST_SERIALIZE_SERVER)
+         || (!SSL_is_server(peer->ssl) && test_ctx->serialize == SSL_TEST_SERIALIZE_CLIENT))) {
+        int serial_len;
+        unsigned char *serial_data = NULL;
+        unsigned char *original_data = NULL;
+        SSL_CTX *ctx = SSL_get_SSL_CTX(peer->ssl);
+        SSL *new = NULL;
+        BIO* wbio;
+        BIO* rbio;
+
+        /* 1<<14 ~ SESSION_PEER_BIT */
+        serial_len = i2d_SSL_AKAMAI(peer->ssl, &serial_data, (1<<14));
+        if (!TEST_int_gt(serial_len, 0)) {
+            peer->status = PEER_ERROR;
+            return;
+        }
+
+        original_data = serial_data;
+        new = d2i_SSL_AKAMAI(NULL, ctx, (const unsigned char**)&serial_data, serial_len);
+        OPENSSL_free(original_data);
+        if (!TEST_ptr(new)) {
+            peer->status = PEER_ERROR;
+            return;
+        }
+
+        wbio = SSL_get_wbio(peer->ssl);
+        BIO_up_ref(wbio);
+        rbio = SSL_get_rbio(peer->ssl);
+        BIO_up_ref(rbio);
+        SSL_set_bio(new, rbio, wbio);
+        /* Serialization does not handle callbacks */
+        SSL_set_info_callback(new, &info_cb);
+        /* Serialization does not handle EX_DATA */
+        if (!SSL_set_ex_data(new, ex_data_idx, SSL_get_ex_data(peer->ssl, ex_data_idx))) {
+            peer->status = PEER_ERROR;
+            return;
+        }
+        SSL_free(peer->ssl);
+        peer->ssl = new;
+    }
+    peer->status = PEER_SUCCESS;
+}
+#endif
+
 /*-
  * Send/receive some application data. The read-write sequence is
  * Peer A: (R) W - first read will yield no data
@@ -1146,11 +1194,26 @@ typedef enum {
     RENEG_APPLICATION_DATA,
     RENEG_SETUP,
     RENEG_HANDSHAKE,
+#ifndef OPENSSL_NO_AKAMAI
+    SERIALIZE_APPLICATION_DATA,
+#endif
     APPLICATION_DATA,
     SHUTDOWN,
     CONNECTION_DONE
 } connect_phase_t;
 
+#ifndef OPENSSL_NO_AKAMAI
+static int serialize_op(const SSL_TEST_CTX *test_ctx)
+{
+    switch (test_ctx->serialize) {
+    case SSL_TEST_SERIALIZE_SERVER:
+    case SSL_TEST_SERIALIZE_CLIENT:
+        return 1;
+    default:
+        return 0;
+    }
+}
+#endif
 
 static int renegotiate_op(const SSL_TEST_CTX *test_ctx)
 {
@@ -1179,6 +1242,10 @@ static connect_phase_t next_phase(const SSL_TEST_CTX *test_ctx,
 {
     switch (phase) {
     case HANDSHAKE:
+#ifndef OPENSSL_NO_AKAMAI
+        if (serialize_op(test_ctx))
+            return SERIALIZE_APPLICATION_DATA;
+#endif
         if (renegotiate_op(test_ctx) || post_handshake_op(test_ctx))
             return RENEG_APPLICATION_DATA;
         return APPLICATION_DATA;
@@ -1190,6 +1257,12 @@ static connect_phase_t next_phase(const SSL_TEST_CTX *test_ctx,
         return RENEG_HANDSHAKE;
     case RENEG_HANDSHAKE:
         return APPLICATION_DATA;
+#ifndef OPENSSL_NO_AKAMAI
+    case SERIALIZE_APPLICATION_DATA:
+        if (renegotiate_op(test_ctx) || post_handshake_op(test_ctx))
+            return RENEG_APPLICATION_DATA;
+        return APPLICATION_DATA;
+#endif
     case APPLICATION_DATA:
         return SHUTDOWN;
     case SHUTDOWN:
@@ -1216,6 +1289,9 @@ static void do_connect_step(const SSL_TEST_CTX *test_ctx, PEER *peer,
         break;
     case RENEG_HANDSHAKE:
         do_handshake_step(peer);
+        break;
+    case SERIALIZE_APPLICATION_DATA:
+        do_serialize_app_data_step(test_ctx, peer);
         break;
     case APPLICATION_DATA:
         do_app_data_step(peer);

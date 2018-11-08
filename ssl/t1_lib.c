@@ -2813,3 +2813,21 @@ uint8_t SSL_SESSION_get_max_fragment_length(const SSL_SESSION *session)
 {
     return session->ext.max_fragment_len_mode;
 }
+
+#ifndef OPENSSL_NO_AKAMAI
+int32_t tls1_akamai_get_peer_sigalg(SSL *s)
+{
+    if (s->s3->tmp.peer_sigalg == NULL)
+        return -1;
+    return s->s3->tmp.peer_sigalg->sigalg;
+}
+
+const SIGALG_LOOKUP *tls1_akamai_lookup_sigalg(int32_t sigalg)
+{
+    if (sigalg == -1)
+        return NULL;
+    if (sigalg == 0)
+        return &legacy_rsa_sigalg;;
+    return tls1_lookup_sigalg((uint16_t)sigalg);
+}
+#endif

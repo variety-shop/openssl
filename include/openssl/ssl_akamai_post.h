@@ -264,6 +264,11 @@ DEPRECATEDIN_1_2_0(int SSL_SESSION_akamai_set1_ticket_appdata(SSL_SESSION *ss, c
 */
 DEPRECATEDIN_1_2_0(int SSL_SESSION_akamai_get_ticket_appdata(SSL_SESSION *ss, void *data, int len))
 
+/* SSL* serialization */
+__owur int i2d_SSL_AKAMAI(SSL *in, unsigned char **pp, uint64_t options);
+__owur SSL *d2i_SSL_AKAMAI(SSL **a, SSL_CTX* ctx, const unsigned char **pp,
+                           long length);
+
 #  ifdef  __cplusplus
 }
 #  endif
