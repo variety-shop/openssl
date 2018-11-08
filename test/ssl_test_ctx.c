@@ -366,6 +366,31 @@ IMPLEMENT_SSL_TEST_STRING_OPTION(SSL_TEST_SERVER_CONF, server, srp_password)
 IMPLEMENT_SSL_TEST_STRING_OPTION(SSL_TEST_CTX, test, expected_session_ticket_app_data)
 IMPLEMENT_SSL_TEST_STRING_OPTION(SSL_TEST_SERVER_CONF, server, session_ticket_app_data)
 
+#ifndef OPENSSL_NO_AKAMAI
+/* Serialize */
+static const test_enum ssl_serialize[] = {
+    {"None", SSL_TEST_SERIALIZE_NONE},
+    {"Server", SSL_TEST_SERIALIZE_SERVER},
+    {"Client", SSL_TEST_SERIALIZE_CLIENT},
+};
+
+__owur static int parse_test_serialize(SSL_TEST_CTX *test_ctx, const char *value)
+{
+    int ret_value;
+    if (!parse_enum(ssl_serialize, OSSL_NELEM(ssl_serialize),
+                    &ret_value, value)) {
+        return 0;
+    }
+    test_ctx->serialize = ret_value;
+    return 1;
+}
+
+const char *ssl_serialize_name(ssl_serialize_t mode)
+{
+    return enum_name(ssl_serialize, OSSL_NELEM(ssl_serialize),
+                     mode);
+}
+#endif
 /* Handshake mode */
 
 static const test_enum ssl_handshake_modes[] = {
@@ -675,6 +700,9 @@ static const ssl_test_ctx_option ssl_test_ctx_options[] = {
     { "EnableServerSCTPLabelBug", &parse_test_enable_server_sctp_label_bug },
     { "ExpectedCipher", &parse_test_expected_cipher },
     { "ExpectedSessionTicketAppData", &parse_test_expected_session_ticket_app_data },
+#ifndef OPENSSL_NO_AKAMAI
+    { "Serialize", &parse_test_serialize },
+#endif
 };
 
 /* Nested client options. */

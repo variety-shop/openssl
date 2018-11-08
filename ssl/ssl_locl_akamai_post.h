@@ -108,4 +108,8 @@ void ssl_akamai_fixup_ciphers(void);
 
 void SSL_SESSION_copy_remote_addr(SSL_SESSION *ss, SSL *s);
 
+__owur int tls13_deserialize_cipher_state(SSL *s, int which);
+__owur int32_t tls1_akamai_get_peer_sigalg(SSL *s);
+__owur const SIGALG_LOOKUP *tls1_akamai_lookup_sigalg(int32_t sigalg);
+
 #endif /* HEADER_SSL_LOCL_AKAMAI_POST_H */

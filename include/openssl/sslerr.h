@@ -34,6 +34,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_CT_STRICT                                  349
 # define SSL_F_CUSTOM_EXT_ADD                             554
 # define SSL_F_CUSTOM_EXT_PARSE                           555
+# define SSL_F_D2I_SSL_AKAMAI                             4091
 # define SSL_F_D2I_SSL_SESSION                            103
 # define SSL_F_DANE_CTX_ENABLE                            347
 # define SSL_F_DANE_MTYPE_SET                             393
@@ -158,15 +159,15 @@ int ERR_load_SSL_strings(void);
 # define SSL_F_SSL_CTX_SET_ALPN_PROTOS                    343
 # define SSL_F_SSL_CTX_SET_CIPHER_LIST                    269
 # define SSL_F_SSL_CTX_SET_CLIENT_CERT_ENGINE             290
-# define SSL_F_SSL_CTX_SET_CLIENT_SESSION_CACHE          4088
+# define SSL_F_SSL_CTX_SET_CLIENT_SESSION_CACHE           4088
 # define SSL_F_SSL_CTX_SET_CT_VALIDATION_CALLBACK         396
 # define SSL_F_SSL_CTX_SET_SESSION_ID_CONTEXT             219
 # define SSL_F_SSL_CTX_SET_SSL_VERSION                    170
 # define SSL_F_SSL_CTX_SET_TLSEXT_MAX_FRAGMENT_LENGTH     551
 # define SSL_F_SSL_CTX_USE_CERTIFICATE                    171
 # define SSL_F_SSL_CTX_USE_CERTIFICATE_ASN1               172
-# define SSL_F_SSL_CTX_USE_CERTIFICATE_CHAIN_BIO         4087
-# define SSL_F_SSL_CTX_USE_CERTIFICATE_CHAIN_MEM         4086
+# define SSL_F_SSL_CTX_USE_CERTIFICATE_CHAIN_BIO          4087
+# define SSL_F_SSL_CTX_USE_CERTIFICATE_CHAIN_MEM          4086
 # define SSL_F_SSL_CTX_USE_CERTIFICATE_FILE               173
 # define SSL_F_SSL_CTX_USE_PRIVATEKEY                     174
 # define SSL_F_SSL_CTX_USE_PRIVATEKEY_ASN1                175
