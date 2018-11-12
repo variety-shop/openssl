@@ -1599,9 +1599,11 @@ int main(int argc, char *argv[])
                 "Skipping tests.\n");
         ret = 0;
 #ifndef OPENSSL_NO_AKAMAI
+#ifdef OPENSSL_FIPS
         /* in fips mode we need to error out for ssl2 and ssl3 even if disabled */
         if (fips_mode && (ssl3 || ssl2))
             ret = 1;
+#endif /* OPENSSL_FIPS */
 #endif /* OPENSSL_NO_AKAMAI */
         goto end;
     }
