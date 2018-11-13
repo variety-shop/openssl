@@ -134,7 +134,7 @@
 # define tsan_load(ptr) (*(ptr))
 # define tsan_store(ptr, val) (*(ptr) = (val))
 # define tsan_counter(ptr) ((*(ptr))++)
-# define tsan_decr(ptr) ((*(ptr))--)
+# define tsan_counter(ptr) ((*(ptr))--)
 /*
  * Lack of tsan_ld_acq and tsan_ld_rel means that compiler support is not
  * sophisticated enough to support them. Code that relies on them should be
