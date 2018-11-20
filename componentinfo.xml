@@ -1,7 +1,7 @@
 <?xml version="1.0" standalone="no"?>
 <!DOCTYPE componentinfo SYSTEM "componentinfo-1.2.dtd">
 <componentinfo version="1.2">
-  <component name="openssl" version="7.110.9.0">
+  <component name="openssl" version="7.110.10.0">
 
     <bundle name="openssl.tgz" os="windows" type="software">
       <file source="dll_lib32/libcrypto.dll_lib" target="/usr/local/akamai/lib/libcrypto.dll"/>
