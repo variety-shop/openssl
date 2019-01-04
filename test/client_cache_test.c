@@ -11,8 +11,13 @@
  * - Caching of IPv4/IPv6 server addresses for client connections
  */
 
-#define _BSD_SOURCE 1		/* Or gethostname won't be declared properly
-                                    on Linux and GNU platforms. */
+/* Or gethostname won't be declared properly on Linux and GNU platforms. */
+#ifndef _BSD_SOURCE
+# define _BSD_SOURCE 1
+#endif
+#ifndef _DEFAULT_SOURCE
+# define _DEFAULT_SOURCE 1
+#endif
 
 #include <assert.h>
 #include <errno.h>
