@@ -1,7 +1,7 @@
 <?xml version="1.0" standalone="no"?>
 <!DOCTYPE componentinfo SYSTEM "componentinfo-1.2.dtd">
 <componentinfo version="1.2">
-  <component name="openssl" version="7.102.17.0">
+  <component name="openssl" version="7.102.17.1">
 
     <bundle name="openssl.tgz" os="windows" type="software">
       <file source="dll_lib32/libeay32.dll_lib" target="/usr/local/akamai/lib/libeay32.dll"/>
