@@ -34,6 +34,12 @@ my $no_asm_filler="::::::::::::::::::void";
 #alsi9-64
 "akamai-linux-x86_64-alsi9",	"gcc:-m64 -DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -Wall -march=opteron -mno-3dnow -DMD32_REG_T=int::-D_REENTRANT::-ldl -lpthread:SIXTY_FOUR_BIT_LONG RC4_CHUNK BF_PTR2 DES_INT DES_UNROLL:${x86_64_asm}:elf:dlfcn:linux-shared:-fPIC:-m64:.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
 
+#btf-64
+"akamai-linux-x86_64-btf",       "gcc:-m64 -DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -Wall -march=opteron -mno-3dnow -DMD32_REG_T=int::-D_REENTRANT::-ldl -lpthread:SIXTY_FOUR_BIT_LONG RC4_CHUNK BF_PTR2 DES_INT DES_UNROLL:${x86_64_asm}:elf:dlfcn:linux-shared:-fPIC:-m64:.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+
+#btf
+"akamai-linux-i686-btf",     "gcc:-m32 -DL_ENDIAN -DPTHREADS -D_GNU_SOURCE -O3 -ggdb -march=opteron -mno-3dnow -Wall::-D_REENTRANT::-ldl -lpthread:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+
 #Windows - overrides values in Configurations
 
 #Upstream VC-WIN64A modified to use ${no_asm_filler}

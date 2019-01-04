@@ -60,6 +60,14 @@ endif # ifndef AKAMAKE-DARWIN-BUILD
 
 else # ifneq ($(filter debug,$(MAKECMDGOALS)),)
 
+ifneq (, $(findstring $(BTF_MATCH), $(BUILDENV.OS)))
+ifdef AKAMAKE-LINUX-BUILD-64
+$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-x86_64-btf
+else # AKAMAKE-LINUX-BUILD-64
+$P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) akamai-linux-i686-btf
+endif # AKAMAKE-LINUX-BUILD-64
+else # ifneq (, $(findstring $(BTF_MATCH), $(BUILDENV.OS)))
+
 ifdef AKAMAKE-DARWIN-BUILD
 ifeq ($(KERNEL_BITS),64)
 $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) darwin64-x86_64-cc
@@ -67,6 +75,8 @@ else # ifeq ($(KERNEL_BITS),64)
 $P/configure.ts : $P/CONFIGFLAGS := $($P/CONFIGFLAGS) darwin-i386-cc
 endif # ifeq ($(KERNEL_BITS),64)
 endif # ifdef AKAMAKE-DARWIN-BUILD
+
+endif # ifneq (, $(findstring $(BTF_MATCH), $(BUILDENV.OS)))
 
 endif # ifneq ($(filter debug,$(MAKECMDGOALS)),)
 endif # ifneq ($(filter ccmalloc,$(MAKECMDGOALS)),)
