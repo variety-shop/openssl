@@ -3880,6 +3880,119 @@ static int test_set_cipher_list(void)
                 goto end;
         }
     }
+    SSL_CTX_free(ctx);
+    ctx = NULL;
+
+    /* Test the actual API: TLSv1.3 ciphers only, Akamai API first */
+    if (!TEST_ptr((ctx = SSL_CTX_new(TLS_method()))))
+        goto end;
+    /* Add no preferred/must-have ciphers */
+    if (!TEST_true(SSL_CTX_akamai_set_cipher_list(ctx, "", "")))
+        goto end;
+    if (!TEST_true(SSL_CTX_set_ciphersuites(ctx, "TLS_AES_256_GCM_SHA384:TLS_AES_128_GCM_SHA256")))
+        goto end;
+    /* Preferred ciphers include TLSv1.3 ciphers */
+    if (!TEST_int_eq(SSL_CTX_akamai_get_preferred_cipher_count(ctx), 2))
+        goto end;
+    if (!TEST_ptr((ciphers = SSL_CTX_get_ciphers(ctx))))
+        goto end;
+    /* With 2 TLSv1.3 ciphers, and 0 TLSv1.2 ciphers, there should be 2 ciphers */
+    if (!TEST_int_eq(sk_SSL_CIPHER_num(ciphers), 2))
+        goto end;
+
+    for (i = 0; i < sk_SSL_CIPHER_num(ciphers); i++) {
+        const SSL_CIPHER *c = sk_SSL_CIPHER_value(ciphers, i);
+
+        switch (i) {
+            case 0:
+                if (!TEST_str_eq(SSL_CIPHER_get_name(c), "TLS_AES_256_GCM_SHA384"))
+                    goto end;
+                break;
+            case 1:
+                if (!TEST_str_eq(SSL_CIPHER_get_name(c), "TLS_AES_128_GCM_SHA256"))
+                    goto end;
+                break;
+            default:
+                TEST_int_lt(i, 2);
+                goto end;
+        }
+    }
+    SSL_CTX_free(ctx);
+    ctx = NULL;
+
+    /* Test the actual API: TLSv1.3 ciphers only, Akamai API second */
+    if (!TEST_ptr((ctx = SSL_CTX_new(TLS_method()))))
+        goto end;
+    if (!TEST_true(SSL_CTX_set_ciphersuites(ctx, "TLS_AES_256_GCM_SHA384:TLS_AES_128_GCM_SHA256")))
+        goto end;
+    /* Add no preferred/must-have ciphers */
+    if (!TEST_true(SSL_CTX_akamai_set_cipher_list(ctx, "", "")))
+        goto end;
+    /* Preferred ciphers include TLSv1.3 ciphers */
+    if (!TEST_int_eq(SSL_CTX_akamai_get_preferred_cipher_count(ctx), 2))
+        goto end;
+    if (!TEST_ptr((ciphers = SSL_CTX_get_ciphers(ctx))))
+        goto end;
+    /* With 2 TLSv1.3 ciphers, and 0 TLSv1.2 ciphers, there should be 2 ciphers */
+    if (!TEST_int_eq(sk_SSL_CIPHER_num(ciphers), 2))
+        goto end;
+
+    for (i = 0; i < sk_SSL_CIPHER_num(ciphers); i++) {
+        const SSL_CIPHER *c = sk_SSL_CIPHER_value(ciphers, i);
+
+        switch (i) {
+            case 0:
+                if (!TEST_str_eq(SSL_CIPHER_get_name(c), "TLS_AES_256_GCM_SHA384"))
+                    goto end;
+                break;
+            case 1:
+                if (!TEST_str_eq(SSL_CIPHER_get_name(c), "TLS_AES_128_GCM_SHA256"))
+                    goto end;
+                break;
+            default:
+                TEST_int_lt(i, 2);
+                goto end;
+        }
+    }
+    SSL_CTX_free(ctx);
+    ctx = NULL;
+
+    /* Test the actual API: No ciphers, Akamai API first */
+    if (!TEST_ptr((ctx = SSL_CTX_new(TLS_method()))))
+        goto end;
+    /* Add no preferred/must-have ciphers */
+    if (!TEST_true(SSL_CTX_akamai_set_cipher_list(ctx, "", "")))
+        goto end;
+    if (!TEST_true(SSL_CTX_set_ciphersuites(ctx, "")))
+        goto end;
+    /* Preferred ciphers include TLSv1.3 ciphers */
+    if (!TEST_int_eq(SSL_CTX_akamai_get_preferred_cipher_count(ctx), 0))
+        goto end;
+    if (!TEST_ptr((ciphers = SSL_CTX_get_ciphers(ctx))))
+        goto end;
+    /* With 0 TLSv1.3 ciphers, and 0 TLSv1.2 ciphers, there should be 0 ciphers */
+    if (!TEST_int_eq(sk_SSL_CIPHER_num(ciphers), 0))
+        goto end;
+    SSL_CTX_free(ctx);
+    ctx = NULL;
+
+    /* Test the actual API: No ciphers, Akamai API second */
+    if (!TEST_ptr((ctx = SSL_CTX_new(TLS_method()))))
+        goto end;
+    if (!TEST_true(SSL_CTX_set_ciphersuites(ctx, "")))
+        goto end;
+    /* Add no preferred/must-have ciphers */
+    if (!TEST_true(SSL_CTX_akamai_set_cipher_list(ctx, "", "")))
+        goto end;
+    /* Preferred ciphers include TLSv1.3 ciphers */
+    if (!TEST_int_eq(SSL_CTX_akamai_get_preferred_cipher_count(ctx), 0))
+        goto end;
+    if (!TEST_ptr((ciphers = SSL_CTX_get_ciphers(ctx))))
+        goto end;
+    /* With 0 TLSv1.3 ciphers, and 0 TLSv1.2 ciphers, there should be 0 ciphers */
+    if (!TEST_int_eq(sk_SSL_CIPHER_num(ciphers), 0))
+        goto end;
+
 # endif /* OPENSSL_NO_EC */
 #endif /* OPENSSL_NO_AES */
     ret = 1;

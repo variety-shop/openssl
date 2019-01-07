@@ -740,20 +740,16 @@ static int ssl_akamai_set_cipher_list_helper(SSL* ssl, SSL_CTX* ctx,
         tls13_ciphersuites = ctx->tls13_ciphersuites;
 
     /* CREATE THE PREFERRED LIST */
-    if (pref == NULL || *pref == 0) {
-        /* allow for an empty list */
-        sk_pref = sk_SSL_CIPHER_new_null();
-        if (sk_pref == NULL)
-            goto err;
-    } else {
-        sk = ssl_create_cipher_list(ctx->method, tls13_ciphersuites,
-                                    &sk_pref, &sk_tmp, pref, ctx->cert);
-        if (sk == NULL)
-            goto err;
-        sk_SSL_CIPHER_free(sk_tmp);
-        sk_tmp = NULL;
-        sk_pref_len = sk_SSL_CIPHER_num(sk_pref);
-    }
+    if (pref == NULL)
+        pref = "";
+
+    sk = ssl_create_cipher_list(ctx->method, tls13_ciphersuites,
+                                &sk_pref, &sk_tmp, pref, ctx->cert);
+    if (sk == NULL)
+        goto err;
+    sk_SSL_CIPHER_free(sk_tmp);
+    sk_tmp = NULL;
+    sk_pref_len = sk_SSL_CIPHER_num(sk_pref);
 
     /* CREATE THE MUST-HAVE LIST */
     if (must == NULL || *must == 0) {
@@ -762,7 +758,7 @@ static int ssl_akamai_set_cipher_list_helper(SSL* ssl, SSL_CTX* ctx,
         if (sk_must == NULL)
             goto err;
     } else {
-        sk = ssl_create_cipher_list(ctx->method, ctx->tls13_ciphersuites,
+        sk = ssl_create_cipher_list(ctx->method, tls13_ciphersuites,
                                     &sk_must, &sk_tmp, must, ctx->cert);
         if (sk == NULL)
             goto err;
