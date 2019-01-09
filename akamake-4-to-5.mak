@@ -30,3 +30,7 @@ endif
 ifndef always-include-if-exist
 always-include-if-exist=$(eval -include $1)
 endif
+
+ifndef always-include
+always-include=$(eval include $1)
+endif
