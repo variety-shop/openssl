@@ -17,7 +17,7 @@ M := NO-OP
 
 $P/$M-DEP-COMP := openssl-fips
 
-$(call assert_min_version,openssl-fips,2.0.16)
+$(call assert_min_version,openssl-fips,2.0.16.1)
 
 $P/$M-3RD-PARTY := $P/no-op
 
