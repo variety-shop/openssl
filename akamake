@@ -47,7 +47,7 @@ export LD_LIBRARY_PATH
 ifndef MASTER
 # Compiling OpenSSL as the master/standalone mode
 
-$(call assert_min_version,Akamake,5.0.6)
+$(call assert_min_version,Akamake,5.0.13)
 
 # We are setting to "all", so just set it, ignoring build_crypto
 $P/OPENSSL-TARGET := all
