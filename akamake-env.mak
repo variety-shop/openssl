@@ -5,7 +5,9 @@ $P/configure.ts : CFLAGS += $(filter %=64,-D_FILE_OFFSET_BITS=$(BUILDENV.FILE_OF
 
 # CONFIGURE PROFILE: these are mutually-exclusive
 
-ifdef AKAMAKE-LINUX-BUILD-64
+ifeq ($(BUILDENV.OS),btf-anaconda)
+$P/configure.ts : $P/BUILDTARGET := btf-anaconda
+else ifdef AKAMAKE-LINUX-BUILD-64
 $P/configure.ts : $P/BUILDTARGET := akamai-alsi-x86_64
 else ifdef AKAMAKE-LINUX-BUILD-32
 $P/configure.ts : $P/BUILDTARGET := akamai-alsi-x86
