@@ -278,10 +278,6 @@ ifeq ($(AKAMAKE-LINUX-BUILD-64),1)
 $P/SHAREDFEATURES := $($P/SHAREDFEATURES) enable-ec_nistp_64_gcc_128
 endif # ifeq ($(AKAMAKE-LINUX-BUILD-64),1)
 
-ifeq ($(AKARELEASE_PLATFORM),btf-anaconda)
-$P/configure.ts : CFLAGS += -fPIC
-endif # ifeq ($(AKARELEASE_PLATFORM),btf-anaconda)
-
 ifdef GCOV
 $P/configure.ts : CFLAGS += -ftest-coverage -fprofile-arcs
 endif # ifdef GCOV
