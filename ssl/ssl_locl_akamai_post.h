@@ -112,4 +112,8 @@ __owur int tls13_deserialize_cipher_state(SSL *s, int which);
 __owur int32_t tls1_akamai_get_peer_sigalg(SSL *s);
 __owur const SIGALG_LOOKUP *tls1_akamai_lookup_sigalg(int32_t sigalg);
 
+__owur int SSL_SESSION_get_ssl_ctx_akamai_idx(void);
+__owur SSL_CTX *SSL_SESSION_get_ssl_ctx_akamai(SSL_SESSION* ss);
+__owur int SSL_SESSION_set_ssl_ctx_akamai(SSL_SESSION* ss, SSL_CTX* ctx);
+
 #endif /* HEADER_SSL_LOCL_AKAMAI_POST_H */
