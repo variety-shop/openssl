@@ -334,17 +334,17 @@ long SSL_SESSION_set_timeout_update_cache(const SSL *s, long t)
     if (ss == NULL)
         return 0;
 
-    ss->timeout = t;
+    (void)SSL_SESSION_set_timeout(ss, t);
 
     CRYPTO_THREAD_read_lock(s->session_ctx->lock);
     ret = SSL_CTX_SESSION_LIST_get1_session(s->session_ctx, ss);
+    CRYPTO_THREAD_unlock(s->session_ctx->lock);
     if ((ret != NULL) && (ret != ss)) {
         /* our session is a copy of the one in cache */
-        ret->timeout = t;
+        (void)SSL_SESSION_set_timeout(ret, t);
     }
     /* Drop the 'get1' reference. */
     SSL_SESSION_free(ret);
-    CRYPTO_THREAD_unlock(s->session_ctx->lock);
 
     return 1;
 }
