@@ -596,8 +596,8 @@ SSL *d2i_SSL_AKAMAI(SSL **a, SSL_CTX* ctx, const unsigned char **pp,
 
     switch (as->version) {
 #ifndef OPENSSL_NO_DTLS1
-        case DTLS1_BAD_VER
-            if (s->server)
+        case DTLS1_BAD_VER:
+            if (as->server)
                 goto err;
             else
                 meth = dtls_bad_ver_client_method();
