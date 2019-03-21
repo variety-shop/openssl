@@ -147,6 +147,10 @@ for my $index (reverse 0..$#tests) {
         splice(@tests, $index, 1, ());
         next;
     }
+    if ($tests[$index]->{'name'} =~ /DTLS/) {
+        splice(@tests, $index, 1, ());
+        next;
+    }
     if ($tests[$index]->{'name'} eq "client-auth-TLSv1.3-require-post-handshake") {
         splice(@tests, $index, 1, ());
         next;
