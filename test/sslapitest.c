@@ -6822,6 +6822,119 @@ static int test_ca_names(int tst)
     return testresult;
 }
 
+static int test_session_timeout(int test)
+{
+    /* 
+     * Test session ordering and timeout
+     * Can't explicitly test performance of the new code,
+     * but can test to see if the ordering of the sessions
+     * are correct, and they they are removed as expected
+     */
+    SSL_SESSION *early = NULL;
+    SSL_SESSION *middle = NULL;
+    SSL_SESSION *late = NULL;
+    SSL_CTX *ctx;
+    int testresult = 0;
+    long now = (long)time(NULL);
+#define TIMEOUT 10
+
+    if (!TEST_ptr(ctx = SSL_CTX_new(TLS_method()))
+        || !TEST_ptr(early = SSL_SESSION_new())
+        || !TEST_ptr(middle = SSL_SESSION_new())
+        || !TEST_ptr(late = SSL_SESSION_new()))
+        goto end;
+
+    /* assign unique session ids */
+    early->session_id_length = SSL3_SSL_SESSION_ID_LENGTH;
+    memset(early->session_id, 1, SSL3_SSL_SESSION_ID_LENGTH);
+    middle->session_id_length = SSL3_SSL_SESSION_ID_LENGTH;
+    memset(middle->session_id, 2, SSL3_SSL_SESSION_ID_LENGTH);
+    late->session_id_length = SSL3_SSL_SESSION_ID_LENGTH;
+    memset(late->session_id, 3, SSL3_SSL_SESSION_ID_LENGTH);
+
+    if (!TEST_int_eq(SSL_CTX_add_session(ctx, early), 1)
+        || !TEST_int_eq(SSL_CTX_add_session(ctx, middle), 1)
+        || !TEST_int_eq(SSL_CTX_add_session(ctx, late), 1))
+        goto end;
+
+    /* Make sure they are all added */
+    if (!TEST_ptr(early->prev)
+        || !TEST_ptr(middle->prev)
+        || !TEST_ptr(late->prev))
+        goto end;
+
+    if (!TEST_int_ne(SSL_SESSION_set_time(early, now - 10), 0)
+        || !TEST_int_ne(SSL_SESSION_set_time(middle, now), 0)
+        || !TEST_int_ne(SSL_SESSION_set_time(late, now + 10), 0))
+        goto end;
+
+    if (!TEST_int_ne(SSL_SESSION_set_timeout(early, TIMEOUT), 0)
+        || !TEST_int_ne(SSL_SESSION_set_timeout(middle, TIMEOUT), 0)
+        || !TEST_int_ne(SSL_SESSION_set_timeout(late, TIMEOUT), 0))
+        goto end;
+
+    /* Make sure they are all still there */
+    if (!TEST_ptr(early->prev)
+        || !TEST_ptr(middle->prev)
+        || !TEST_ptr(late->prev))
+        goto end;
+
+    /* Make sure they are in the expected order */
+    if (!TEST_ptr_eq(late->next, middle)
+        || !TEST_ptr_eq(middle->next, early)
+        || !TEST_ptr_eq(early->prev, middle)
+        || !TEST_ptr_eq(middle->prev, late))
+        goto end;
+    
+    /* This should remove "early" */
+    SSL_CTX_flush_sessions(ctx, now + TIMEOUT - 1);
+    if (!TEST_ptr_null(early->prev)
+        || !TEST_ptr(middle->prev)
+        || !TEST_ptr(late->prev))
+        goto end;
+
+    /* This should remove "middle" */
+    SSL_CTX_flush_sessions(ctx, now + TIMEOUT + 1);
+    if (!TEST_ptr_null(early->prev)
+        || !TEST_ptr_null(middle->prev)
+        || !TEST_ptr(late->prev))
+        goto end;
+
+    /* This should remove "late" */
+    SSL_CTX_flush_sessions(ctx, now + TIMEOUT + 11);
+    if (!TEST_ptr_null(early->prev)
+        || !TEST_ptr_null(middle->prev)
+        || !TEST_ptr_null(late->prev))
+        goto end;
+
+    /* Add them back in again */
+    if (!TEST_int_eq(SSL_CTX_add_session(ctx, early), 1)
+        || !TEST_int_eq(SSL_CTX_add_session(ctx, middle), 1)
+        || !TEST_int_eq(SSL_CTX_add_session(ctx, late), 1))
+        goto end;
+
+    /* Make sure they are all added */
+    if (!TEST_ptr(early->prev)
+        || !TEST_ptr(middle->prev)
+        || !TEST_ptr(late->prev))
+        goto end;
+
+    /* This should remove all of them */
+    SSL_CTX_flush_sessions(ctx, 0);
+    if (!TEST_ptr_null(early->prev)
+        || !TEST_ptr_null(middle->prev)
+        || !TEST_ptr_null(late->prev))
+        goto end;
+
+    testresult = 1;
+ end:
+    SSL_CTX_free(ctx);
+    SSL_SESSION_free(early);
+    SSL_SESSION_free(middle);
+    SSL_SESSION_free(late);
+    return testresult;
+}
+
 
 OPT_TEST_DECLARE_USAGE("certfile privkeyfile srpvfile tmpfile\n")
 
@@ -6970,6 +7083,7 @@ int setup_tests(void)
     ADD_ALL_TESTS(test_cert_cb, 6);
     ADD_ALL_TESTS(test_client_cert_cb, 2);
     ADD_ALL_TESTS(test_ca_names, 3);
+    ADD_ALL_TESTS(test_session_timeout, 1);
     return 1;
 }
 

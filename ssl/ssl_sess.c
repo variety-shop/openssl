@@ -20,6 +20,8 @@ static void SSL_SESSION_list_remove(SSL_CTX *ctx, SSL_SESSION *s);
 static void SSL_SESSION_list_add(SSL_CTX *ctx, SSL_SESSION *s);
 static int remove_session_lock(SSL_CTX *ctx, SSL_SESSION *c, int lck);
 
+#define SESS_TIMEOUT(s) ((s)->time + (s)->timeout)
+
 /*
  * SSL_get_session() and SSL_get1_session() are problematic in TLS1.3 because,
  * unlike in earlier protocol versions, the session ticket may not have been
@@ -78,7 +80,7 @@ SSL_SESSION *SSL_SESSION_new(void)
     ss->verify_result = 1;      /* avoid 0 (= X509_V_OK) just in case */
     ss->references = 1;
     ss->timeout = 60 * 5 + 4;   /* 5 minute timeout by default */
-    ss->time = (unsigned long)time(NULL);
+    ss->time = (long)time(NULL);
     ss->lock = CRYPTO_THREAD_lock_new();
     if (ss->lock == NULL) {
         SSLerr(SSL_F_SSL_SESSION_NEW, ERR_R_MALLOC_FAILURE);
@@ -679,9 +681,9 @@ int SSL_CTX_add_session(SSL_CTX *ctx, SSL_SESSION *c)
         s = c;
     }
 
-    /* Put at the head of the queue unless it is already in the cache */
-    if (s == NULL)
-        SSL_SESSION_list_add(ctx, c);
+    /* Adjust last used time, and add back into the cache at the appropriate spot */
+    c->time = (long)time(NULL);
+    SSL_SESSION_list_add(ctx, c);
 
     if (s != NULL) {
         /*
@@ -825,7 +827,14 @@ long SSL_SESSION_set_timeout(SSL_SESSION *s, long t)
 {
     if (s == NULL)
         return 0;
-    s->timeout = t;
+    if (s->timeout != t) {
+        s->timeout = t;
+        if (s->owner != NULL) {
+            CRYPTO_THREAD_write_lock(s->owner->lock);
+            SSL_SESSION_list_add(s->owner, s);
+            CRYPTO_THREAD_unlock(s->owner->lock);
+        }
+    }
     return 1;
 }
 
@@ -847,7 +856,14 @@ long SSL_SESSION_set_time(SSL_SESSION *s, long t)
 {
     if (s == NULL)
         return 0;
-    s->time = t;
+    if (s->time != t) {
+        s->time = t;
+        if (s->owner != NULL) {
+            CRYPTO_THREAD_write_lock(s->owner->lock);
+            SSL_SESSION_list_add(s->owner, s);
+            CRYPTO_THREAD_unlock(s->owner->lock);
+        }
+    }
     return t;
 }
 
@@ -1042,46 +1058,47 @@ int SSL_set_session_ticket_ext(SSL *s, void *ext_data, int ext_len)
     return 0;
 }
 
-typedef struct timeout_param_st {
-    SSL_CTX *ctx;
-    long time;
-    LHASH_OF(SSL_SESSION) *cache;
-} TIMEOUT_PARAM;
-
-static void timeout_cb(SSL_SESSION *s, TIMEOUT_PARAM *p)
-{
-    if ((p->time == 0) || (p->time > (s->time + s->timeout))) { /* timeout */
-        /*
-         * The reason we don't call SSL_CTX_remove_session() is to save on
-         * locking overhead
-         */
-        (void)lh_SSL_SESSION_delete(p->cache, s);
-        SSL_SESSION_list_remove(p->ctx, s);
-        s->not_resumable = 1;
-        if (p->ctx->remove_session_cb != NULL)
-            p->ctx->remove_session_cb(p->ctx, s);
-        SSL_SESSION_free(s);
-    }
-}
-
-IMPLEMENT_LHASH_DOALL_ARG(SSL_SESSION, TIMEOUT_PARAM);
-
 void SSL_CTX_flush_sessions(SSL_CTX *s, long t)
 {
+    SSL_SESSION *list = NULL;
+    SSL_SESSION *current;
     unsigned long i;
-    TIMEOUT_PARAM tp;
 
-    tp.ctx = s;
-    tp.cache = s->sessions;
-    if (tp.cache == NULL)
-        return;
-    tp.time = t;
     CRYPTO_THREAD_write_lock(s->lock);
     i = lh_SSL_SESSION_get_down_load(s->sessions);
     lh_SSL_SESSION_set_down_load(s->sessions, 0);
-    lh_SSL_SESSION_doall_TIMEOUT_PARAM(tp.cache, timeout_cb, &tp);
+
+    /*
+     * Iterate over the list from the back (oldest), and stop
+     * when a session can no longer be removed.
+     * Add the session to a temporary list to be freed outside
+     * the SSL_CTX lock.
+     * But still do the remove_session_cb() within the lock.
+     */
+    while (s->session_cache_tail != NULL) {
+        current = s->session_cache_tail;
+        if (t == 0 || t > SESS_TIMEOUT(current)) {
+            lh_SSL_SESSION_delete(s->sessions, current);
+            SSL_SESSION_list_remove(s, current);
+            current->not_resumable = 1;
+            if (s->remove_session_cb != NULL)
+                s->remove_session_cb(s, current);
+            current->next = list;
+            list = current;
+        } else {
+            break;
+        }
+    }
+
     lh_SSL_SESSION_set_down_load(s->sessions, i);
     CRYPTO_THREAD_unlock(s->lock);
+
+    while (list != NULL) {
+        current = list;
+        list = current->next;
+        current->next = NULL;
+        SSL_SESSION_free(current);
+    }
 }
 
 int ssl_clear_bad_session(SSL *s)
@@ -1123,10 +1140,14 @@ static void SSL_SESSION_list_remove(SSL_CTX *ctx, SSL_SESSION *s)
         }
     }
     s->prev = s->next = NULL;
+    s->owner = NULL;
 }
 
 static void SSL_SESSION_list_add(SSL_CTX *ctx, SSL_SESSION *s)
 {
+    SSL_SESSION *next;
+    long t;
+
     if ((s->next != NULL) && (s->prev != NULL))
         SSL_SESSION_list_remove(ctx, s);
 
@@ -1136,11 +1157,41 @@ static void SSL_SESSION_list_add(SSL_CTX *ctx, SSL_SESSION *s)
         s->prev = (SSL_SESSION *)&(ctx->session_cache_head);
         s->next = (SSL_SESSION *)&(ctx->session_cache_tail);
     } else {
-        s->next = ctx->session_cache_head;
-        s->next->prev = s;
-        s->prev = (SSL_SESSION *)&(ctx->session_cache_head);
-        ctx->session_cache_head = s;
+        t = SESS_TIMEOUT(s);
+        if (t >= SESS_TIMEOUT(ctx->session_cache_head)) {
+            /*
+             * if we timeout after (or the same time as) the first
+             * session, put us first - usual case
+             */
+            s->next = ctx->session_cache_head;
+            s->next->prev = s;
+            s->prev = (SSL_SESSION *)&(ctx->session_cache_head);
+            ctx->session_cache_head = s;
+        } else if (t < SESS_TIMEOUT(ctx->session_cache_tail)) {
+            /* if we timeout before the last session, put us last */
+            s->prev = ctx->session_cache_tail;
+            s->prev->next = s;
+            s->next = (SSL_SESSION *)&(ctx->session_cache_tail);
+            ctx->session_cache_tail = s;
+        } else {
+            /*
+             * we timeout somewhere in-between - if there is only
+             * one session in the cache it will be caught above
+             */
+            next = ctx->session_cache_head->next;
+            while (next != NULL) {
+                if (t >= SESS_TIMEOUT(next)) {
+                    s->next = next;
+                    s->prev = next->prev;
+                    next->prev->next = s;
+                    next->prev = s;
+                    break;
+                }
+                next = next->next;
+            }
+        }
     }
+    s->owner = ctx;
 }
 
 void SSL_CTX_sess_set_new_cb(SSL_CTX *ctx,
