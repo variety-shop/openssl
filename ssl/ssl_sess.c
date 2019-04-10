@@ -682,7 +682,8 @@ int SSL_CTX_add_session(SSL_CTX *ctx, SSL_SESSION *c)
     }
 
     /* Adjust last used time, and add back into the cache at the appropriate spot */
-    c->time = (long)time(NULL);
+    if (ctx->session_cache_mode & SSL_SESS_CACHE_UPDATE_TIME)
+        c->time = (long)time(NULL);
     SSL_SESSION_list_add(ctx, c);
 
     if (s != NULL) {

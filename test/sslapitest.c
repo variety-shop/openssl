@@ -6824,7 +6824,7 @@ static int test_ca_names(int tst)
 
 static int test_session_timeout(int test)
 {
-    /* 
+    /*
      * Test session ordering and timeout
      * Can't explicitly test performance of the new code,
      * but can test to see if the ordering of the sessions
@@ -6885,7 +6885,7 @@ static int test_session_timeout(int test)
         || !TEST_ptr_eq(early->prev, middle)
         || !TEST_ptr_eq(middle->prev, late))
         goto end;
-    
+
     /* This should remove "early" */
     SSL_CTX_flush_sessions(ctx, now + TIMEOUT - 1);
     if (!TEST_ptr_null(early->prev)
@@ -6924,6 +6924,16 @@ static int test_session_timeout(int test)
     if (!TEST_ptr_null(early->prev)
         || !TEST_ptr_null(middle->prev)
         || !TEST_ptr_null(late->prev))
+        goto end;
+
+    (void)SSL_CTX_set_session_cache_mode(ctx, SSL_SESS_CACHE_UPDATE_TIME
+                                         | SSL_CTX_get_session_cache_mode(ctx));
+
+    /* make sure |now| is NOT  equal to the current time */
+    now -= 10;
+    if (!TEST_int_ne(SSL_SESSION_set_time(early, now), 0)
+        || !TEST_int_eq(SSL_CTX_add_session(ctx, early), 1)
+        || !TEST_long_ne(SSL_SESSION_get_time(early), now))
         goto end;
 
     testresult = 1;
