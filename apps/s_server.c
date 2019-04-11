@@ -2900,7 +2900,7 @@ static void print_connection_info(SSL *con)
 
     PEM_write_bio_SSL_SESSION(bio_s_out, SSL_get_session(con));
 
-    peer = SSL_get_peer_certificate(con);
+    peer = SSL_get1_peer_certificate(con);
     if (peer != NULL) {
         BIO_printf(bio_s_out, "Client certificate\n");
         PEM_write_bio_X509(bio_s_out, peer);
@@ -3226,7 +3226,7 @@ static int www_body(int s, int stype, int prot, unsigned char *context)
             BIO_printf(io, "---\n");
             print_stats(io, SSL_get_SSL_CTX(con));
             BIO_printf(io, "---\n");
-            peer = SSL_get_peer_certificate(con);
+            peer = SSL_get1_peer_certificate(con);
             if (peer != NULL) {
                 BIO_printf(io, "Client certificate\n");
                 X509_print(io, peer);

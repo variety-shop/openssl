@@ -1183,7 +1183,7 @@ void print_ssl_summary(SSL *s)
     c = SSL_get_current_cipher(s);
     BIO_printf(bio_err, "Ciphersuite: %s\n", SSL_CIPHER_get_name(c));
     do_print_sigalgs(bio_err, s, 0);
-    peer = SSL_get_peer_certificate(s);
+    peer = SSL_get1_peer_certificate(s);
     if (peer != NULL) {
         int nid;
 

@@ -1272,7 +1272,7 @@ static int pkey_type(EVP_PKEY *pkey)
 
 static int peer_pkey_type(SSL *s)
 {
-    X509 *x = SSL_get_peer_certificate(s);
+    X509 *x = SSL_get1_peer_certificate(s);
 
     if (x != NULL) {
         int nid = pkey_type(X509_get0_pubkey(x));

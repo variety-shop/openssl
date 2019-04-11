@@ -769,7 +769,7 @@ static void print_details(SSL *c_ssl, const char *prefix)
                prefix,
                SSL_get_version(c_ssl),
                SSL_CIPHER_get_version(ciph), SSL_CIPHER_get_name(ciph));
-    cert = SSL_get_peer_certificate(c_ssl);
+    cert = SSL_get1_peer_certificate(c_ssl);
     if (cert != NULL) {
         EVP_PKEY* pubkey = X509_get0_pubkey(cert);
 

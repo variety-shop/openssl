@@ -3275,7 +3275,7 @@ static void print_stuff(BIO *bio, SSL *s, int full)
         }
 
         BIO_printf(bio, "---\n");
-        peer = SSL_get_peer_certificate(s);
+        peer = SSL_get1_peer_certificate(s);
         if (peer != NULL) {
             BIO_printf(bio, "Server certificate\n");
 
