@@ -209,6 +209,8 @@ typedef int pem_password_cb (char *buf, int size, int rwflag, void *userdata);
 typedef struct ossl_serializer_st OSSL_SERIALIZER;
 typedef struct ossl_serializer_ctx_st OSSL_SERIALIZER_CTX;
 
+typedef struct ssl_quic_method_st SSL_QUIC_METHOD;
+
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L && \
     defined(INTMAX_MAX) && defined(UINTMAX_MAX)
 typedef intmax_t ossl_intmax_t;
