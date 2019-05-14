@@ -47,6 +47,7 @@ int ERR_load_BIO_strings(void);
 #  define BIO_F_BIO_GET_NEW_INDEX                          0
 #  define BIO_F_BIO_GET_PORT                               0
 #  define BIO_F_BIO_LISTEN                                 0
+#  define BIO_F_BIO_LISTEN_SET_TFO                         0
 #  define BIO_F_BIO_LOOKUP                                 0
 #  define BIO_F_BIO_LOOKUP_EX                              0
 #  define BIO_F_BIO_MAKE_PAIR                              0
@@ -114,12 +115,15 @@ int ERR_load_BIO_strings(void);
 # define BIO_R_NO_PORT_DEFINED                            113
 # define BIO_R_NO_SUCH_FILE                               128
 # define BIO_R_NULL_PARAMETER                             115
+# define BIO_R_TFO_DISABLED                               105
+# define BIO_R_TFO_NO_KERNEL_SUPPORT                      106
 # define BIO_R_UNABLE_TO_BIND_SOCKET                      117
 # define BIO_R_UNABLE_TO_CREATE_SOCKET                    118
 # define BIO_R_UNABLE_TO_KEEPALIVE                        137
 # define BIO_R_UNABLE_TO_LISTEN_SOCKET                    119
 # define BIO_R_UNABLE_TO_NODELAY                          138
 # define BIO_R_UNABLE_TO_REUSEADDR                        139
+# define BIO_R_UNABLE_TO_TFO                              104
 # define BIO_R_UNAVAILABLE_IP_FAMILY                      145
 # define BIO_R_UNINITIALIZED                              120
 # define BIO_R_UNKNOWN_INFO_TYPE                          140

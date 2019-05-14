@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include "bio_local.h"
+#include "bio_tfo.h"
 #include "internal/cryptlib.h"
 #include "internal/ktls.h"
 
@@ -52,6 +53,11 @@ static const BIO_METHOD methods_sockp = {
     NULL,                       /* sock_callback_ctrl */
 };
 
+typedef struct bio_sock_data_st {
+    BIO_ADDR peer;
+    int tfo_first;
+} bio_sock_data;
+
 const BIO_METHOD *BIO_s_socket(void)
 {
     return &methods_sockp;
@@ -81,9 +87,10 @@ BIO *BIO_new_socket(int fd, int close_flag)
 
 static int sock_new(BIO *bi)
 {
+    if ((bi->ptr = OPENSSL_zalloc(sizeof(bio_sock_data))) == NULL)
+        return 0;
     bi->init = 0;
     bi->num = 0;
-    bi->ptr = NULL;
     bi->flags = 0;
     return 1;
 }
@@ -99,6 +106,7 @@ static int sock_free(BIO *a)
         a->init = 0;
         a->flags = 0;
     }
+    OPENSSL_free(a->ptr);
     return 1;
 }
 
@@ -126,6 +134,9 @@ static int sock_read(BIO *b, char *out, int outl)
 static int sock_write(BIO *b, const char *in, int inl)
 {
     int ret = 0;
+# if defined(OSSL_TFO_SENDTO)
+    bio_sock_data *data = (bio_sock_data*)b->ptr;
+# endif
 
     clear_socket_error();
 # ifndef OPENSSL_NO_KTLS
@@ -136,6 +147,15 @@ static int sock_write(BIO *b, const char *in, int inl)
             ret = inl;
             BIO_clear_ktls_ctrl_msg_flag(b);
         }
+    } else
+# endif
+# if defined(OSSL_TFO_SENDTO)
+    if (data->tfo_first) {
+        int peerlen = BIO_ADDR_sockaddr_size(&data->peer);
+
+        ret = sendto(b->num, in, inl, OSSL_TFO_SENDTO,
+                     BIO_ADDR_sockaddr(&data->peer), peerlen);
+        data->tfo_first = 0;
     } else
 # endif
         ret = writesocket(b->num, in, inl);
@@ -165,6 +185,8 @@ static long sock_ctrl(BIO *b, int cmd, long num, void *ptr)
         b->num = *((int *)ptr);
         b->shutdown = (int)num;
         b->init = 1;
+        if ((b->ptr = OPENSSL_zalloc(sizeof(bio_sock_data))) == NULL)
+            ret = 0;
         break;
     case BIO_C_GET_FD:
         if (b->init) {
@@ -210,6 +232,28 @@ static long sock_ctrl(BIO *b, int cmd, long num, void *ptr)
         ret = 0;
         break;
 # endif
+    case BIO_C_GET_CONNECT:
+        if (ptr != NULL && num == 2) {
+            bio_sock_data *data = (bio_sock_data*)b->ptr;
+            const char **pptr = (const char **)ptr;
+
+            *pptr = (const char *)&data->peer;
+        } else {
+            ret = 0;
+        }
+        break;
+    case BIO_C_SET_CONNECT:
+        if (ptr != NULL && num == 2) {
+            bio_sock_data *data = (bio_sock_data*)b->ptr;
+
+            ret = BIO_ADDR_make(&data->peer,
+                                BIO_ADDR_sockaddr((const BIO_ADDR*)ptr));
+            if (ret)
+                data->tfo_first = 1;
+        } else {
+            ret = 0;
+        }
+        break;
     default:
         ret = 0;
         break;
