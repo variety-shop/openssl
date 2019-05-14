@@ -20,6 +20,7 @@ typedef struct bio_connect_st {
     char *param_hostname;
     char *param_service;
     int connect_mode;
+    int tfo_first;
 
     BIO_ADDRINFO *addr_first;
     const BIO_ADDRINFO *addr_iter;
@@ -327,7 +328,16 @@ static int conn_write(BIO *b, const char *in, int inl)
     }
 
     clear_socket_error();
-    ret = writesocket(b->num, in, inl);
+# if defined(OSSL_TFO_SENDTO)
+    if (data->tfo_first) {
+        int peerlen = BIO_ADDRINFO_sockaddr_size(data->addr_iter);
+
+        ret = sendto(b->num, in, inl, OSSL_TFO_SENDTO,
+                     BIO_ADDRINFO_sockaddr(data->addr_iter), peerlen);
+        data->tfo_first = 0;
+    } else
+# endif
+        ret = writesocket(b->num, in, inl);
     BIO_clear_retry_flags(b);
     if (ret <= 0) {
         if (BIO_sock_should_retry(ret))
@@ -439,6 +449,10 @@ static long conn_ctrl(BIO *b, int cmd, long num, void *ptr)
         break;
     case BIO_C_SET_CONNECT_MODE:
         data->connect_mode = (int)num;
+        if (num & BIO_SOCK_TFO)
+            data->tfo_first = 1;
+        else
+            data->tfo_first = 0;
         break;
     case BIO_C_GET_FD:
         if (b->init) {

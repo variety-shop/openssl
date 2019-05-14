@@ -23,7 +23,8 @@
 typedef int (*do_server_cb)(int s, int stype, int prot, unsigned char *context);
 int do_server(int *accept_sock, const char *host, const char *port,
               int family, int type, int protocol, do_server_cb cb,
-              unsigned char *context, int naccept, BIO *bio_s_out);
+              unsigned char *context, int naccept, BIO *bio_s_out,
+              int tfo);
 #ifdef HEADER_X509_H
 int verify_callback(int ok, X509_STORE_CTX *ctx);
 #endif
@@ -38,7 +39,7 @@ int ssl_print_groups(BIO *out, SSL *s, int noshared);
 int ssl_print_tmp_key(BIO *out, SSL *s);
 int init_client(int *sock, const char *host, const char *port,
                 const char *bindhost, const char *bindport,
-                int family, int type, int protocol);
+                int family, int type, int protocol, int tfo);
 int should_retry(int i);
 
 long bio_dump_callback(BIO *bio, int cmd, const char *argp,

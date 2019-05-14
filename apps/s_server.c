@@ -752,6 +752,7 @@ typedef enum OPTION_choice {
     OPT_SRTP_PROFILES, OPT_KEYMATEXPORT, OPT_KEYMATEXPORTLEN,
     OPT_KEYLOG_FILE, OPT_MAX_EARLY, OPT_RECV_MAX_EARLY, OPT_EARLY_DATA,
     OPT_S_NUM_TICKETS, OPT_ANTI_REPLAY, OPT_NO_ANTI_REPLAY, OPT_SCTP_LABEL_BUG,
+    OPT_TFO,
     OPT_R_ENUM,
     OPT_S_ENUM,
     OPT_V_ENUM,
@@ -966,6 +967,9 @@ const OPTIONS s_server_options[] = {
      "The number of TLSv1.3 session tickets that a server will automatically  issue" },
     {"anti_replay", OPT_ANTI_REPLAY, '-', "Switch on anti-replay protection (default)"},
     {"no_anti_replay", OPT_NO_ANTI_REPLAY, '-', "Switch off anti-replay protection"},
+#ifdef TCP_FASTOPEN
+    {"tfo", OPT_TFO, '-', "Listen for TCP Fast Open connections"},
+#endif
     {NULL, OPT_EOF, 0, NULL}
 };
 
@@ -1051,6 +1055,7 @@ int s_server_main(int argc, char *argv[])
 #ifndef OPENSSL_NO_SCTP
     int sctp_label_bug = 0;
 #endif
+    int tfo = 0;
 
     /* Init of few remaining global variables */
     local_argc = argc;
@@ -1594,6 +1599,9 @@ int s_server_main(int argc, char *argv[])
             early_data = 1;
             if (max_early_data == -1)
                 max_early_data = SSL3_RT_MAX_PLAIN_LENGTH;
+            break;
+        case OPT_TFO:
+            tfo = 1;
             break;
         }
     }
@@ -2155,8 +2163,10 @@ int s_server_main(int argc, char *argv[])
         && unlink_unix_path)
         unlink(host);
 #endif
+    if (tfo)
+        BIO_printf(bio_err, "Listening for TFO\n");
     do_server(&accept_socket, host, port, socket_family, socket_type, protocol,
-              server_cb, context, naccept, bio_s_out);
+              server_cb, context, naccept, bio_s_out, tfo);
     print_stats(bio_s_out, ctx);
     ret = 0;
  end:

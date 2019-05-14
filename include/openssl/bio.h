@@ -706,6 +706,7 @@ int BIO_sock_info(int sock,
 #  define BIO_SOCK_KEEPALIVE    0x04
 #  define BIO_SOCK_NONBLOCK     0x08
 #  define BIO_SOCK_NODELAY      0x10
+#  define BIO_SOCK_TFO          0x20
 
 int BIO_socket(int domain, int socktype, int protocol, int options);
 int BIO_connect(int sock, const BIO_ADDR *addr, int options);
