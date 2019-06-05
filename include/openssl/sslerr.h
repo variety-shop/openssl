@@ -270,10 +270,12 @@ int ERR_load_SSL_strings(void);
 #  define SSL_F_TLS12_CHECK_PEER_SIGALG                    0
 #  define SSL_F_TLS12_COPY_SIGALGS                         0
 #  define SSL_F_TLS13_CHANGE_CIPHER_STATE                  0
+#  define SSL_F_TLS13_CONSTRUCT_COMPRESSED_CERTIFICATE     0
 #  define SSL_F_TLS13_ENC                                  0
 #  define SSL_F_TLS13_FINAL_FINISH_MAC                     0
 #  define SSL_F_TLS13_GENERATE_SECRET                      0
 #  define SSL_F_TLS13_HKDF_EXPAND                          0
+#  define SSL_F_TLS13_PROCESS_COMPRESSED_CERTIFICATE       0
 #  define SSL_F_TLS13_RESTORE_HANDSHAKE_DIGEST_FOR_PHA     0
 #  define SSL_F_TLS13_SAVE_HANDSHAKE_DIGEST_FOR_PHA        0
 #  define SSL_F_TLS13_SETUP_KEY_BLOCK                      0
@@ -306,9 +308,11 @@ int ERR_load_SSL_strings(void);
 #  define SSL_F_TLS_CONSTRUCT_CKE_RSA                      0
 #  define SSL_F_TLS_CONSTRUCT_CKE_SRP                      0
 #  define SSL_F_TLS_CONSTRUCT_CLIENT_CERTIFICATE           0
+#  define SSL_F_TLS_CONSTRUCT_CLIENT_COMPRESSED_CERTIFICATE 0
 #  define SSL_F_TLS_CONSTRUCT_CLIENT_HELLO                 0
 #  define SSL_F_TLS_CONSTRUCT_CLIENT_KEY_EXCHANGE          0
 #  define SSL_F_TLS_CONSTRUCT_CLIENT_VERIFY                0
+#  define SSL_F_TLS_CONSTRUCT_COMPRESS_CERTIFICATE         0
 #  define SSL_F_TLS_CONSTRUCT_CTOS_ALPN                    0
 #  define SSL_F_TLS_CONSTRUCT_CTOS_CERTIFICATE             0
 #  define SSL_F_TLS_CONSTRUCT_CTOS_COOKIE                  0
@@ -346,6 +350,7 @@ int ERR_load_SSL_strings(void);
 #  define SSL_F_TLS_CONSTRUCT_NEW_SESSION_TICKET           0
 #  define SSL_F_TLS_CONSTRUCT_NEXT_PROTO                   0
 #  define SSL_F_TLS_CONSTRUCT_SERVER_CERTIFICATE           0
+#  define SSL_F_TLS_CONSTRUCT_SERVER_COMPRESSED_CERTIFICATE 0
 #  define SSL_F_TLS_CONSTRUCT_SERVER_HELLO                 0
 #  define SSL_F_TLS_CONSTRUCT_SERVER_KEY_EXCHANGE          0
 #  define SSL_F_TLS_CONSTRUCT_STOC_ALPN                    0
@@ -379,6 +384,7 @@ int ERR_load_SSL_strings(void);
 #  define SSL_F_TLS_HANDLE_STATUS_REQUEST                  0
 #  define SSL_F_TLS_PARSE_CERTIFICATE_AUTHORITIES          0
 #  define SSL_F_TLS_PARSE_CLIENTHELLO_TLSEXT               0
+#  define SSL_F_TLS_PARSE_COMPRESS_CERTIFICATE             0
 #  define SSL_F_TLS_PARSE_CTOS_ALPN                        0
 #  define SSL_F_TLS_PARSE_CTOS_COOKIE                      0
 #  define SSL_F_TLS_PARSE_CTOS_EARLY_DATA                  0
@@ -468,6 +474,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_R_AT_LEAST_TLS_1_2_NEEDED_IN_SUITEB_MODE     158
 # define SSL_R_BAD_CHANGE_CIPHER_SPEC                     103
 # define SSL_R_BAD_CIPHER                                 186
+# define SSL_R_BAD_COMPRESSION_ALGORITHM                  294
 # define SSL_R_BAD_DATA                                   390
 # define SSL_R_BAD_DATA_RETURNED_BY_CALLBACK              106
 # define SSL_R_BAD_DECOMPRESSION                          107
@@ -547,6 +554,7 @@ int ERR_load_SSL_strings(void);
 # define SSL_R_DIGEST_CHECK_FAILED                        149
 # define SSL_R_DTLS_MESSAGE_TOO_BIG                       334
 # define SSL_R_DUPLICATE_COMPRESSION_ID                   309
+# define SSL_R_DUPLICATE_EXTENSION                        295
 # define SSL_R_ECC_CERT_NOT_FOR_SIGNING                   318
 # define SSL_R_ECDH_REQUIRED_FOR_SUITEB_MODE              374
 # define SSL_R_EE_KEY_TOO_SMALL                           399

@@ -171,6 +171,17 @@ B<-max_protocol>.
 
 Various bug workarounds are set, same as setting B<SSL_OP_ALL>.
 
+=item B<-cert_comp>
+
+Enables support for SSL/TLS compression, same as clearing
+B<SSL_OP_NO_CERTIFICATE_COMPRESSION>.
+This command was introduced in OpenSSL 3.0.0.
+
+=item B<-no_cert_comp>
+
+Disables support for SSL/TLS compression, same as setting
+B<SSL_OP_NO_CERTIFICATE_COMPRESSION>.
+
 =item B<-comp>
 
 Enables support for SSL/TLS compression, same as clearing
@@ -495,6 +506,10 @@ Disabling anti-replay is equivalent to setting B<SSL_OP_NO_ANTI_REPLAY>.
 B<ExtendedMasterSecret>: use extended master secret extension, enabled by
 default. Inverse of B<SSL_OP_NO_EXTENDED_MASTER_SECRET>: that is,
 B<-ExtendedMasterSecret> is the same as setting B<SSL_OP_NO_EXTENDED_MASTER_SECRET>.
+
+B<CertificateCompression>: use the certificate compression extension, enabled by
+default. Inverse of B<SSL_OP_NO_CERTIFICATE_COMPRESSION>: that is,
+B<-CertificateCompression> is the same as setting B<SSL_OP_NO_CERTIFICATE_COMPRESSION>.
 
 =item B<VerifyMode>
 

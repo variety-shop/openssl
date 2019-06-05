@@ -9,6 +9,10 @@
 
  Changes between 1.1.1 and 3.0.0 [xx XXX xxxx]
 
+  *) Add draft-ietf-tls-certificate-compression support
+     Add brotli compression support
+     [Todd Short]
+
   *) Removed include/openssl/opensslconf.h.in and replaced it with
      include/openssl/configuration.h.in, which differs in not including
      <openssl/macros.h>.  A short header include/openssl/opensslconf.h

@@ -318,7 +318,8 @@ typedef int (*SSL_async_callback_fn)(SSL *s, void *arg);
 /* Disable Extended master secret */
 # define SSL_OP_NO_EXTENDED_MASTER_SECRET                0x00000001U
 
-/* Reserved value (until OpenSSL 3.0.0)                  0x00000002U */
+/* Disable certificate compression */
+# define SSL_OP_NO_CERTIFICATE_COMPRESSION               0x00000002U
 
 /* Allow initial connection to servers that don't support RI */
 # define SSL_OP_LEGACY_SERVER_CONNECT                    0x00000004U
@@ -1017,6 +1018,7 @@ typedef enum {
     DTLS_ST_CR_HELLO_VERIFY_REQUEST,
     TLS_ST_CR_SRVR_HELLO,
     TLS_ST_CR_CERT,
+    TLS_ST_CR_COMP_CERT,
     TLS_ST_CR_CERT_STATUS,
     TLS_ST_CR_KEY_EXCH,
     TLS_ST_CR_CERT_REQ,
@@ -1026,6 +1028,7 @@ typedef enum {
     TLS_ST_CR_FINISHED,
     TLS_ST_CW_CLNT_HELLO,
     TLS_ST_CW_CERT,
+    TLS_ST_CW_COMP_CERT,
     TLS_ST_CW_KEY_EXCH,
     TLS_ST_CW_CERT_VRFY,
     TLS_ST_CW_CHANGE,
@@ -1036,10 +1039,12 @@ typedef enum {
     DTLS_ST_SW_HELLO_VERIFY_REQUEST,
     TLS_ST_SW_SRVR_HELLO,
     TLS_ST_SW_CERT,
+    TLS_ST_SW_COMP_CERT,
     TLS_ST_SW_KEY_EXCH,
     TLS_ST_SW_CERT_REQ,
     TLS_ST_SW_SRVR_DONE,
     TLS_ST_SR_CERT,
+    TLS_ST_SR_COMP_CERT,
     TLS_ST_SR_KEY_EXCH,
     TLS_ST_SR_CERT_VRFY,
     TLS_ST_SR_NEXT_PROTO,

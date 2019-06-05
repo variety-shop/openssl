@@ -89,6 +89,8 @@ B<openssl> B<s_server>
 [B<-no_tls1_2>]
 [B<-no_tls1_3>]
 [B<-bugs>]
+[B<-no_cert_comp>]
+[B<-cert_comp>]
 [B<-no_comp>]
 [B<-comp>]
 [B<-no_ticket>]
@@ -509,6 +511,17 @@ OpenSSL was built.
 
 There are several known bugs in SSL and TLS implementations. Adding this
 option enables various workarounds.
+
+=item B<-cert_comp>
+
+Enables support for SSL/TLS compression, same as clearing
+B<SSL_OP_NO_CERTIFICATE_COMPRESSION>.
+This command was introduced in OpenSSL 3.0.0.
+
+=item B<-no_cert_comp>
+
+Disables support for SSL/TLS compression, same as setting
+B<SSL_OP_NO_CERTIFICATE_COMPRESSION>.
 
 =item B<-no_comp>
 
