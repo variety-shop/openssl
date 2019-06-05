@@ -217,6 +217,16 @@
                    developing a patch for OpenSSL then it is recommended that
                    you use this option where possible.
 
+  --with-brotli-include=DIR
+                   The directory for the location of the brotli include file. This
+                   option is only necessary if "brotli" (see below) is used
+                   and the include file is not already on the system include
+                   path.
+
+  --with-brotli-lib=LIB
+                   On Unix: this is the directory containing the brotli library.
+                   If not provided the system library path will be used.
+
   --with-zlib-include=DIR
                    The directory for the location of the zlib include file. This
                    option is only necessary if enable-zlib (see below) is used
@@ -314,6 +324,14 @@
                    Don't automatically load the default openssl.cnf file.
                    Typically OpenSSL will automatically load a system config
                    file which configures default ssl options.
+
+  brotli
+                   Build with support for brotli compression/decompression.
+
+  brotli-dynamic
+                   Like "brotli", but has OpenSSL load the brotli library
+                   dynamically when needed.  This is only supported on systems
+                   where loading of shared libraries is supported.
 
   enable-buildtest-c++
                    While testing, generate C++ buildtest files that

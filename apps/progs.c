@@ -231,6 +231,9 @@ FUNCTION functions[] = {
 #ifdef ZLIB
     {FT_cipher, "zlib", enc_main, enc_options},
 #endif
+#ifdef BROTLI
+    {FT_cipher, "brotli", enc_main, enc_options},
+#endif
 #ifndef OPENSSL_NO_DES
     {FT_cipher, "des", enc_main, enc_options},
 #endif
