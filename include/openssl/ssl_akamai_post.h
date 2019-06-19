@@ -95,6 +95,12 @@ void SSL_set_buffer_mem_functions(void* (*m)(int, size_t), void(*f)(int, size_t,
 int SSL_set_remote_addr_ex(SSL *s, struct sockaddr_storage* addr);
 int SSL_get_remote_addr_ex(const SSL *s, struct sockaddr_storage* addr);
 
+/* Generic versions */
+__owur int SSL_set1_cache_id(SSL *s, const unsigned char *data, size_t len);
+__owur int SSL_get0_cache_id(const SSL *s, const unsigned char **data, size_t *len);
+__owur int SSL_SESSION_set1_cache_id(SSL_SESSION *ss, const unsigned char *data, size_t len);
+__owur int SSL_SESSION_get0_cache_id(const SSL_SESSION *ss, const unsigned char **data, size_t *len);
+
 #   define MUST_HAVE_APP_DATA 0x1
 #   define MUST_COPY_SESSION  0x2
 int SSL_get_prev_client_session(SSL *s, int flags);

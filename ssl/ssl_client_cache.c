@@ -29,59 +29,60 @@
 
 #ifndef OPENSSL_NO_AKAMAI_CLIENT_CACHE
 
-static volatile int SSL_SESSION_SOCKADDR_IDX = -1; /**< EX_DATA index for SSL_SESSION sockaddr data */
-static CRYPTO_ONCE ssl_session_sockaddr_idx_once = CRYPTO_ONCE_STATIC_INIT;
-static volatile int SSL_SOCKADDR_IDX = -1;         /**< EX_DATA index for SSL sockaddr data */
-static CRYPTO_ONCE ssl_sockaddr_idx_once = CRYPTO_ONCE_STATIC_INIT;
+static volatile int SSL_SESSION_CLIENTID_IDX = -1; /**< EX_DATA index for SSL_SESSION clientid data */
+static CRYPTO_ONCE ssl_session_clientid_idx_once = CRYPTO_ONCE_STATIC_INIT;
+static volatile int SSL_CLIENTID_IDX = -1;         /**< EX_DATA index for SSL clientid data */
+static CRYPTO_ONCE ssl_clientid_idx_once = CRYPTO_ONCE_STATIC_INIT;
 
 /**
- * @brief Allocates sockaddr for EX_DATA
- * This function is used to add sockaddr data to be put into an OpenSSL data-structure's EX_DATA
+ * @brief Allocates clientid for EX_DATA
+ * This function is used to add clientid data to be put into an OpenSSL data-structure's EX_DATA
  * It is assigned via CRYPTO_get_ex_new_index.
  *
  * @see CRYPTO_get_ex_new_index
  *
- * @param @c parent The data structure the sockaddr is for, it is generic so it can't be used to add the ex_data
- * @param @c ptr The existing value of the sockaddr (invariably NULL)
- * @param @c ad The EX_DATA structure for adding the sockaddr
- * @param @c idx The index used for adding sockaddr to @c ad, returned from CRYPTO_get_ex_new_index
+ * @param @c parent The data structure the clientid is for, it is generic so it can't be used to add the ex_data
+ * @param @c ptr The existing value of the clientid (invariably NULL)
+ * @param @c ad The EX_DATA structure for adding the clientid
+ * @param @c idx The index used for adding clientid to @c ad, returned from CRYPTO_get_ex_new_index
  * @param @c argl @c long value originally passed to CRYPTO_get_ex_new_index
  * @param @c argp pointer value originally passed to CRYPTO_get_ex_new_index
  * @return 1 on success, 0 on failure
  */
-static void ssl_sockaddr_new(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
+
+static void ssl_clientid_new(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
                              int idx, long argl, void* argp)
 {
-    struct sockaddr_storage* saddr = OPENSSL_zalloc(sizeof(*saddr));
-    if (saddr != NULL) {
-        CRYPTO_set_ex_data(ad, idx, saddr);
+    BUF_MEM *buf = BUF_MEM_new();
+    if (buf != NULL) {
+        CRYPTO_set_ex_data(ad, idx, buf);
     }
 }
 
 /**
- * @brief Frees sockaddr from EX_DATA
- * This function is used to free sockaddr data that is in an OpenSSL data-structure's EX_DATA
+ * @brief Frees clientid from EX_DATA
+ * This function is used to free clientid data that is in an OpenSSL data-structure's EX_DATA
  * It is assigned via CRYPTO_get_ex_new_index.
  *
  * @see CRYPTO_get_ex_new_index
  *
- * @param @c parent The data structure the sockaddr is for, it is generic so it can't be used to add the ex_data
- * @param @c ptr The existing value of the sockaddr (to be freed)
- * @param @c ad The EX_DATA structure for adding the sockaddr
- * @param @c idx The index used for adding sockaddr to @c ad, returned from CRYPTO_get_ex_new_index
+ * @param @c parent The data structure the clientid is for, it is generic so it can't be used to add the ex_data
+ * @param @c ptr The existing value of the clientid (to be freed)
+ * @param @c ad The EX_DATA structure for adding the clientid
+ * @param @c idx The index used for adding clientid to @c ad, returned from CRYPTO_get_ex_new_index
  * @param @c argl @c long value originally passed to CRYPTO_get_ex_new_index
  * @param @c argp pointer value originally passed to CRYPTO_get_ex_new_index
  * @return @c void
  */
-static void ssl_sockaddr_free(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
+static void ssl_clientid_free(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
                               int idx, long arlg, void* argp)
 {
-    OPENSSL_free(ptr);
+    BUF_MEM_free(ptr);
     CRYPTO_set_ex_data(ad, idx, NULL);
 }
 
 /**
- * @brief Duplicates sockaddr from EX_DATA
+ * @brief Duplicates clientid from EX_DATA
  * This function is used to duplicate data that is in an OpenSSL data-structure's EX_DATA
  * It is assigned via CRYPTO_get_ex_new_index. This function passes in the address of value
  * of the original EX_DATA (be it a pointer or integral type). The caller will take the value
@@ -96,20 +97,20 @@ static void ssl_sockaddr_free(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
  * @param @c to The EX_DATA structure that has the original data
  * @param @c from The EX_DATA structure that has the new ata
  * @param @c from_d The address of the original data, this is an input/output parameter
- * @param @c idx The index used for adding sockaddr to @c ad, returned from CRYPTO_get_ex_new_index
+ * @param @c idx The index used for adding clientid to @c ad, returned from CRYPTO_get_ex_new_index
  * @param @c argl @c long value originally passed to CRYPTO_get_ex_new_index
  * @param @c argp pointer value originally passed to CRYPTO_get_ex_new_index
  * @return 1 on success, 0 on failure
  */
-static int ssl_sockaddr_dup(CRYPTO_EX_DATA* to, const CRYPTO_EX_DATA* from,
+static int ssl_clientid_dup(CRYPTO_EX_DATA* to, const CRYPTO_EX_DATA* from,
                             void* from_d, int idx, long arlg, void* argp)
 {
     /**
      * from_d is actually the address of the pointer put into the ex_data,
      * we want a different pointer put into the destination
      **/
-    struct sockaddr_storage** orig = (struct sockaddr_storage**)from_d;
-    struct sockaddr_storage* new = CRYPTO_get_ex_data(to, idx);
+    BUF_MEM** orig = (BUF_MEM**)from_d;
+    BUF_MEM* new = CRYPTO_get_ex_data(to, idx);
     if (orig == NULL)
         return 0;
     if (*orig == NULL) {
@@ -118,7 +119,9 @@ static int ssl_sockaddr_dup(CRYPTO_EX_DATA* to, const CRYPTO_EX_DATA* from,
     }
     if (new == NULL)
         return 0;
-    memcpy(new, *orig, sizeof(*new));
+    if (BUF_MEM_grow(new, (*orig)->length) != (*orig)->length)
+        return 0;
+    memcpy(new->data, (*orig)->data, (*orig)->length);
     *orig = new;
     return 1;
 }
@@ -140,15 +143,13 @@ static int ssl_sockaddr_dup(CRYPTO_EX_DATA* to, const CRYPTO_EX_DATA* from,
  */
 int SSL_set_remote_addr_ex(SSL *s, struct sockaddr_storage* addr)
 {
-    struct sockaddr_storage* sstorage = SSL_get_ex_data(s, SSL_SOCKADDR_IDX);
-    if (addr != NULL && sstorage != NULL) {
-        if (addr->ss_family == AF_INET6) {
-            memcpy(sstorage, addr, sizeof(struct sockaddr_in6));
-            return 0;
-        } else if (addr->ss_family == AF_INET) {
-            memcpy(sstorage, addr, sizeof(struct sockaddr_in));
-            return 0;
-        }
+    BUF_MEM *buf = SSL_get_ex_data(s, SSL_CLIENTID_IDX);
+
+    if (addr != NULL && buf != NULL) {
+        if (BUF_MEM_grow(buf, sizeof(*addr)) != sizeof(*addr))
+            return -1;
+        memcpy(buf->data, addr, sizeof(*addr));
+        return 0;
     }
     return -1;
 }
@@ -169,22 +170,72 @@ int SSL_set_remote_addr_ex(SSL *s, struct sockaddr_storage* addr)
  */
 int SSL_get_remote_addr_ex(const SSL *s, struct sockaddr_storage* addr)
 {
-    struct sockaddr_storage* sstorage = SSL_get_ex_data(s, SSL_SOCKADDR_IDX);
-    if (addr != NULL && sstorage != NULL) {
-        if (sstorage->ss_family == AF_INET6) {
-            memcpy(addr, sstorage, sizeof(struct sockaddr_in6));
-            return 0;
-        } else if (sstorage->ss_family == AF_INET) {
-            memcpy(addr, sstorage, sizeof(struct sockaddr_in));
-            return 0;
-        } else
-            addr->ss_family = 0;
+    BUF_MEM *buf = SSL_get_ex_data(s, SSL_CLIENTID_IDX);
+
+    if (addr != NULL && buf != NULL) {
+        if (buf->length > sizeof(*addr))
+            return -1;
+        memcpy(addr, buf->data, (sizeof(*addr) < buf->length
+                                 ? sizeof(*addr)
+                                 : buf->length));
+        return 0;
     }
     return -1;
 }
 
+/* Generic versions */
+int SSL_set1_cache_id(SSL *s, const unsigned char *data, size_t len)
+{
+    BUF_MEM *buf = SSL_get_ex_data(s, SSL_CLIENTID_IDX);
+
+    if (s->session != NULL || buf == NULL)
+        return 0;
+
+    if (BUF_MEM_grow(buf, len) != len)
+        return 0;
+
+    memcpy(buf->data, data, len);
+    return 1;
+}
+
+int SSL_get0_cache_id(const SSL *s, const unsigned char **data, size_t *len)
+{
+    BUF_MEM *buf = SSL_get_ex_data(s, SSL_CLIENTID_IDX);
+
+    if (buf == NULL)
+        return 0;
+    *data = (unsigned char*)buf->data;
+    *len = buf->length;
+    return 1;
+}
+
+int SSL_SESSION_set1_cache_id(SSL_SESSION *ss, const unsigned char *data, size_t len)
+{
+    BUF_MEM *buf = SSL_SESSION_get_ex_data(ss, SSL_CLIENTID_IDX);
+
+    if (ss->next != NULL || ss->prev != NULL || buf == NULL)
+        return 0;
+
+    if (BUF_MEM_grow(buf, len) != len)
+        return 0;
+
+    memcpy(buf->data, data, len);
+    return 1;
+}
+
+int SSL_SESSION_get0_cache_id(const SSL_SESSION *ss, const unsigned char **data, size_t *len)
+{
+    BUF_MEM *buf = SSL_SESSION_get_ex_data(ss, SSL_SESSION_CLIENTID_IDX);
+
+    if (buf == NULL)
+        return 0;
+    *data = (unsigned char *)buf->data;
+    *len = buf->length;
+    return 1;
+}
+
 /**
- * @brief Copies a sockaddr from an SSL to an SSL_SESSION
+ * @brief Copies a clientid from an SSL to an SSL_SESSION
  * This function copies the address/port from an SSL structure into an
  * SSL_SESSION structure. Called in SSL_get_prev_client_session() and
  * ssl_get_new_session().
@@ -199,11 +250,12 @@ int SSL_get_remote_addr_ex(const SSL *s, struct sockaddr_storage* addr)
  */
 void SSL_SESSION_copy_remote_addr(SSL_SESSION* ss, SSL* s)
 {
-    /* Looks weird, but it's right: grab the desintation, and then
-       copy to the destination. */
-    struct sockaddr_storage* saddr = SSL_SESSION_get_ex_data(ss, SSL_SESSION_SOCKADDR_IDX);
-    if (saddr != NULL)
-        SSL_get_remote_addr_ex(s, saddr);
+    BUF_MEM *dst = SSL_SESSION_get_ex_data(ss, SSL_SESSION_CLIENTID_IDX);
+    BUF_MEM *src = SSL_get_ex_data(s, SSL_CLIENTID_IDX);
+
+    if (dst != NULL && src != NULL)
+        if (BUF_MEM_grow(dst, src->length) == src->length)
+            memcpy(dst->data, src->data, src->length);
 }
 
 /**
@@ -363,39 +415,19 @@ long SSL_SESSION_set_timeout_update_cache(const SSL *s, long t)
  */
 static unsigned long ssl_session_client_hash(const SSL_SESSION* a)
 {
+    int i;
     unsigned long hash = 0;
-    struct sockaddr_storage* sstorage = SSL_SESSION_get_ex_data(a, SSL_SESSION_SOCKADDR_IDX);
+    BUF_MEM *buf = SSL_SESSION_get_ex_data(a, SSL_SESSION_CLIENTID_IDX);
 
-    /* There's usually just 1 sid_ctx (sometimes 2) so considering only its */
-    /* length (but not its content) should be sufficient here */
-    hash ^= a->sid_ctx_length;
-    if (sstorage != NULL) {
-        hash ^= sstorage->ss_family;
-        if (sstorage->ss_family == AF_INET) {
-            struct sockaddr_in* sin = (struct sockaddr_in*)sstorage;
-            hash ^= sin->sin_addr.s_addr;
-            hash ^= sin->sin_port;
-        } else if (sstorage->ss_family == AF_INET6) {
-            struct sockaddr_in6* sin6 = (struct sockaddr_in6*)sstorage;
-# if defined(OPENSSL_SYS_LINUX) || defined(OPENSSL_SYS_MACOSX)
-#  ifdef OPENSSL_SYS_MACOSX
-#   define s6_addr32 __u6_addr.__u6_addr32
-#  endif
-            hash ^= sin6->sin6_addr.s6_addr32[0];
-            hash ^= sin6->sin6_addr.s6_addr32[1];
-            hash ^= sin6->sin6_addr.s6_addr32[2];
-            hash ^= sin6->sin6_addr.s6_addr32[3];
-# else
-            /* Windows, (and BSDs?) do not have s6_addr32 */
-            int i;
-            for (i = 0; i < 16; i++) {
-                /* take each byte and shift it over by a bit */
-                hash ^= sin6->sin6_addr.s6_addr[i] << i;
-            }
-# endif
-            hash ^= sin6->sin6_port;
-        }
-    }
+    /* This should be just be a sizeof(long) agnostic XORing */
+    /* As long as sizeof(long) is a power of 2) */
+    for (i = 0; i < a->sid_ctx_length; i++)
+        hash ^= a->sid_ctx[i] << (8 * (i & (sizeof(long)-1)));
+
+    if (buf != NULL && buf->data != NULL)
+        for (i = 0; i < buf->length; i++)
+            hash ^= buf->data[i] << (8 * (i & (sizeof(long)-1)));
+
     return hash;
 }
 
@@ -415,41 +447,23 @@ static unsigned long ssl_session_client_hash(const SSL_SESSION* a)
  */
 static int ssl_session_client_cmp(const SSL_SESSION* a, const SSL_SESSION* b)
 {
-    struct sockaddr_storage* sstorage_a;
-    struct sockaddr_storage* sstorage_b;
+    BUF_MEM *buf_a = SSL_SESSION_get_ex_data(a, SSL_SESSION_CLIENTID_IDX);
+    BUF_MEM *buf_b = SSL_SESSION_get_ex_data(b, SSL_SESSION_CLIENTID_IDX);
+
+
     if (a == b)
         return 0; /* same object, so they must be equal */
     if (a->sid_ctx_length != b->sid_ctx_length)
         return 1; /* cannot be equal */
-    sstorage_a = (struct sockaddr_storage*)SSL_SESSION_get_ex_data(a, SSL_SESSION_SOCKADDR_IDX);
-    if (sstorage_a == NULL)
-        return 1; /* cannot be equal */
-    sstorage_b = (struct sockaddr_storage*)SSL_SESSION_get_ex_data(b, SSL_SESSION_SOCKADDR_IDX);
-    if (sstorage_b == NULL)
-        return 1; /* cannot be equal */
-    if (sstorage_a->ss_family != sstorage_b->ss_family)
-        return 1; /* cannot be equal */
-    if (sstorage_a->ss_family == AF_INET) {
-        struct sockaddr_in* sin_a = (struct sockaddr_in*)sstorage_a;
-        struct sockaddr_in* sin_b = (struct sockaddr_in*)sstorage_b;
-        if (sin_a->sin_addr.s_addr != sin_b->sin_addr.s_addr)
-            return 1; /* cannot be equal */
-        if (sin_a->sin_port != sin_b->sin_port)
-            return 1; /* cannot be equal */
-    } else if (sstorage_a->ss_family == AF_INET6) {
-        struct sockaddr_in6* sin6_a = (struct sockaddr_in6*)sstorage_a;
-        struct sockaddr_in6* sin6_b = (struct sockaddr_in6*)sstorage_b;
-        if (memcmp(&sin6_a->sin6_addr, &sin6_b->sin6_addr, sizeof(struct in6_addr)))
-            return 1; /* cannot be equal */
-        if (sin6_a->sin6_port != sin6_b->sin6_port)
-            return 1; /* cannot be equal */
-    } else
-        return 1; /* not set cannot be equal */
-
     if (a->sid_ctx_length > 0 && memcmp(a->sid_ctx, b->sid_ctx, a->sid_ctx_length))
         return 1; /* they are not equal */
-
-    return 0; /* they are equal */
+    if (buf_a == NULL || buf_a->data == NULL)
+        return 1; /* cannot be equal */
+    if (buf_b == NULL || buf_b->data == NULL)
+        return 1; /* cannot be equal */
+    if (buf_a->length != buf_b->length)
+        return 1; /* cannot be equal */
+    return !!memcmp(buf_a->data, buf_b->data, buf_a->length);
 }
 
 /**
@@ -457,7 +471,7 @@ static int ssl_session_client_cmp(const SSL_SESSION* a, const SSL_SESSION* b)
  * Given an SSL_CTX structure, clear out the cache, and override
  * the default cache settings to use client-mode caching based
  * on the IP address/port combination.
- * Initializes the SSL_SOCKADDR_IDX and SSL_SESSION_SOCKADDR_IDX
+ * Initializes the SSL_CLIENTID_IDX and SSL_SESSION_CLIENTID_IDX
  * as needed.
  * For debugging/testing purposes, the structure names may be
  * passed to CRYPTO_get_ex_new_index() to display allocation
@@ -466,27 +480,27 @@ static int ssl_session_client_cmp(const SSL_SESSION* a, const SSL_SESSION* b)
  * @param @c ctx SSL_CTX to update
  * @return @c int 1 on success, 0 on failure
  */
-static void ssl_sockaddr_idx_init(void)
+static void ssl_clientid_idx_init(void)
 {
-    SSL_SOCKADDR_IDX = SSL_get_ex_new_index(0, NULL,
-                                            ssl_sockaddr_new,
-                                            ssl_sockaddr_dup,
-                                            ssl_sockaddr_free);
+    SSL_CLIENTID_IDX = SSL_get_ex_new_index(0, NULL,
+                                            ssl_clientid_new,
+                                            ssl_clientid_dup,
+                                            ssl_clientid_free);
 }
-static void ssl_session_sockaddr_idx_init(void)
+static void ssl_session_clientid_idx_init(void)
 {
-    SSL_SESSION_SOCKADDR_IDX =
+    SSL_SESSION_CLIENTID_IDX =
         SSL_SESSION_get_ex_new_index(0, NULL,
-                                     ssl_sockaddr_new,
-                                     ssl_sockaddr_dup,
-                                     ssl_sockaddr_free);
+                                     ssl_clientid_new,
+                                     ssl_clientid_dup,
+                                     ssl_clientid_free);
 }
 
 int SSL_CTX_set_client_session_cache(SSL_CTX *ctx)
 {
     SSL_CTX_EX_DATA_AKAMAI *ex_data;
-    CRYPTO_THREAD_run_once(&ssl_sockaddr_idx_once, ssl_sockaddr_idx_init);
-    CRYPTO_THREAD_run_once(&ssl_session_sockaddr_idx_once, ssl_session_sockaddr_idx_init);
+    CRYPTO_THREAD_run_once(&ssl_clientid_idx_once, ssl_clientid_idx_init);
+    CRYPTO_THREAD_run_once(&ssl_session_clientid_idx_once, ssl_session_clientid_idx_init);
 
     CRYPTO_THREAD_write_lock(ctx->lock);
 

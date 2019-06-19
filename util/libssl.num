@@ -570,3 +570,7 @@ SSL_CTX_akamai_session_stats_bio        10085	1_1_0e	EXIST::FUNCTION:AKAMAI
 SSL_default_akamai_cipher_list          10086	1_1_1	EXIST::FUNCTION:AKAMAI
 d2i_SSL_AKAMAI                          10087	1_1_1a	EXIST::FUNCTION:AKAMAI
 i2d_SSL_AKAMAI                          10088	1_1_1a	EXIST::FUNCTION:AKAMAI
+SSL_SESSION_set1_cache_id               10089	1_1_1c	EXIST::FUNCTION:AKAMAI,AKAMAI_CLIENT_CACHE
+SSL_SESSION_get0_cache_id               10090	1_1_1c	EXIST::FUNCTION:AKAMAI,AKAMAI_CLIENT_CACHE
+SSL_get0_cache_id                       10091	1_1_1c	EXIST::FUNCTION:AKAMAI,AKAMAI_CLIENT_CACHE
+SSL_set1_cache_id                       10092	1_1_1c	EXIST::FUNCTION:AKAMAI,AKAMAI_CLIENT_CACHE
