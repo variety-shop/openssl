@@ -258,7 +258,6 @@ $P/SHAREDFEATURES := \
 	enable-akamai-ghost \
 	enable-bf \
 	enable-cast \
-	enable-dso \
 	enable-dtls1 \
 	enable-dtls1_2 \
 	enable-egd \

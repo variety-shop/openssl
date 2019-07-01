@@ -9,8 +9,6 @@ BASE_PATH := $(firstword $(BASE_PATH) $(subst /$C-xx,,$(CURDIR)-xx))
 REF_PATH := $(firstword $(REF_PATH) NoValidPath)
 AKAMAKE := $(firstword $(wildcard $(BASE_PATH)/Akamake) $(REF_PATH)/Akamake)
 P := $(BASE_PATH)/$C
-$P/O := $(BASE_PATH)/openssl
-$P/A := dso
 
 $P/MODULES := NO-OP
 
@@ -26,8 +24,6 @@ $P/BUILDENV.linux.CC-supported := ALL
 $P/BUILDENV.linux.FILE_OFFSET_BITS-supported := ALL
 $P/BUILDENV.windows.CC-supported := ALL
 $P/BUILDENV.windows.FILE_OFFSET_BITS-supported := ALL
-
-$($P/O)/configure.ts : $($P/O)/CONFIGFEATURES := $(filter-out no-$($P/A),$($($P/O)/CONFIGFEATURES)) enable-$($P/A)
 
 include $(AKAMAKE)/akamake.m.master
 

@@ -455,7 +455,6 @@ our %disabled = ( # "what"         => "comment"
                   "crypto-mdebug"       => "default",
                   "crypto-mdebug-backtrace" => "default",
                   "devcryptoeng"        => "default",
-		  "dso"                 => "akamai-default",
 		  "dtls1"               => "akamai-default",
 		  "dtls1_2"             => "akamai-default",
 		  "dynamic-engine"      => "akamai-default",
