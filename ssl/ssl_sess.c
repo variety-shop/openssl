@@ -946,25 +946,8 @@ long SSL_SESSION_set_timeout(SSL_SESSION *s, long t)
 {
     if (s == NULL)
         return 0;
-#ifdef OPENSSL_NO_AKAMAI
     s->timeout = t;
-#else
-    if (s->timeout != t) {
-        SSL_CTX *ctx = SSL_SESSION_get_ssl_ctx_akamai(s);
-
-        s->timeout = t;
-        if (ctx != NULL) {
-            SSL_CTX_SESSION_LIST *session_list = SSL_CTX_get_ex_data_akamai(ctx)->session_list;
-
-            CRYPTO_THREAD_write_lock(ctx->lock);
-            CRYPTO_THREAD_write_lock(session_list->lock);
-            SSL_SESSION_list_add(ctx, s);
-            CRYPTO_THREAD_unlock(session_list->lock);
-            CRYPTO_THREAD_unlock(ctx->lock);
-        }
-    }
-#endif
-     return 1;
+    return 1;
 }
 
 long SSL_SESSION_get_timeout(const SSL_SESSION *s)
@@ -985,24 +968,7 @@ long SSL_SESSION_set_time(SSL_SESSION *s, long t)
 {
     if (s == NULL)
         return 0;
-#ifdef OPENSSL_NO_AKAMAI
     s->time = t;
-#else
-    if (s->time != t) {
-        SSL_CTX *ctx = SSL_SESSION_get_ssl_ctx_akamai(s);
-
-        s->time = t;
-        if (ctx != NULL) {
-            SSL_CTX_SESSION_LIST *session_list = SSL_CTX_get_ex_data_akamai(ctx)->session_list;
-
-            CRYPTO_THREAD_write_lock(ctx->lock);
-            CRYPTO_THREAD_write_lock(session_list->lock);
-            SSL_SESSION_list_add(ctx, s);
-            CRYPTO_THREAD_unlock(session_list->lock);
-            CRYPTO_THREAD_unlock(ctx->lock);
-        }
-    }
-#endif
     return t;
 }
 
@@ -1197,7 +1163,6 @@ int SSL_set_session_ticket_ext(SSL *s, void *ext_data, int ext_len)
     return 0;
 }
 
-#ifdef OPENSSL_NO_AKAMAI
 typedef struct timeout_param_st {
     SSL_CTX *ctx;
     long time;
@@ -1211,6 +1176,11 @@ static void timeout_cb(SSL_SESSION *s, TIMEOUT_PARAM *p)
          * The reason we don't call SSL_CTX_remove_session() is to save on
          * locking overhead
          */
+#ifndef OPENSSL_NO_AKAMAI
+        /* session must be the same */
+        if (lh_SSL_SESSION_retrieve(p->cache, s) != s)
+            return;
+#endif
         (void)lh_SSL_SESSION_delete(p->cache, s);
         SSL_SESSION_list_remove(p->ctx, s);
         s->not_resumable = 1;
@@ -1222,6 +1192,7 @@ static void timeout_cb(SSL_SESSION *s, TIMEOUT_PARAM *p)
 
 IMPLEMENT_LHASH_DOALL_ARG(SSL_SESSION, TIMEOUT_PARAM);
 
+#ifdef OPENSSL_NO_AKAMAI
 void SSL_CTX_flush_sessions(SSL_CTX *s, long t)
 {
     unsigned long i;
@@ -1242,48 +1213,24 @@ void SSL_CTX_flush_sessions(SSL_CTX *s, long t)
 #else
 void SSL_CTX_flush_sessions(SSL_CTX *s, long t)
 {
-    SSL_SESSION *list = NULL;
-    SSL_SESSION *current;
     unsigned long i;
+    TIMEOUT_PARAM tp;
     SSL_CTX_EX_DATA_AKAMAI *sess_ex_data = SSL_CTX_get_ex_data_akamai(s);
     SSL_CTX_SESSION_LIST *session_list = sess_ex_data->session_list;
 
     CRYPTO_THREAD_write_lock(s->lock);
     CRYPTO_THREAD_write_lock(session_list->lock);
-    i = lh_SSL_SESSION_get_down_load(session_list->sessions);
-    lh_SSL_SESSION_set_down_load(session_list->sessions, 0);
-
-    /*
-     * The |session_list| is sorted by time_t (MRU at start), so, start at the
-     * end of the MRU list, and stop when we reach something we can't timeout.
-     * As this is under lock, move sessions to-be-deleted to a temporary list
-     * to defer the SSL_SESSION_free() calls until the lock can be released.
-     */
-    while (session_list->session_cache_tail != NULL) {
-        current = session_list->session_cache_tail;
-        if ((t == 0) || (t > (current->time + current->timeout))) { /* timeout */
-            (void)lh_SSL_SESSION_delete(session_list->sessions, current);
-            SSL_SESSION_list_remove(s, current);
-            current->not_resumable = 1;
-            if (s->remove_session_cb != NULL)
-                s->remove_session_cb(s, current);
-            current->next = list;
-            list = current;
-        } else {
-            break;
-        }
+    tp.ctx = s;
+    tp.cache = session_list->sessions;
+    if (tp.cache != NULL) {
+        tp.time = t;
+        i = lh_SSL_SESSION_get_down_load(tp.cache);
+        lh_SSL_SESSION_set_down_load(tp.cache, 0);
+        lh_SSL_SESSION_doall_TIMEOUT_PARAM(tp.cache, timeout_cb, &tp);
+        lh_SSL_SESSION_set_down_load(tp.cache, i);
     }
-
-    lh_SSL_SESSION_set_down_load(session_list->sessions, i);
     CRYPTO_THREAD_unlock(session_list->lock);
     CRYPTO_THREAD_unlock(s->lock);
-
-    while (list != NULL) {
-        current = list;
-        list = current->next;
-        current->next = NULL;
-        SSL_SESSION_free(current);
-    }
 }
 #endif
 
@@ -1357,7 +1304,6 @@ static void SSL_SESSION_list_remove(SSL_CTX *ctx, SSL_SESSION *s)
             s->prev->next = s->next;
         }
     }
-    (void)SSL_SESSION_set_ssl_ctx_akamai(s, NULL);
 #endif
     s->prev = s->next = NULL;
 }
@@ -1381,8 +1327,6 @@ static void SSL_SESSION_list_add(SSL_CTX *ctx, SSL_SESSION *s)
     }
 #else
     SSL_CTX_SESSION_LIST *session_list = SSL_CTX_get0_session_list(ctx);
-    SSL_SESSION *next;
-
     if (session_list == NULL)
         return;
 
@@ -1394,37 +1338,11 @@ static void SSL_SESSION_list_add(SSL_CTX *ctx, SSL_SESSION *s)
         s->prev = (SSL_SESSION *)&(session_list->session_cache_head);
         s->next = (SSL_SESSION *)&(session_list->session_cache_tail);
     } else {
-        /* if we timeout after the first session, put us first */
-        if ((s->time + s->timeout) >= (session_list->session_cache_head->time + session_list->session_cache_head->timeout)) {
-            /* if we timeout after (or the same time as) the first session, put us first - usual case */
-            s->next = session_list->session_cache_head;
-            s->next->prev = s;
-            s->prev = (SSL_SESSION *)&(session_list->session_cache_head);
-            session_list->session_cache_head = s;
-        } else if ((s->time + s->timeout) < (session_list->session_cache_tail->time + session_list->session_cache_tail->timeout)) {
-            /* if we timeout before the last session, put us last */
-            s->prev = session_list->session_cache_tail;
-            s->prev->next = s;
-            s->next = (SSL_SESSION *)&(session_list->session_cache_tail);
-            session_list->session_cache_tail = s;
-        } else {
-            /* we timeout somewhere in-between */
-            /* if there is only one session in the cache, it will caught above */
-            next = session_list->session_cache_head->next;
-            while (next != NULL) {
-                if ((s->time + s->timeout) >= (next->time + next->timeout)) {
-                    s->next = next;
-                    s->prev = next->prev;
-                    next->prev->next = s;
-                    next->prev = s;
-                    break;
-                }
-                next = next->next;
-                OPENSSL_assert(next != NULL);
-            }
-        }
+        s->next = session_list->session_cache_head;
+        s->next->prev = s;
+        s->prev = (SSL_SESSION *)&(session_list->session_cache_head);
+        session_list->session_cache_head = s;
     }
-    (void)SSL_SESSION_set_ssl_ctx_akamai(s, ctx);
 #endif
 }
 

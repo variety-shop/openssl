@@ -137,32 +137,6 @@ SSL_CTX_EX_DATA_AKAMAI *SSL_CTX_get_ex_data_akamai(SSL_CTX* ctx)
     return SSL_CTX_get_ex_data(ctx, SSL_CTX_get_ex_data_akamai_idx());
 }
 
-static int SSL_SESSION_SSL_CTX_AKAMAI_IDX = -1;
-static CRYPTO_ONCE ssl_session_ssl_ctx_akamai_idx_once = CRYPTO_ONCE_STATIC_INIT;
-
-static void ssl_session_ssl_ctx_akamai_init(void)
-{
-    SSL_SESSION_SSL_CTX_AKAMAI_IDX = SSL_SESSION_get_ex_new_index(0, NULL, NULL, NULL, NULL);
-    OPENSSL_assert(SSL_SESSION_SSL_CTX_AKAMAI_IDX >= 0);
-}
-
-int SSL_SESSION_get_ssl_ctx_akamai_idx(void)
-{
-    CRYPTO_THREAD_run_once(&ssl_session_ssl_ctx_akamai_idx_once,
-                           ssl_session_ssl_ctx_akamai_init);
-    return SSL_SESSION_SSL_CTX_AKAMAI_IDX;
-}
-
-SSL_CTX *SSL_SESSION_get_ssl_ctx_akamai(SSL_SESSION* ss)
-{
-    return SSL_SESSION_get_ex_data(ss, SSL_SESSION_get_ssl_ctx_akamai_idx());
-}
-
-int SSL_SESSION_set_ssl_ctx_akamai(SSL_SESSION* ss, SSL_CTX* ctx)
-{
-    return SSL_SESSION_set_ex_data(ss, SSL_SESSION_get_ssl_ctx_akamai_idx(), ctx);
-}
-
 static void ssl_ex_data_akamai_new(void* parent, void* ptr,
                                    CRYPTO_EX_DATA* ad,
                                    int idx, long argl, void* argp)
