@@ -146,9 +146,29 @@ int SSL_set_remote_addr_ex(SSL *s, struct sockaddr_storage* addr)
     BUF_MEM *buf = SSL_get_ex_data(s, SSL_CLIENTID_IDX);
 
     if (addr != NULL && buf != NULL) {
-        if (BUF_MEM_grow(buf, sizeof(*addr)) != sizeof(*addr))
+        if (BUF_MEM_grow(buf, sizeof(struct sockaddr_storage)) != sizeof(struct sockaddr_storage))
             return -1;
-        memcpy(buf->data, addr, sizeof(*addr));
+        /*
+         * Copy just the fields we care about, 0 out the rest;
+         * 1) fields are not contiguous
+         * 2) structures are padded out
+         */
+        memset(buf->data, 0, buf->length);
+        if (addr->ss_family == AF_INET6) {
+            struct sockaddr_in6 *sin6_from = (struct sockaddr_in6*)addr;
+            struct sockaddr_in6 *sin6_to = (struct sockaddr_in6*)buf->data;
+
+            sin6_to->sin6_family = sin6_from->sin6_family;
+            sin6_to->sin6_port = sin6_from->sin6_port;
+            sin6_to->sin6_addr = sin6_from->sin6_addr;
+        } else if (addr->ss_family == AF_INET) {
+            struct sockaddr_in *sin_from = (struct sockaddr_in*)addr;
+            struct sockaddr_in *sin_to = (struct sockaddr_in*)buf->data;
+
+            sin_to->sin_family = sin_from->sin_family;
+            sin_to->sin_port = sin_from->sin_port;
+            sin_to->sin_addr = sin_from->sin_addr;
+        }
         return 0;
     }
     return -1;
@@ -175,9 +195,8 @@ int SSL_get_remote_addr_ex(const SSL *s, struct sockaddr_storage* addr)
     if (addr != NULL && buf != NULL) {
         if (buf->length > sizeof(*addr))
             return -1;
-        memcpy(addr, buf->data, (sizeof(*addr) < buf->length
-                                 ? sizeof(*addr)
-                                 : buf->length));
+        memset(addr, 0, sizeof(*addr));
+        memcpy(addr, buf->data, buf->length);
         return 0;
     }
     return -1;
