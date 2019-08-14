@@ -1113,9 +1113,16 @@ WORK_STATE tls_finish_handshake(SSL *s, WORK_STATE wst, int clearbufs, int stop)
                  * We encourage applications to only use TLSv1.3 tickets once,
                  * so we remove this one from the cache.
                  */
+#ifndef OPENSSL_NO_AKAMAI
                 if ((s->session_ctx->session_cache_mode
                      & SSL_SESS_CACHE_CLIENT) != 0)
                     SSL_CTX_remove_session(s->session_ctx, s->session);
+#else
+                if ((s->session_ctx->session_cache_mode
+                     & SSL_SESS_CACHE_CLIENT) != 0
+                    && (s->options & SSL_OP_NO_ANTI_REPLAY) == 0)
+                    SSL_CTX_remove_session(s->session_ctx, s->session);
+#endif
             } else {
                 /*
                  * In TLSv1.3 we update the cache as part of processing the
