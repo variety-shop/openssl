@@ -845,11 +845,13 @@ static int remove_session_lock(SSL_CTX *ctx, SSL_SESSION *c, int lck)
             CRYPTO_THREAD_unlock(ctx->lock);
         }
 
+        /* What if c != r ? */
+        if (ctx->remove_session_cb != NULL)
+            ctx->remove_session_cb(ctx, c);
+
         if (ret)
             SSL_SESSION_free(r);
 
-        if (ctx->remove_session_cb != NULL)
-            ctx->remove_session_cb(ctx, c);
     } else
         ret = 0;
     return ret;
