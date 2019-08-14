@@ -230,7 +230,7 @@ int SSL_get0_cache_id(const SSL *s, const unsigned char **data, size_t *len)
 
 int SSL_SESSION_set1_cache_id(SSL_SESSION *ss, const unsigned char *data, size_t len)
 {
-    BUF_MEM *buf = SSL_SESSION_get_ex_data(ss, SSL_CLIENTID_IDX);
+    BUF_MEM *buf = SSL_SESSION_get_ex_data(ss, SSL_SESSION_CLIENTID_IDX);
 
     if (ss->next != NULL || ss->prev != NULL || buf == NULL)
         return 0;
