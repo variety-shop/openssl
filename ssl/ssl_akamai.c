@@ -1214,6 +1214,29 @@ const SSL_CIPHER *SSL_akamai_get_tmp_cipher(const SSL *ssl)
     return NULL;
 }
 
+/* This stores a non-pointer value, indicating whether the cert should be included in the ticket */
+static int SSL_SESSION_NO_CERT_IN_TICKET_AKAMAI_IDX = -1;
+static CRYPTO_ONCE ssl_session_no_cert_in_ticket_akamai_idx_once = CRYPTO_ONCE_STATIC_INIT;
+
+static void ssl_session_no_cert_in_ticket_ex_data_akamai_init(void)
+{
+    SSL_SESSION_NO_CERT_IN_TICKET_AKAMAI_IDX = SSL_SESSION_get_ex_new_index(0, NULL, NULL, NULL, NULL);
+    OPENSSL_assert(SSL_SESSION_NO_CERT_IN_TICKET_AKAMAI_IDX >= 0);
+}
+
+int SSL_SESSION_no_cert_in_ticket_get_ex_data_akamai_idx(void)
+{
+    CRYPTO_THREAD_run_once(&ssl_session_no_cert_in_ticket_akamai_idx_once, ssl_session_no_cert_in_ticket_ex_data_akamai_init);
+    return SSL_SESSION_NO_CERT_IN_TICKET_AKAMAI_IDX;
+}
+
+int SSL_SESSION_set_no_cert_in_ticket(SSL_SESSION *ss, int onoff)
+{
+    return SSL_SESSION_set_ex_data(ss,
+                                   SSL_SESSION_no_cert_in_ticket_get_ex_data_akamai_idx(),
+                                   (void*)(uintptr_t)onoff);
+}
+
 /* NO-OPS */
 
 int SSL_INTERNAL_get_sigandhash(unsigned char *p, const EVP_PKEY *pk, const EVP_MD *md)

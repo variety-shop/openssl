@@ -165,6 +165,15 @@ int i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp)
 
     as.peer = in->peer;
 
+#ifndef OPENSSL_NO_AKAMAI
+    {
+        int idx = SSL_SESSION_no_cert_in_ticket_get_ex_data_akamai_idx();
+
+        if (SSL_SESSION_get_ex_data(in, idx) != NULL)
+            as.peer = NULL;
+    }
+#endif
+
     ssl_session_sinit(&as.tlsext_hostname, &tlsext_hostname,
                       in->ext.hostname);
     if (in->ext.tick) {

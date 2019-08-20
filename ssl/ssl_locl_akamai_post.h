@@ -92,6 +92,7 @@ SSL_CTX_EX_DATA_AKAMAI *SSL_CTX_get_ex_data_akamai(SSL_CTX* ctx);
 int SSL_get_ex_data_akamai_idx(void);
 SSL_EX_DATA_AKAMAI *SSL_get_ex_data_akamai(SSL* s);
 
+int SSL_SESSION_no_cert_in_ticket_get_ex_data_akamai_idx(void);
 SSL_CTX_SESSION_LIST *SSL_CTX_get0_session_list(SSL_CTX* ctx);
 SSL_CTX_SESSION_LIST *SSL_CTX_SESSION_LIST_new(
     unsigned long (*hash)(const SSL_SESSION *),

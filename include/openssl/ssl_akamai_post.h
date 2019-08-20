@@ -275,6 +275,8 @@ __owur int i2d_SSL_AKAMAI(SSL *in, unsigned char **pp, uint64_t options);
 __owur SSL *d2i_SSL_AKAMAI(SSL **a, SSL_CTX* ctx, const unsigned char **pp,
                            long length);
 
+int SSL_SESSION_set_no_cert_in_ticket(SSL_SESSION *ss, int onoff);
+
 #  ifdef  __cplusplus
 }
 #  endif
