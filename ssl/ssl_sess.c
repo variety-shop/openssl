@@ -21,6 +21,7 @@ static void SSL_SESSION_list_add(SSL_CTX *ctx, SSL_SESSION *s);
 static int remove_session_lock(SSL_CTX *ctx, SSL_SESSION *c, int lck);
 
 #define SESS_TIMEOUT(s) ((s)->time + (s)->timeout)
+DEFINE_STACK_OF(SSL_SESSION)
 
 /*
  * SSL_get_session() and SSL_get1_session() are problematic in TLS1.3 because,
@@ -1061,9 +1062,12 @@ int SSL_set_session_ticket_ext(SSL *s, void *ext_data, int ext_len)
 
 void SSL_CTX_flush_sessions(SSL_CTX *s, long t)
 {
+    STACK_OF(SSL_SESSION) *sk;
     SSL_SESSION *list = NULL;
     SSL_SESSION *current;
     unsigned long i;
+
+    sk = sk_SSL_SESSION_new_null();
 
     CRYPTO_THREAD_write_lock(s->lock);
     i = lh_SSL_SESSION_get_down_load(s->sessions);
@@ -1084,8 +1088,16 @@ void SSL_CTX_flush_sessions(SSL_CTX *s, long t)
             current->not_resumable = 1;
             if (s->remove_session_cb != NULL)
                 s->remove_session_cb(s, current);
-            current->next = list;
-            list = current;
+            /*
+             * Throw the session on a stack, it's entirely plausible
+             * that while freeing outside the critical section, the
+             * session could be re-added, so avoid using the next/prev
+             * pointers. If the stack failed to create, or the session
+             * couldn't be put on the stack, just free it here
+             */
+            if (sk != NULL && sk_SSL_SESSION_push(sk, current))
+                current = NULL;
+            SSL_SESSION_free(current);
         } else {
             break;
         }
@@ -1094,12 +1106,7 @@ void SSL_CTX_flush_sessions(SSL_CTX *s, long t)
     lh_SSL_SESSION_set_down_load(s->sessions, i);
     CRYPTO_THREAD_unlock(s->lock);
 
-    while (list != NULL) {
-        current = list;
-        list = current->next;
-        current->next = NULL;
-        SSL_SESSION_free(current);
-    }
+    sk_SSL_SESSION_pop_free(sk, SSL_SESSION_free);
 }
 
 int ssl_clear_bad_session(SSL *s)
@@ -1180,7 +1187,7 @@ static void SSL_SESSION_list_add(SSL_CTX *ctx, SSL_SESSION *s)
              * one session in the cache it will be caught above
              */
             next = ctx->session_cache_head->next;
-            while (next != NULL) {
+            while (next != &(ctx->session_cache_tail)) {
                 if (t >= SESS_TIMEOUT(next)) {
                     s->next = next;
                     s->prev = next->prev;

@@ -590,7 +590,7 @@ struct ssl_session_st {
     unsigned char *ticket_appdata;
     size_t ticket_appdata_len;
     uint32_t flags;
-    SSL_CTX* owner;
+    SSL_CTX *owner;
     CRYPTO_RWLOCK *lock;
 };
 
